@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
-import type { AssetLiquid, AssetNonLiquid, Investment } from '@/types'
+import { fetchLiquidEntries, sumLiquid } from '@/lib/liquid'
+import type { AssetNonLiquid, Investment } from '@/types'
 
 import { Loader2, ArrowUpRight } from 'lucide-react'
 import {
@@ -21,7 +22,7 @@ const INVESTMENT_CATEGORY_LABELS: Record<string, string> = {
 export default function AssetsOverviewPage() {
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
-  const [liquid, setLiquid] = useState<AssetLiquid[]>([])
+  const [liquidTotal, setLiquidTotal] = useState(0)
   const [nonLiquid, setNonLiquid] = useState<AssetNonLiquid[]>([])
   const [investments, setInvestments] = useState<Investment[]>([])
 
@@ -34,23 +35,22 @@ export default function AssetsOverviewPage() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const [liqR, nlqR, invR] = await Promise.all([
-      supabase.from('assets_liquid').select('*').eq('user_id', user.id),
+    const [liquidEntries, nlqR, invR] = await Promise.all([
+      fetchLiquidEntries(supabase, user.id),
       supabase.from('assets_non_liquid').select('*').eq('user_id', user.id),
       supabase.from('investments').select('*').eq('user_id', user.id),
     ])
-    setLiquid((liqR.data ?? []) as AssetLiquid[])
+    setLiquidTotal(sumLiquid(liquidEntries))
     setNonLiquid((nlqR.data ?? []) as AssetNonLiquid[])
     setInvestments((invR.data ?? []) as Investment[])
     setLoading(false)
   }
 
   const totals = useMemo(() => {
-    const liq = liquid.reduce((s, a) => s + a.balance, 0)
     const nlq = nonLiquid.reduce((s, a) => s + a.current_value, 0)
     const inv = investments.reduce((s, i) => s + (i.total_value || 0), 0)
-    return { liq, nlq, inv, total: liq + nlq + inv }
-  }, [liquid, nonLiquid, investments])
+    return { liq: liquidTotal, nlq, inv, total: liquidTotal + nlq + inv }
+  }, [liquidTotal, nonLiquid, investments])
 
   const compositionBuckets = useMemo(() => [
     { label: 'Aset Likuid',     value: totals.liq, href: '/dashboard/assets/liquid' },
@@ -202,7 +202,7 @@ export default function AssetsOverviewPage() {
 
       {/* Quick links */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <QuickLink href="/dashboard/assets/liquid" title="Aset Likuid" note={`${liquid.length} rekening & kas`} />
+        <QuickLink href="/dashboard/assets/liquid" title="Aset Likuid" note="Akun + aset cair" />
         <QuickLink href="/dashboard/assets/non-liquid" title="Aset Non-Likuid" note={`${nonLiquid.length} aset`} />
         <QuickLink href="/dashboard/assets/investment" title="Investasi" note={`${investments.length} posisi`} />
       </div>

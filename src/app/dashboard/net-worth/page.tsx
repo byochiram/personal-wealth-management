@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { fetchLiquidEntries, sumCashEquivalent, sumReceivable } from '@/lib/liquid'
 import type { NetWorthSnapshot } from '@/types'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -55,13 +56,13 @@ export default function NetWorthPage() {
     if (!user) return
 
     const [
-      liquidRes,
+      liquidEntries,
       nonLiquidRes,
       investmentRes,
       debtRes,
       snapshotRes,
     ] = await Promise.all([
-      supabase.from('assets_liquid').select('type, balance').eq('user_id', user.id),
+      fetchLiquidEntries(supabase, user.id),
       supabase.from('assets_non_liquid').select('category, current_value').eq('user_id', user.id),
       supabase.from('investments').select('total_value').eq('user_id', user.id),
       supabase.from('debts').select('category, remaining').eq('user_id', user.id).eq('is_active', true),
@@ -69,23 +70,17 @@ export default function NetWorthPage() {
     ])
     setSnapshots((snapshotRes.data ?? []) as NetWorthSnapshot[])
 
-    type LiquidRow = { type: string; balance: number }
     type NonLiquidRow = { category: string; current_value: number }
     type InvestmentRow = { total_value: number }
     type DebtRow = { category: string; remaining: number }
 
-    const liquidAssets = (liquidRes.data ?? []) as LiquidRow[]
     const nonLiquidAssets = (nonLiquidRes.data ?? []) as NonLiquidRow[]
     const investments = (investmentRes.data ?? []) as InvestmentRow[]
     const debts = (debtRes.data ?? []) as DebtRow[]
 
-    // Aset Lancar
-    const cashAndEquivalent = liquidAssets
-      .filter((a) => a.type !== 'receivable')
-      .reduce((sum, a) => sum + (a.balance || 0), 0)
-    const receivable = liquidAssets
-      .filter((a) => a.type === 'receivable')
-      .reduce((sum, a) => sum + (a.balance || 0), 0)
+    // Aset Lancar (combined: accounts.current_balance + assets_liquid)
+    const cashAndEquivalent = sumCashEquivalent(liquidEntries)
+    const receivable = sumReceivable(liquidEntries)
 
     // Aset Tidak Lancar
     const property = nonLiquidAssets

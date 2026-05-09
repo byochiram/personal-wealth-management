@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, getMonthName } from '@/lib/utils'
 import { MONTHS } from '@/lib/constants'
+import { fetchLiquidEntries, sumLiquid } from '@/lib/liquid'
 import { useT } from '@/lib/i18n/context'
 import type { Transaction, Investment, CreditCard, Contract } from '@/types'
 
@@ -99,7 +100,7 @@ export default function DashboardPage() {
     const endYear = selectedMonth === 12 ? selectedYear + 1 : selectedYear
     const endDate = `${endYear}-${String(endMonth).padStart(2, '0')}-01`
 
-    const [yearRes, invRes, budgetRes, ccRes, liqRes, debtRes, efRes, ctrRes] = await Promise.all([
+    const [yearRes, invRes, budgetRes, ccRes, liquidEntries, debtRes, efRes, ctrRes] = await Promise.all([
       supabase
         .from('transactions')
         .select('*')
@@ -122,10 +123,7 @@ export default function DashboardPage() {
         .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true),
-      supabase
-        .from('assets_liquid')
-        .select('balance')
-        .eq('user_id', user.id),
+      fetchLiquidEntries(supabase, user.id),
       supabase
         .from('debts')
         .select('remaining')
@@ -143,8 +141,7 @@ export default function DashboardPage() {
         .eq('is_archived', false)
         .order('end_date', { ascending: true }),
     ])
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setLiquidTotal(((liqRes.data ?? []) as any[]).reduce((s, a) => s + (a.balance ?? 0), 0))
+    setLiquidTotal(sumLiquid(liquidEntries))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setDebtTotal(((debtRes.data ?? []) as any[]).reduce((s, d) => s + (d.remaining ?? 0), 0))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
