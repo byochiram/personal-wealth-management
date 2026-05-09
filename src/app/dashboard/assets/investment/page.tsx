@@ -178,6 +178,11 @@ export default function InvestmentOverviewPage() {
         </p>
       </div>
 
+      {/* Currency rates strip — moved here from the bottom (was after categories).
+          Sits between the dark hero and the RDN card so users see FX context
+          first, before drilling into the breakdown. */}
+      <CurrencyRates />
+
       {/* RDN/RDI cash card — total broker cash sitting idle, with per-broker breakdown */}
       {rdnAccounts.length > 0 && (
         <div
@@ -494,10 +499,6 @@ export default function InvestmentOverviewPage() {
         </div>
       </div>
 
-      {/* Currency Rates — moved here from dashboard. More relevant for
-          investment context: USD-denominated holdings, gold rates,
-          FX awareness for crypto investors. */}
-      <CurrencyRates />
     </div>
   )
 }

@@ -14,6 +14,7 @@ import { StockLogo } from '@/components/investment/stock-logo'
 import { StockTickerSearch } from '@/components/investment/stock-ticker-search'
 import { IDX_BROKERS } from '@/lib/idx-brokers'
 import { CryptoLogo } from '@/components/investment/crypto-logo'
+import { CryptoSearch } from '@/components/investment/crypto-search'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog'
@@ -494,6 +495,42 @@ export default function InvestmentCategoryPage() {
                   />
                 </div>
               </>
+            ) : category === 'crypto' ? (
+              <>
+                {/* Crypto category: searchable coin catalog auto-fills name + ticker */}
+                <div className="grid gap-1.5">
+                  <Label>Cari Coin</Label>
+                  <CryptoSearch
+                    value={form.ticker?.split(/[-_]/)[0] ?? ''}
+                    onSelect={(c) =>
+                      setForm({
+                        ...form,
+                        // Yahoo-style ticker so /api/quotes (or our crypto-price endpoint) understands it
+                        ticker: `${c.s}-USD`,
+                        name: c.n,
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-1.5">
+                    <Label>Nama</Label>
+                    <Input
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="auto dari pencarian"
+                    />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label>Ticker</Label>
+                    <Input
+                      value={form.ticker}
+                      onChange={(e) => setForm({ ...form, ticker: e.target.value })}
+                      placeholder="BTC-USD"
+                    />
+                  </div>
+                </div>
+              </>
             ) : (
               <>
                 <div className="grid grid-cols-2 gap-3">
@@ -503,7 +540,7 @@ export default function InvestmentCategoryPage() {
                   </div>
                   <div className="grid gap-1.5">
                     <Label>Ticker (opsional)</Label>
-                    <Input value={form.ticker} onChange={(e) => setForm({ ...form, ticker: e.target.value })} placeholder={category === 'crypto' ? 'BTC-USD' : 'simbol'} />
+                    <Input value={form.ticker} onChange={(e) => setForm({ ...form, ticker: e.target.value })} placeholder="simbol" />
                   </div>
                 </div>
               </>
