@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatCompactCurrency } from '@/lib/utils'
 import {
   INCOME_CATEGORIES,
   EXPENSE_CATEGORIES,
@@ -275,14 +275,14 @@ export default function BudgetingPage() {
   ) {
     return (
       <tr key={`${type}-${category}`} className={bgClass}>
-        <td className="sticky left-0 z-10 border border-[color:var(--border-soft)] px-3 py-1.5 text-sm font-normal bg-inherit whitespace-nowrap">
+        <td className="sticky left-0 z-10 border border-[color:var(--border-soft)] px-2 py-1 text-xs font-normal bg-inherit whitespace-nowrap truncate" title={category}>
           {category}
         </td>
         {Array.from({ length: 12 }, (_, i) => {
           const month = i + 1
           const val = getValue(type, category, month)
           return (
-            <td key={month} className="border border-[color:var(--border-soft)] px-1 py-0.5">
+            <td key={month} className="border border-[color:var(--border-soft)] px-0.5 py-0">
               <input
                 type="text"
                 inputMode="numeric"
@@ -297,14 +297,17 @@ export default function BudgetingPage() {
                   handleCellBlur(type, category, month, raw)
                   e.target.value = raw ? idFormatter.format(raw) : ''
                 }}
-                className="num h-7 w-full text-right text-xs border-0 bg-transparent outline-none focus:bg-white px-1 tabular"
+                className="num h-7 w-full text-right text-[11px] border-0 bg-transparent outline-none focus:bg-white px-1 tabular"
                 style={{ color: 'var(--ink)' }}
               />
             </td>
           )
         })}
-        <td className="num border border-[color:var(--border-soft)] px-3 py-1.5 text-right text-xs font-semibold bg-inherit whitespace-nowrap tabular">
-          {formatCurrency(rowTotal(type, category))}
+        <td
+          className="num border border-[color:var(--border-soft)] px-2 py-1 text-right text-[11px] font-semibold bg-inherit whitespace-nowrap tabular"
+          title={formatCurrency(rowTotal(type, category))}
+        >
+          {formatCompactCurrency(rowTotal(type, category))}
         </td>
       </tr>
     )
@@ -318,19 +321,26 @@ export default function BudgetingPage() {
   ) {
     return (
       <tr className={bgClass}>
-        <td className="sticky left-0 z-10 border border-[color:var(--border-soft)] px-3 py-1.5 text-sm font-bold bg-inherit whitespace-nowrap">
+        <td className="sticky left-0 z-10 border border-[color:var(--border-soft)] px-2 py-1 text-xs font-bold bg-inherit whitespace-nowrap truncate" title={label}>
           {label}
         </td>
-        {Array.from({ length: 12 }, (_, i) => (
-          <td
-            key={i}
-            className="num border border-[color:var(--border-soft)] px-3 py-1.5 text-right text-xs font-bold bg-inherit whitespace-nowrap tabular"
-          >
-            {formatCurrency(sectionMonthTotal(categories, type, i + 1))}
-          </td>
-        ))}
-        <td className="num border border-[color:var(--border-soft)] px-3 py-1.5 text-right text-xs font-bold bg-inherit whitespace-nowrap tabular">
-          {formatCurrency(sectionTotal(categories, type))}
+        {Array.from({ length: 12 }, (_, i) => {
+          const v = sectionMonthTotal(categories, type, i + 1)
+          return (
+            <td
+              key={i}
+              className="num border border-[color:var(--border-soft)] px-1 py-1 text-right text-[11px] font-bold bg-inherit whitespace-nowrap tabular"
+              title={formatCurrency(v)}
+            >
+              {formatCompactCurrency(v)}
+            </td>
+          )
+        })}
+        <td
+          className="num border border-[color:var(--border-soft)] px-2 py-1 text-right text-[11px] font-bold bg-inherit whitespace-nowrap tabular"
+          title={formatCurrency(sectionTotal(categories, type))}
+        >
+          {formatCompactCurrency(sectionTotal(categories, type))}
         </td>
       </tr>
     )
@@ -339,8 +349,8 @@ export default function BudgetingPage() {
   function renderPercentRow() {
     return (
       <tr className="bg-[color:var(--surface-2)]">
-        <td className="sticky left-0 z-10 border border-[color:var(--border-soft)] px-3 py-1.5 text-sm font-semibold italic bg-inherit whitespace-nowrap">
-          Pengeluaran sbg % Pendapatan
+        <td className="sticky left-0 z-10 border border-[color:var(--border-soft)] px-2 py-1 text-xs font-semibold italic bg-inherit whitespace-nowrap">
+          % dari Pendapatan
         </td>
         {Array.from({ length: 12 }, (_, i) => {
           const month = i + 1
@@ -350,13 +360,13 @@ export default function BudgetingPage() {
           return (
             <td
               key={month}
-              className="num border border-[color:var(--border-soft)] px-3 py-1.5 text-right text-xs font-semibold italic bg-inherit whitespace-nowrap tabular"
+              className="num border border-[color:var(--border-soft)] px-1 py-1 text-right text-[11px] font-semibold italic bg-inherit whitespace-nowrap tabular"
             >
               {pct}%
             </td>
           )
         })}
-        <td className="num border border-[color:var(--border-soft)] px-3 py-1.5 text-right text-xs font-semibold italic bg-inherit whitespace-nowrap tabular">
+        <td className="num border border-[color:var(--border-soft)] px-2 py-1 text-right text-[11px] font-semibold italic bg-inherit whitespace-nowrap tabular">
           {totalIncomeYear > 0
             ? ((totalExpenseYear / totalIncomeYear) * 100).toFixed(1)
             : '0.0'}
@@ -371,7 +381,7 @@ export default function BudgetingPage() {
       <tr style={{ background: 'var(--ink)' }}>
         <td
           colSpan={14}
-          className="sticky left-0 z-10 border border-[color:var(--border-soft)] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] bg-inherit"
+          className="sticky left-0 z-10 border border-[color:var(--border-soft)] px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] bg-inherit"
           style={{ color: 'var(--lime-400)' }}
         >
           {label}
@@ -444,22 +454,28 @@ export default function BudgetingPage() {
           <span className="ml-2" style={{ color: 'var(--ink-muted)' }}>Memuat anggaran...</span>
         </div>
       ) : (
+        // Compact 12-month grid — fits typical laptop width without horizontal scroll
         <div className="overflow-x-auto rounded-lg border border-[color:var(--border-soft)]">
-          <table className="w-full border-collapse text-sm">
+          <table className="w-full border-collapse text-sm" style={{ tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: '160px' }} />
+              {SHORT_MONTHS.map((m) => <col key={m} style={{ width: 'auto', minWidth: '64px' }} />)}
+              <col style={{ width: '92px' }} />
+            </colgroup>
             <thead>
               <tr className="bg-[color:var(--surface-alt)]">
-                <th className="sticky left-0 z-20 border border-[color:var(--border-soft)] bg-[color:var(--surface-alt)] px-3 py-2 text-left text-xs font-bold whitespace-nowrap">
+                <th className="sticky left-0 z-20 border border-[color:var(--border-soft)] bg-[color:var(--surface-alt)] px-2 py-1.5 text-left text-[11px] font-bold whitespace-nowrap">
                   Kategori
                 </th>
                 {SHORT_MONTHS.map((m) => (
                   <th
                     key={m}
-                    className="border border-[color:var(--border-soft)] px-3 py-2 text-center text-xs font-bold whitespace-nowrap min-w-[100px]"
+                    className="border border-[color:var(--border-soft)] px-1 py-1.5 text-center text-[11px] font-bold whitespace-nowrap"
                   >
                     {m}
                   </th>
                 ))}
-                <th className="border border-[color:var(--border-soft)] px-3 py-2 text-center text-xs font-bold whitespace-nowrap min-w-[120px]">
+                <th className="border border-[color:var(--border-soft)] px-2 py-1.5 text-center text-[11px] font-bold whitespace-nowrap">
                   Total
                 </th>
               </tr>
