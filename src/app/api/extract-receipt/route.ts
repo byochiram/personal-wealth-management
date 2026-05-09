@@ -56,6 +56,8 @@ Aturan:
 - "type" = selalu "expense" untuk struk belanja
 - "category" = pilih SATU kategori paling cocok dari daftar yang dikasih (contoh: Indomaret/Alfamart → "Makanan", Gojek/Grab → "Transportasi", PLN/PDAM → "Tagihan", Netflix/Spotify → "Langganan")
 - "description" = nama merchant + ringkasan singkat (contoh: "Indomaret - belanja groceries")
+- "payment_method" = cara bayar yang tertera di struk. Pilih satu: "cash" (tunai), "qris", "debit_card", "credit_card", "ewallet" (GoPay/OVO/Dana/ShopeePay/LinkAja), "transfer" (transfer bank), atau "unknown" kalau ga ada info
+- "payment_detail" = nama bank/wallet/issuer yang spesifik kalau ada (contoh: "BCA", "Mandiri", "GoPay", "OVO", "BNI"). Kalau ga ada info atau tunai, kosongkan dengan ""
 - "confidence" = "high" (struk jelas), "medium" (sebagian buram/ambigu), "low" (sangat sulit dibaca)
 
 Kalau ada field yang ga bisa dibaca dengan yakin, isi dengan nilai default yang masuk akal dan turunkan confidence-nya. JANGAN halusinasi nominal.`
@@ -89,6 +91,15 @@ const RESPONSE_SCHEMA: Anthropic.Tool.InputSchema = {
       type: 'string',
       description: 'Deskripsi singkat transaksi',
     },
+    payment_method: {
+      type: 'string',
+      enum: ['cash', 'qris', 'debit_card', 'credit_card', 'ewallet', 'transfer', 'unknown'],
+      description: 'Cara pembayaran yang tertera di struk',
+    },
+    payment_detail: {
+      type: 'string',
+      description: 'Nama bank/wallet spesifik (BCA/Mandiri/GoPay/OVO dll). Kosongkan jika tidak ada.',
+    },
     confidence: {
       type: 'string',
       enum: ['high', 'medium', 'low'],
@@ -98,7 +109,7 @@ const RESPONSE_SCHEMA: Anthropic.Tool.InputSchema = {
       description: 'Catatan tambahan (opsional, untuk hal yang ga yakin)',
     },
   },
-  required: ['merchant', 'date', 'total', 'type', 'category', 'description', 'confidence'],
+  required: ['merchant', 'date', 'total', 'type', 'category', 'description', 'payment_method', 'confidence'],
   additionalProperties: false,
 }
 

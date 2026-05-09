@@ -40,7 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Pencil, Trash2, Plus, Loader2, ArrowLeftRight, Download, Upload, Sparkles, Camera, X, ScanLine } from 'lucide-react'
+import { Pencil, Trash2, Plus, Loader2, ArrowLeftRight, Download, Upload, Sparkles, Camera, X, ScanLine, Star } from 'lucide-react'
 
 type TransactionType = 'income' | 'expense' | 'saving' | 'investment'
 
@@ -184,6 +184,67 @@ export default function TransactionsPage() {
   const [extractError, setExtractError] = useState<string | null>(null)
   const [extractConfidence, setExtractConfidence] = useState<'high' | 'medium' | 'low' | null>(null)
 
+  // Smart default account (3-layer fallback: AI / user-default / last-used / first)
+  const [defaultAccountId, setDefaultAccountId] = useState<string | null>(null)
+  const [accountSource, setAccountSource] = useState<'ai' | 'default' | 'last_used' | 'first' | null>(null)
+  const [settingDefault, setSettingDefault] = useState(false)
+
+  type ExtractedPayment = { payment_method?: string; payment_detail?: string }
+
+  function pickAccount(extracted?: ExtractedPayment): { id: string; source: 'ai' | 'default' | 'last_used' | 'first' } | null {
+    if (accounts.length === 0 && creditCards.length === 0) return null
+    const allAccounts = [
+      ...accounts.map((a) => ({ id: a.id, name: a.name })),
+      ...creditCards.map((c) => ({ id: c.id, name: `Kredit ${c.name}` })),
+    ]
+
+    // Layer 1: AI-detected payment match
+    const detail = extracted?.payment_detail?.trim().toLowerCase()
+    if (detail && detail.length > 1) {
+      const match = allAccounts.find((a) => {
+        const n = a.name.toLowerCase()
+        return n.includes(detail) || detail.includes(n)
+      })
+      if (match) return { id: match.id, source: 'ai' }
+    }
+    // Also try matching credit_card method to any credit card in list
+    if (extracted?.payment_method === 'credit_card' && creditCards.length > 0) {
+      return { id: creditCards[0].id, source: 'ai' }
+    }
+
+    // Layer 2: User's saved default
+    if (defaultAccountId && allAccounts.some((a) => a.id === defaultAccountId)) {
+      return { id: defaultAccountId, source: 'default' }
+    }
+
+    // Layer 3: Last used (from most recent transaction)
+    const lastTx = transactions.find((tx) => tx.account_id)
+    if (lastTx?.account_id && allAccounts.some((a) => a.id === lastTx.account_id)) {
+      return { id: lastTx.account_id, source: 'last_used' }
+    }
+
+    // Layer 4: First in list
+    return { id: allAccounts[0].id, source: 'first' }
+  }
+
+  async function handleSetDefault() {
+    if (!form.account_id) return
+    setSettingDefault(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setSettingDefault(false); return }
+    const { error } = await supabase
+      .from('profiles')
+      .update({ default_account_id: form.account_id })
+      .eq('id', user.id)
+    setSettingDefault(false)
+    if (error) {
+      alert(`Gagal set default: ${error.message}`)
+      return
+    }
+    setDefaultAccountId(form.account_id)
+    setAccountSource('default')
+  }
+
   function resetReceipt() {
     if (receiptPreviewUrl) URL.revokeObjectURL(receiptPreviewUrl)
     setReceiptFile(null)
@@ -226,8 +287,12 @@ export default function TransactionsPage() {
         type: 'income' | 'expense' | 'saving' | 'investment'
         category: string
         description: string
+        payment_method?: string
+        payment_detail?: string
         confidence: 'high' | 'medium' | 'low'
       }
+      // Re-pick account using AI-detected payment info (overrides default if matches)
+      const picked = pickAccount({ payment_method: d.payment_method, payment_detail: d.payment_detail })
       setForm((prev) => ({
         ...prev,
         date: d.date || prev.date,
@@ -235,7 +300,10 @@ export default function TransactionsPage() {
         category: d.category || prev.category,
         description: d.description || d.merchant || prev.description,
         amount: d.total || prev.amount,
+        // Only override account if AI-matched (don't overwrite user's existing default)
+        account_id: picked?.source === 'ai' ? picked.id : prev.account_id || picked?.id || '',
       }))
+      if (picked) setAccountSource(picked.source)
       setExtractConfidence(d.confidence)
     } catch (err) {
       setExtractError(err instanceof Error ? err.message : 'Gagal memproses struk')
@@ -332,7 +400,7 @@ export default function TransactionsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const [txRes, accRes, ccRes, rulesRes] = await Promise.all([
+    const [txRes, accRes, ccRes, rulesRes, profRes] = await Promise.all([
       supabase
         .from('transactions')
         .select('*')
@@ -354,18 +422,26 @@ export default function TransactionsPage() {
         .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true),
+      supabase
+        .from('profiles')
+        .select('default_account_id')
+        .eq('id', user.id)
+        .maybeSingle(),
     ])
 
     if (txRes.data) setTransactions(txRes.data)
     if (accRes.data) setAccounts(accRes.data)
     if (ccRes.data) setCreditCards(ccRes.data as CreditCard[])
     if (rulesRes.data) setRules(rulesRes.data as CategorizationRule[])
+    if (profRes.data?.default_account_id) setDefaultAccountId(profRes.data.default_account_id as string)
     setLoading(false)
   }
 
   function openAddDialog() {
     setEditingId(null)
-    setForm(emptyForm)
+    const picked = pickAccount()
+    setForm({ ...emptyForm, account_id: picked?.id ?? '' })
+    setAccountSource(picked?.source ?? null)
     resetReceipt()
     setDialogOpen(true)
   }
@@ -380,6 +456,7 @@ export default function TransactionsPage() {
       description: tx.description,
       amount: tx.amount,
     })
+    setAccountSource(null)
     resetReceipt()
     setDialogOpen(true)
   }
@@ -784,7 +861,10 @@ export default function TransactionsPage() {
               <Label>Akun</Label>
               <Select
                 value={form.account_id}
-                onValueChange={(v) => setForm({ ...form, account_id: v ?? '' })}
+                onValueChange={(v) => {
+                  setForm({ ...form, account_id: v ?? '' })
+                  setAccountSource(null) // user manually picked
+                }}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Pilih akun" />
@@ -802,6 +882,43 @@ export default function TransactionsPage() {
                   ))}
                 </SelectContent>
               </Select>
+              {/* Source pill + Set-as-default link */}
+              {!editingId && form.account_id && (
+                <div className="flex items-center justify-between text-xs">
+                  <span>
+                    {accountSource === 'ai' && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-purple-700">
+                        <Sparkles className="size-3" /> AI deteksi dari struk
+                      </span>
+                    )}
+                    {accountSource === 'default' && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-blue-700">
+                        <Star className="size-3 fill-blue-700" /> Akun default
+                      </span>
+                    )}
+                    {accountSource === 'last_used' && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">
+                        Terakhir dipakai
+                      </span>
+                    )}
+                  </span>
+                  {form.account_id !== defaultAccountId && (
+                    <button
+                      type="button"
+                      onClick={handleSetDefault}
+                      disabled={settingDefault}
+                      className="text-muted-foreground hover:text-foreground hover:underline disabled:opacity-50"
+                    >
+                      {settingDefault ? 'Menyimpan...' : 'Jadikan akun default'}
+                    </button>
+                  )}
+                  {form.account_id === defaultAccountId && accountSource !== 'default' && (
+                    <span className="text-muted-foreground inline-flex items-center gap-1">
+                      <Star className="size-3 fill-current" /> Default
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Type */}
