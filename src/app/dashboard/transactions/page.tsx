@@ -385,9 +385,23 @@ export default function TransactionsPage() {
   }
 
   async function handleSave() {
+    // Client-side validation with clear messages
+    if (!form.account_id) {
+      alert('Pilih akun dulu sebelum simpan transaksi.')
+      return
+    }
+    if (!form.category) {
+      alert('Pilih kategori dulu sebelum simpan transaksi.')
+      return
+    }
+    if (!form.amount || form.amount <= 0) {
+      alert('Jumlah harus lebih dari 0.')
+      return
+    }
+
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { setSaving(false); return }
 
     // Upload receipt to Storage first (if attached on a NEW transaction)
     let receiptPath: string | null = null
@@ -416,10 +430,14 @@ export default function TransactionsPage() {
     }
     if (receiptPath) payload.receipt_url = receiptPath
 
-    if (editingId) {
-      await supabase.from('transactions').update(payload).eq('id', editingId)
-    } else {
-      await supabase.from('transactions').insert(payload)
+    const { error: saveErr } = editingId
+      ? await supabase.from('transactions').update(payload).eq('id', editingId)
+      : await supabase.from('transactions').insert(payload)
+
+    if (saveErr) {
+      setSaving(false)
+      alert(`Gagal simpan transaksi: ${saveErr.message}`)
+      return
     }
 
     // If account is a credit card and it's an expense, add to the card's outstanding.
