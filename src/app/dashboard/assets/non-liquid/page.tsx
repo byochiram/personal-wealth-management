@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import type { AssetNonLiquid } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -296,7 +297,11 @@ export default function NonLiquidAssetsPage() {
               <div className="grid gap-1.5">
                 <Label>Kategori</Label>
                 <Select value={form.category} onValueChange={(v) => v && setForm({ ...form, category: v as Category })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih kategori">
+                      {(v) => CAT[v as Category]?.label ?? 'Pilih kategori'}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {(Object.keys(CAT) as Category[]).map((k) => (
                       <SelectItem key={k} value={k}>{CAT[k].label}</SelectItem>
@@ -312,11 +317,11 @@ export default function NonLiquidAssetsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label>Harga Beli</Label>
-                <Input type="number" value={form.purchase_value || ''} onChange={(e) => setForm({ ...form, purchase_value: Number(e.target.value) || 0 })} />
+                <NumberInput value={form.purchase_value} onChange={(n) => setForm({ ...form, purchase_value: n })} placeholder="0" />
               </div>
               <div className="grid gap-1.5">
                 <Label>Nilai Sekarang</Label>
-                <Input type="number" value={form.current_value || ''} onChange={(e) => setForm({ ...form, current_value: Number(e.target.value) || 0 })} />
+                <NumberInput value={form.current_value} onChange={(n) => setForm({ ...form, current_value: n })} placeholder="0" />
               </div>
             </div>
             <div className="grid gap-1.5">

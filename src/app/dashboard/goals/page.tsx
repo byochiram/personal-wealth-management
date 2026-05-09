@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/utils'
 import type { Goal } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
@@ -233,7 +234,11 @@ export default function GoalsPage() {
             <div className="grid gap-1.5">
               <Label>Kategori</Label>
               <Select value={form.category} onValueChange={(v) => v && setForm({ ...form, category: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih kategori">
+                    {(v) => GOAL_CATEGORIES[v] ?? v}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   {Object.entries(GOAL_CATEGORIES).map(([k, v]) => (
                     <SelectItem key={k} value={k}>{v}</SelectItem>
@@ -244,11 +249,11 @@ export default function GoalsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label>Target (Rp)</Label>
-                <Input type="number" min={0} value={form.target_amount || ''} onChange={(e) => setForm({ ...form, target_amount: Number(e.target.value) || 0 })} />
+                <NumberInput value={form.target_amount} onChange={(n) => setForm({ ...form, target_amount: n })} placeholder="0" />
               </div>
               <div className="grid gap-1.5">
                 <Label>Terkumpul (Rp)</Label>
-                <Input type="number" min={0} value={form.current_amount || ''} onChange={(e) => setForm({ ...form, current_amount: Number(e.target.value) || 0 })} />
+                <NumberInput value={form.current_amount} onChange={(n) => setForm({ ...form, current_amount: n })} placeholder="0" />
               </div>
             </div>
             <div className="grid gap-1.5">

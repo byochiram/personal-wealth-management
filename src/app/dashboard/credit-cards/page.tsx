@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Account, CreditCard, CreditCardPayment } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
@@ -379,11 +380,11 @@ export default function CreditCardsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label>Limit (Rp)</Label>
-                <Input type="number" min={0} value={cardForm.credit_limit || ''} onChange={(e) => setCardForm({ ...cardForm, credit_limit: Number(e.target.value) || 0 })} />
+                <NumberInput value={cardForm.credit_limit} onChange={(n) => setCardForm({ ...cardForm, credit_limit: n })} placeholder="0" />
               </div>
               <div className="grid gap-1.5">
                 <Label>Outstanding (Rp)</Label>
-                <Input type="number" min={0} value={cardForm.current_balance || ''} onChange={(e) => setCardForm({ ...cardForm, current_balance: Number(e.target.value) || 0 })} />
+                <NumberInput value={cardForm.current_balance} onChange={(n) => setCardForm({ ...cardForm, current_balance: n })} placeholder="0" />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -435,7 +436,7 @@ export default function CreditCardsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label>Jumlah Bayar</Label>
-                <Input type="number" min={0} value={payForm.amount || ''} onChange={(e) => setPayForm({ ...payForm, amount: Number(e.target.value) || 0 })} />
+                <NumberInput value={payForm.amount} onChange={(n) => setPayForm({ ...payForm, amount: n })} placeholder="0" />
               </div>
               <div className="grid gap-1.5">
                 <Label>Tanggal</Label>

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
 import type { Debt } from '@/types'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Snowflake, TrendingDown, Target, Loader2, Zap, Flame } from 'lucide-react'
 
@@ -94,12 +95,10 @@ export default function DebtStrategyPage() {
             </p>
             <div className="mt-3 flex items-center gap-3">
               <div className="text-lg font-semibold" style={{ color: 'var(--ink-soft)' }}>Rp</div>
-              <Input
+              <NumberInput
                 id="extra"
-                type="number"
-                min={0}
-                value={extraPayment || ''}
-                onChange={(e) => setExtraPayment(Number(e.target.value) || 0)}
+                value={extraPayment}
+                onChange={(n) => setExtraPayment(n)}
                 placeholder="0"
                 className="flex-1 text-lg"
               />

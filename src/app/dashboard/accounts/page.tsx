@@ -347,7 +347,9 @@ export default function AccountsPage() {
                 onValueChange={(v) => setForm({ ...form, type: (v ?? 'bank') as AccountType })}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder="Pilih tipe">
+                    {(v) => ACCOUNT_TYPES[v as AccountType] ?? 'Pilih tipe'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {(Object.keys(ACCOUNT_TYPES) as AccountType[]).map((t) => (

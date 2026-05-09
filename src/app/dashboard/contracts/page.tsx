@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Contract, ContractCategory, ContractFrequency } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -288,7 +289,11 @@ export default function ContractsPage() {
                   value={form.category}
                   onValueChange={(v) => v && setForm({ ...form, category: v as ContractCategory })}
                 >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih kategori">
+                      {(v) => CAT[v as ContractCategory]?.label ?? 'Pilih kategori'}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {(Object.keys(CAT) as ContractCategory[]).map((k) => (
                       <SelectItem key={k} value={k}>{CAT[k].label}</SelectItem>
@@ -334,10 +339,9 @@ export default function ContractsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label>Biaya</Label>
-                <Input
-                  type="number"
-                  value={form.cost ?? ''}
-                  onChange={(e) => setForm({ ...form, cost: e.target.value ? Number(e.target.value) : null })}
+                <NumberInput
+                  value={form.cost ?? 0}
+                  onChange={(n) => setForm({ ...form, cost: n || null })}
                   placeholder="0"
                 />
               </div>

@@ -12,6 +12,7 @@ import {
 } from '@/lib/liquid'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -314,7 +315,16 @@ export default function LiquidAssetsPage() {
             <div className="grid gap-1.5">
               <Label>Tipe</Label>
               <Select value={form.type} onValueChange={(v) => v && setForm({ ...form, type: v as FormState['type'] })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih tipe">
+                    {(v) => ({
+                      receivable: '🤝 Piutang',
+                      cash: '💵 Kas (non-transaksional)',
+                      bank: '🏦 Bank (terkunci/non-transaksional)',
+                      digital_wallet: '📱 E-Wallet (cadangan)',
+                    } as Record<string, string>)[v] ?? 'Pilih tipe'}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="receivable">🤝 Piutang</SelectItem>
                   <SelectItem value="cash">💵 Kas (non-transaksional)</SelectItem>
@@ -325,7 +335,7 @@ export default function LiquidAssetsPage() {
             </div>
             <div className="grid gap-1.5">
               <Label>Saldo (Rp)</Label>
-              <Input type="number" value={form.balance || ''} onChange={(e) => setForm({ ...form, balance: Number(e.target.value) || 0 })} />
+              <NumberInput value={form.balance} onChange={(n) => setForm({ ...form, balance: n })} placeholder="0" />
             </div>
           </div>
           <DialogFooter>

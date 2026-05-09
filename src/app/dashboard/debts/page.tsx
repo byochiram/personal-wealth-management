@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Debt } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -268,7 +269,14 @@ export default function DebtsOverviewPage() {
               <div className="grid gap-1.5">
                 <Label>Kategori</Label>
                 <Select value={form.category} onValueChange={(v) => v && setForm({ ...form, category: v, type: '' })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih kategori">
+                      {(v) => {
+                        const c = DEBT_CATEGORY_LABELS[v as keyof typeof DEBT_CATEGORY_LABELS]
+                        return c ? `${c.emoji} ${c.label}` : 'Pilih kategori'
+                      }}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {Object.entries(DEBT_CATEGORY_LABELS).map(([k, v]) => (
                       <SelectItem key={k} value={k}>{v.emoji} {v.label}</SelectItem>
@@ -291,11 +299,11 @@ export default function DebtsOverviewPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label>Pokok Awal</Label>
-                <Input type="number" value={form.principal || ''} onChange={(e) => setForm({ ...form, principal: Number(e.target.value) || 0 })} />
+                <NumberInput value={form.principal} onChange={(n) => setForm({ ...form, principal: n })} placeholder="0" />
               </div>
               <div className="grid gap-1.5">
                 <Label>Sisa</Label>
-                <Input type="number" value={form.remaining || ''} onChange={(e) => setForm({ ...form, remaining: Number(e.target.value) || 0 })} />
+                <NumberInput value={form.remaining} onChange={(n) => setForm({ ...form, remaining: n })} placeholder="0" />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -305,7 +313,7 @@ export default function DebtsOverviewPage() {
               </div>
               <div className="grid gap-1.5">
                 <Label>Cicilan/bln</Label>
-                <Input type="number" value={form.monthly_payment || ''} onChange={(e) => setForm({ ...form, monthly_payment: Number(e.target.value) || 0 })} />
+                <NumberInput value={form.monthly_payment} onChange={(n) => setForm({ ...form, monthly_payment: n })} placeholder="0" />
               </div>
               <div className="grid gap-1.5">
                 <Label>Jatuh Tempo</Label>

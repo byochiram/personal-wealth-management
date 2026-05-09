@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Debt } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
@@ -165,7 +166,7 @@ export default function DebtPaymentsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label>Jumlah</Label>
-                <Input type="number" min={0} value={form.amount || ''} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) || 0 })} />
+                <NumberInput value={form.amount} onChange={(n) => setForm({ ...form, amount: n })} placeholder="0" />
               </div>
               <div className="grid gap-1.5">
                 <Label>Tanggal</Label>

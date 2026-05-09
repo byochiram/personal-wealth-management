@@ -20,6 +20,7 @@ import {
   Loader2, Plus, Pencil, Trash2, RefreshCw, TrendingUp, TrendingDown,
   LineChart, Coins,
 } from 'lucide-react'
+import { NumberInput } from '@/components/ui/number-input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { StockLogPanel } from '@/components/investment/stock-log-panel'
 import { DividendsPanel } from '@/components/investment/dividends-panel'
@@ -427,11 +428,11 @@ export default function InvestmentCategoryPage() {
               </div>
               <div className="grid gap-1.5">
                 <Label>Avg Cost</Label>
-                <Input type="number" value={form.avg_cost || ''} onChange={(e) => setForm({ ...form, avg_cost: Number(e.target.value) || 0 })} />
+                <NumberInput value={form.avg_cost} onChange={(n) => setForm({ ...form, avg_cost: n })} placeholder="0" />
               </div>
               <div className="grid gap-1.5">
                 <Label>Harga Saat Ini</Label>
-                <Input type="number" value={form.current_price || ''} onChange={(e) => setForm({ ...form, current_price: Number(e.target.value) || 0 })} />
+                <NumberInput value={form.current_price} onChange={(n) => setForm({ ...form, current_price: n })} placeholder="0" />
               </div>
             </div>
             <div className="grid gap-1.5">

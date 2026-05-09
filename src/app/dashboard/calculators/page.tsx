@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { formatCurrency } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -396,7 +397,13 @@ function TaxCalculator() {
           <div className="grid gap-1.5">
             <Label>Status Keluarga (PTKP)</Label>
             <Select value={status} onValueChange={(v) => v && setStatus(v as keyof typeof PTKP)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih status">
+                  {(v) => v && PTKP[v as keyof typeof PTKP] !== undefined
+                    ? `${v} — ${formatCurrency(PTKP[v as keyof typeof PTKP])}`
+                    : 'Pilih status'}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 {Object.entries(PTKP).map(([k, v]) => (
                   <SelectItem key={k} value={k}>{k} — {formatCurrency(v)}</SelectItem>
@@ -524,7 +531,7 @@ function Row({ label, v, onChange }: { label: string; v: number; onChange: (n: n
   return (
     <div className="grid gap-1.5">
       <Label>{label}</Label>
-      <Input type="number" min={0} value={v || ''} onChange={(e) => onChange(Number(e.target.value) || 0)} />
+      <NumberInput value={v} onChange={onChange} placeholder="0" />
     </div>
   )
 }

@@ -330,7 +330,11 @@ export default function RecurringPage() {
               <div className="grid gap-1.5">
                 <Label>Akun</Label>
                 <Select value={form.account_id} onValueChange={(v) => setForm({ ...form, account_id: v ?? '' })}>
-                  <SelectTrigger><SelectValue placeholder="Pilih akun" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih akun">
+                      {(v) => accounts.find((a) => a.id === v)?.name || 'Pilih akun'}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {accounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                   </SelectContent>

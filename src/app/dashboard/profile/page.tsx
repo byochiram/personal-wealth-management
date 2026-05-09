@@ -411,7 +411,16 @@ export default function ProfilePage() {
               <div className="grid gap-1.5">
                 <Label>Mata uang</Label>
                 <Select value={profile.currency} onValueChange={(v) => setProfile({ ...profile, currency: v ?? 'IDR' })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih mata uang">
+                      {(v) => ({
+                        IDR: 'Rupiah (Rp)',
+                        USD: 'US Dollar ($)',
+                        SGD: 'Singapore Dollar (S$)',
+                        MYR: 'Ringgit (RM)',
+                      } as Record<string, string>)[v] ?? 'Rupiah (Rp)'}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="IDR">Rupiah (Rp)</SelectItem>
                     <SelectItem value="USD">US Dollar ($)</SelectItem>
@@ -423,7 +432,11 @@ export default function ProfilePage() {
               <div className="grid gap-1.5">
                 <Label>Bahasa</Label>
                 <Select value={profile.language} onValueChange={(v) => setProfile({ ...profile, language: v ?? 'id' })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih bahasa">
+                      {(v) => v === 'en' ? 'English' : 'Bahasa Indonesia'}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="id">Bahasa Indonesia</SelectItem>
                     <SelectItem value="en">English</SelectItem>

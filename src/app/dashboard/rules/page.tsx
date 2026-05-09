@@ -180,7 +180,16 @@ export default function RulesPage() {
               <div className="grid gap-1.5">
                 <Label>Tipe</Label>
                 <Select value={form.type} onValueChange={(v) => v && setForm({ ...form, type: v as TxType, category: categoriesFor(v as TxType)[0] })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih tipe">
+                      {(v) => ({
+                        expense: 'Pengeluaran',
+                        income: 'Pemasukan',
+                        saving: 'Tabungan',
+                        investment: 'Investasi',
+                      } as Record<string, string>)[v] ?? 'Pilih tipe'}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="expense">Pengeluaran</SelectItem>
                     <SelectItem value="income">Pemasukan</SelectItem>
@@ -192,7 +201,11 @@ export default function RulesPage() {
               <div className="grid gap-1.5">
                 <Label>Kategori</Label>
                 <Select value={form.category} onValueChange={(v) => v && setForm({ ...form, category: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih kategori">
+                      {(v) => v || 'Pilih kategori'}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {categoriesFor(form.type).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>

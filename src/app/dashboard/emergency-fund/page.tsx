@@ -7,6 +7,7 @@ import type { EmergencyFund, EmergencyFundLocation } from '@/types'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -262,12 +263,10 @@ export default function EmergencyFundPage() {
             {/* Monthly Expenses */}
             <div className="grid gap-1.5">
               <Label htmlFor="monthly-expenses">Pengeluaran Bulanan (Rp)</Label>
-              <Input
+              <NumberInput
                 id="monthly-expenses"
-                type="number"
-                min={0}
-                value={monthlyExpenses || ''}
-                onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
+                value={monthlyExpenses}
+                onChange={(n) => setMonthlyExpenses(n)}
                 placeholder="0"
               />
             </div>
@@ -286,12 +285,10 @@ export default function EmergencyFundPage() {
             {/* Target */}
             <div className="grid gap-1.5">
               <Label htmlFor="target">Target Anda (Rp)</Label>
-              <Input
+              <NumberInput
                 id="target"
-                type="number"
-                min={0}
-                value={targetAmount || ''}
-                onChange={(e) => setTargetAmount(Number(e.target.value))}
+                value={targetAmount}
+                onChange={(n) => setTargetAmount(n)}
                 placeholder="0"
               />
             </div>
@@ -436,14 +433,10 @@ export default function EmergencyFundPage() {
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="loc-amount">Jumlah (Rp)</Label>
-              <Input
+              <NumberInput
                 id="loc-amount"
-                type="number"
-                min={0}
-                value={locationForm.amount || ''}
-                onChange={(e) =>
-                  setLocationForm({ ...locationForm, amount: Number(e.target.value) })
-                }
+                value={locationForm.amount}
+                onChange={(n) => setLocationForm({ ...locationForm, amount: n })}
                 placeholder="0"
               />
             </div>
