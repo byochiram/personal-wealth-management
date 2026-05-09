@@ -5,9 +5,11 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatCompactCurrency } from '@/lib/utils'
 import { INVESTMENT_SUBCATS } from '@/lib/constants'
+import { getInvestmentVisual } from '@/lib/investment-visual'
 import type { Investment } from '@/types'
 import { Loader2, ArrowUpRight, TrendingUp, TrendingDown, Percent, Wallet } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import { CurrencyRates } from '@/components/investment/currency-rates'
 
 const CAT_LABELS: Record<string, string> = {
   stock: 'Saham', mutual_fund: 'Reksa Dana', crypto: 'Crypto',
@@ -349,23 +351,69 @@ export default function InvestmentOverviewPage() {
               const pl = data.market - data.invested
               const pct = data.invested > 0 ? (pl / data.invested) * 100 : 0
               const plUp = pl >= 0
+              const visual = getInvestmentVisual(sc.slug)
+              const Icon = visual.icon
+              const hasPosition = data.count > 0
               return (
                 <Link
                   key={sc.slug}
                   href={`/dashboard/assets/investment/${sc.slug}`}
-                  className="group relative rounded-lg p-4 bg-white border border-[var(--border-soft)] hover:border-[var(--ink)] transition-colors"
+                  className="group relative rounded-xl p-4 transition-all hover:shadow-md hover:-translate-y-0.5 overflow-hidden"
+                  style={{
+                    background: hasPosition ? '#FFFFFF' : visual.bgTint,
+                    border: `1px solid ${hasPosition ? visual.borderTint : 'var(--border-soft)'}`,
+                  }}
                 >
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold" style={{ color: 'var(--ink)' }}>{sc.label}</p>
-                    <ArrowUpRight className="h-4 w-4 opacity-30 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
+                  {/* Decorative gradient orb in corner */}
+                  <div
+                    className="absolute -top-6 -right-6 size-20 rounded-full pointer-events-none transition-opacity group-hover:opacity-100"
+                    style={{
+                      background: visual.gradient,
+                      opacity: hasPosition ? 0.10 : 0.06,
+                      filter: 'blur(8px)',
+                    }}
+                    aria-hidden="true"
+                  />
+
+                  <div className="relative flex items-start justify-between gap-2">
+                    <div
+                      className="size-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
+                      style={{ background: visual.gradient, color: '#FFFFFF' }}
+                    >
+                      <Icon className="size-5" strokeWidth={2} />
+                    </div>
+                    <ArrowUpRight
+                      className="size-4 opacity-30 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition shrink-0 mt-1.5"
+                      style={{ color: visual.fg }}
+                    />
                   </div>
-                  <p className="num text-xl mt-2 tabular font-semibold" style={{ color: 'var(--ink)' }}>
+
+                  <p
+                    className="font-semibold text-sm mt-3 tracking-tight"
+                    style={{ color: 'var(--ink)' }}
+                  >
+                    {sc.label}
+                  </p>
+
+                  <p
+                    className="num text-lg mt-1 tabular font-semibold"
+                    style={{ color: 'var(--ink)' }}
+                  >
                     {formatCurrency(data.market)}
                   </p>
-                  <div className="mt-1 flex items-center justify-between text-[11px]" style={{ color: 'var(--ink-soft)' }}>
-                    <span>{data.count} posisi</span>
+
+                  <div className="mt-1.5 flex items-center justify-between text-[11px]">
+                    <span style={{ color: 'var(--ink-soft)' }}>
+                      {hasPosition ? `${data.count} posisi` : 'Belum ada posisi'}
+                    </span>
                     {data.invested > 0 && (
-                      <span className="num font-medium" style={{ color: plUp ? 'var(--lime-700)' : 'var(--danger)' }}>
+                      <span
+                        className="num font-semibold tabular px-1.5 py-0.5 rounded"
+                        style={{
+                          color: plUp ? '#059669' : '#DC2626',
+                          background: plUp ? 'rgba(16,185,129,0.10)' : 'rgba(239,68,68,0.10)',
+                        }}
+                      >
                         {plUp ? '+' : ''}{pct.toFixed(2)}%
                       </span>
                     )}
@@ -376,6 +424,11 @@ export default function InvestmentOverviewPage() {
           </div>
         </div>
       </div>
+
+      {/* Currency Rates — moved here from dashboard. More relevant for
+          investment context: USD-denominated holdings, gold rates,
+          FX awareness for crypto investors. */}
+      <CurrencyRates />
     </div>
   )
 }

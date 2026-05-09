@@ -10,7 +10,6 @@ import { useT } from '@/lib/i18n/context'
 import { GettingStarted } from '@/components/dashboard/getting-started'
 import { AIInsightsCard } from '@/components/dashboard/ai-insights'
 import { MoneyFlowSankey, type FlowKind } from '@/components/dashboard/money-flow-sankey'
-import { CurrencyRates } from '@/components/dashboard/currency-rates'
 import type { Transaction, Investment, CreditCard, Contract } from '@/types'
 
 import {
@@ -404,10 +403,6 @@ export default function DashboardPage() {
         selectedMonth={selectedMonth}
         goals={activeGoals}
       />
-
-      {/* Currency rates strip — IDR vs major currencies, useful for travelers
-          and for users with USD/SGD investments to gauge portfolio value */}
-      <CurrencyRates />
 
       {/* Phase 9 — Money Flow Sankey: Pemasukan ↔ Penggunaan (bipartite) */}
       <div className="s-card p-4 sm:p-6">

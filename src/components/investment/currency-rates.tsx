@@ -1,15 +1,13 @@
 'use client'
 
 /**
- * Currency Rates widget — IDR rates for the major currencies most
- * Indonesian users care about. Uses the same /api/quotes endpoint
- * (Yahoo Finance) that powers stock prices, just with FX tickers
- * like USDIDR=X.
+ * Currency Rates widget — IDR rates for major currencies. Lives on the
+ * Investment page since that's where FX rates actually matter
+ * (USD-denominated stocks, gold pricing, crypto FX awareness, etc.).
  *
- * Rates are cached 5 min server-side (price_snapshots table) so
- * spamming refresh is cheap.
- *
- * Compact horizontal scroller on mobile, 4-column grid on desktop.
+ * Uses the same /api/quotes endpoint (Yahoo Finance) that powers
+ * stock prices, just with FX tickers like USDIDR=X. Server-side
+ * cached 5 min in price_snapshots.
  */
 
 import { useEffect, useState } from 'react'
@@ -80,9 +78,9 @@ export function CurrencyRates() {
     <div className="s-card p-4 sm:p-5">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="caps">Kurs Hari Ini</p>
+          <p className="caps">Kurs Mata Uang</p>
           <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>
-            1 unit ke Rupiah · {updatedAt
+            1 unit ke Rupiah · update {updatedAt
               ? updatedAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
               : '—'}
           </p>
