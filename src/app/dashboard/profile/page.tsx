@@ -113,21 +113,59 @@ export default function ProfilePage() {
     if (!u) { setLoading(false); return }
     setUser({ id: u.id, email: u.email ?? '' })
 
-    const [pRes, sRes, accRes, txRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', u.id).maybeSingle(),
-      supabase.from('subscriptions').select('plan_id, status, started_at, expires_at').eq('user_id', u.id).eq('status', 'active').order('started_at', { ascending: false }).limit(1).maybeSingle(),
-      supabase.from('accounts').select('id', { count: 'exact', head: true }).eq('user_id', u.id),
-      supabase.from('transactions').select('id', { count: 'exact', head: true }).eq('user_id', u.id),
-    ])
+    // Profile is required — others are best-effort (gracefully degrade if
+    // migration 014 hasn't been applied yet)
+    const pRes = await supabase.from('profiles').select('*').eq('id', u.id).maybeSingle()
 
-    if (pRes.data) setProfile(pRes.data as Profile)
-    if (sRes.data) {
-      setSubscription(sRes.data as Subscription)
-      const planRes = await supabase.from('plans').select('id, name, price_idr, ai_credits_monthly').eq('id', (sRes.data as Subscription).plan_id).maybeSingle()
-      if (planRes.data) setPlan(planRes.data as Plan)
+    // Hydrate profile with safe defaults so the UI never crashes on missing columns
+    const raw = (pRes.data ?? {}) as Partial<Profile>
+    setProfile({
+      id: raw.id ?? u.id,
+      full_name: raw.full_name ?? '',
+      currency: raw.currency ?? 'IDR',
+      language: raw.language ?? 'id',
+      theme_accent: raw.theme_accent ?? 'burgundy',
+      show_decimals: raw.show_decimals ?? false,
+      daily_reminder_enabled: raw.daily_reminder_enabled ?? false,
+      daily_reminder_time: raw.daily_reminder_time ?? '20:00',
+      pin_hash: raw.pin_hash ?? null,
+      ai_credits: raw.ai_credits ?? 0,
+      avatar_url: raw.avatar_url ?? null,
+    })
+
+    // These can fail if migration 014 hasn't run — wrap in try/catch
+    try {
+      const sRes = await supabase
+        .from('subscriptions')
+        .select('plan_id, status, started_at, expires_at')
+        .eq('user_id', u.id)
+        .eq('status', 'active')
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (sRes.data) {
+        setSubscription(sRes.data as Subscription)
+        const planRes = await supabase
+          .from('plans')
+          .select('id, name, price_idr, ai_credits_monthly')
+          .eq('id', (sRes.data as Subscription).plan_id)
+          .maybeSingle()
+        if (planRes.data) setPlan(planRes.data as Plan)
+      }
+    } catch (err) {
+      console.warn('Subscription/plans query failed (likely migration 014 not yet run):', err)
     }
-    setAccountCount(accRes.count ?? 0)
-    setTxCount(txRes.count ?? 0)
+
+    try {
+      const [accRes, txRes] = await Promise.all([
+        supabase.from('accounts').select('id', { count: 'exact', head: true }).eq('user_id', u.id),
+        supabase.from('transactions').select('id', { count: 'exact', head: true }).eq('user_id', u.id),
+      ])
+      setAccountCount(accRes.count ?? 0)
+      setTxCount(txRes.count ?? 0)
+    } catch (err) {
+      console.warn('Counts query failed:', err)
+    }
 
     setLoading(false)
   }

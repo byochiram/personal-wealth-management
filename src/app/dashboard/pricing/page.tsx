@@ -56,14 +56,46 @@ export default function PricingPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
 
-    const [plansRes, subRes] = await Promise.all([
-      supabase.from('plans').select('*').order('display_order', { ascending: true }),
-      supabase.from('subscriptions').select('plan_id').eq('user_id', user.id).eq('status', 'active').order('started_at', { ascending: false }).limit(1).maybeSingle(),
-    ])
-
-    if (plansRes.data) setPlans(plansRes.data as Plan[])
-    if (subRes.data) setCurrentPlanId((subRes.data as { plan_id: string }).plan_id)
+    try {
+      const [plansRes, subRes] = await Promise.all([
+        supabase.from('plans').select('*').order('display_order', { ascending: true }),
+        supabase.from('subscriptions').select('plan_id').eq('user_id', user.id).eq('status', 'active').order('started_at', { ascending: false }).limit(1).maybeSingle(),
+      ])
+      if (plansRes.data && plansRes.data.length > 0) {
+        setPlans(plansRes.data as Plan[])
+      } else {
+        // Migration 014 not applied — render hard-coded fallback so user still sees pricing
+        setPlans(fallbackPlans())
+      }
+      if (subRes.data) setCurrentPlanId((subRes.data as { plan_id: string }).plan_id)
+    } catch (err) {
+      console.warn('Plans query failed (migration 014 may not be applied):', err)
+      setPlans(fallbackPlans())
+    }
     setLoading(false)
+  }
+
+  function fallbackPlans(): Plan[] {
+    return [
+      {
+        id: 'solo', name: 'Solo', description: 'Mulai atur keuangan tanpa biaya.',
+        price_idr: 0, original_price_idr: 0, max_seats: 1,
+        features: ['Akun & dompet unlimited', 'Catat transaksi unlimited', 'Anggaran bulanan', 'Dashboard analitik dasar', 'Export CSV'],
+        ai_credits_monthly: 10, is_popular: false, display_order: 1,
+      },
+      {
+        id: 'pro', name: 'Pro', description: 'Kontrol penuh atas kekayaanmu.',
+        price_idr: 79000, original_price_idr: 149000, max_seats: 1,
+        features: ['Semua di Solo', 'Foto struk → otomatis ke transaksi (AI Vision)', 'AI Advisor — tanya apa saja', 'Tracking aset & investasi lengkap', 'Net worth real-time', 'Goal setting & tracking', 'Update harga saham otomatis', 'Laporan & analisa detail'],
+        ai_credits_monthly: 100, is_popular: true, display_order: 2,
+      },
+      {
+        id: 'family', name: 'Family', description: 'Atur keuangan bareng pasangan & keluarga.',
+        price_idr: 199000, original_price_idr: 299000, max_seats: 4,
+        features: ['Semua di Pro', 'Hingga 4 anggota keluarga', 'Wallet & budget bersama', 'Tracking per-anggota (siapa belanja apa)', 'Insight pengeluaran keluarga', 'Notifikasi sinkron antar anggota', 'Bonus 200 kredit AI/bulan'],
+        ai_credits_monthly: 250, is_popular: false, display_order: 3,
+      },
+    ]
   }
 
   function handleUpgrade(planId: string) {
