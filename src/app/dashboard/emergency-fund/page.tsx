@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { EmergencyFund, EmergencyFundLocation } from '@/types'
@@ -80,6 +81,12 @@ export default function EmergencyFundPage() {
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null)
   const [locationForm, setLocationForm] = useState({ account_name: '', amount: 0 })
 
+  // Account allocations earmarked for EF — sum'd into the dashboard headline.
+  // Pulled from /dashboard/accounts → "Atur Alokasi" dialog.
+  type AccAlloc = { account_id: string; amount: number; accounts: { name: string } | null }
+  const [accountAllocations, setAccountAllocations] = useState<AccAlloc[]>([])
+  const allocatedFromAccounts = accountAllocations.reduce((s, a) => s + a.amount, 0)
+
   const multiplier = calculateMultiplier(jobStability, dependents)
   const recommendation = monthlyExpenses * multiplier
   const accumulatedFund = locations.reduce((sum, loc) => sum + loc.amount, 0)
@@ -100,9 +107,20 @@ export default function EmergencyFundPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const [fundRes, locRes] = await Promise.all([
+    const [fundRes, locRes, allocRes] = await Promise.all([
       supabase.from('emergency_fund').select('*').eq('user_id', user.id).maybeSingle(),
       supabase.from('emergency_fund_locations').select('*, emergency_fund!inner(user_id)').eq('emergency_fund.user_id', user.id),
+      // Account allocations earmarked for emergency_fund. Tolerant of the
+      // table not existing yet (migration 016 unapplied).
+      supabase
+        .from('account_allocations')
+        .select('account_id, amount, accounts!inner(name)')
+        .eq('user_id', user.id)
+        .eq('purpose_kind', 'emergency_fund')
+        .then(
+          (r: { data: unknown; error: unknown }) => r,
+          () => ({ data: [] as unknown[], error: null as unknown }),
+        ),
     ])
 
     if (fundRes.data) {
@@ -117,6 +135,9 @@ export default function EmergencyFundPage() {
     if (locRes.data) {
       setLocations(locRes.data as EmergencyFundLocation[])
     }
+
+    type Alloc = { account_id: string; amount: number; accounts: { name: string } | null }
+    setAccountAllocations((allocRes.data ?? []) as Alloc[])
 
     setLoading(false)
   }
@@ -322,10 +343,36 @@ export default function EmergencyFundPage() {
           </CardContent>
         </Card>
 
-        {/* Right Column - Locations */}
+        {/* Right Column - Locations + new Account Allocations summary */}
+        <div className="space-y-4">
+        {accountAllocations.length > 0 && (
+          <Card style={{ background: 'rgba(16,185,129,0.04)', borderColor: 'rgba(16,185,129,0.20)' }}>
+            <CardHeader className="pb-3">
+              <CardTitle className="font-serif text-base" style={{ color: 'var(--emerald-700, #047857)' }}>
+                Dari Akun ({formatCurrency(allocatedFromAccounts)})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs mb-2" style={{ color: 'var(--ink-muted)' }}>
+                Akun yang sudah kamu tandai berisi Dana Darurat. Kelola di
+                halaman <Link href="/dashboard/accounts" className="underline">Akun</Link>.
+              </p>
+              <ul className="space-y-1.5">
+                {accountAllocations.map((a, i) => (
+                  <li key={i} className="flex items-center justify-between text-sm">
+                    <span style={{ color: 'var(--ink)' }}>{a.accounts?.name ?? 'Akun'}</span>
+                    <span className="num tabular font-medium" style={{ color: 'var(--ink)' }}>
+                      {formatCurrency(a.amount)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="font-serif" style={{ color: 'var(--burgundy-700)' }}>Lokasi Dana Darurat</CardTitle>
+            <CardTitle className="font-serif" style={{ color: 'var(--burgundy-700)' }}>Lokasi Dana Darurat (Manual)</CardTitle>
             <Button
               size="sm"
               className=""
@@ -390,6 +437,7 @@ export default function EmergencyFundPage() {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Progress Bar */}

@@ -35,7 +35,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Pencil, Trash2, Plus, Loader2, Wallet, Star } from 'lucide-react'
+import { Pencil, Trash2, Plus, Loader2, Wallet, Star, Layers } from 'lucide-react'
+import { AccountAllocationsDialog } from '@/components/accounts/allocations-dialog'
 
 type AccountType = keyof typeof ACCOUNT_TYPES
 
@@ -67,6 +68,16 @@ export default function AccountsPage() {
 
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
+  // Allocations: { account_id: [allocations] } — populated alongside accounts
+  // so each row can show its allocation summary without per-row queries.
+  type AllocationSummary = {
+    purpose_kind: 'emergency_fund' | 'goal' | 'sinking_fund' | 'other'
+    label: string  // resolved label (goal name / 'Dana Darurat' / custom)
+    amount: number
+  }
+  const [allocationsByAccount, setAllocationsByAccount] = useState<Record<string, AllocationSummary[]>>({})
+  const [allocAccount, setAllocAccount] = useState<Account | null>(null)
+
   useEffect(() => {
     fetchData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,13 +88,48 @@ export default function AccountsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
 
-    const [accRes, profRes] = await Promise.all([
+    const [accRes, profRes, allocRes, goalsRes] = await Promise.all([
       supabase.from('accounts').select('*').eq('user_id', user.id).order('name'),
       supabase.from('profiles').select('default_account_id').eq('id', user.id).maybeSingle(),
+      // Allocations table may not exist yet (migration 016 not applied)
+      // — wrap so the page still works in that case.
+      supabase
+        .from('account_allocations')
+        .select('account_id, purpose_kind, goal_id, custom_label, amount')
+        .eq('user_id', user.id)
+        .then(
+          (r: { data: unknown; error: unknown }) => r,
+          () => ({ data: [] as unknown[], error: null as unknown }),
+        ),
+      supabase.from('goals').select('id, name').eq('user_id', user.id),
     ])
 
     if (accRes.data) setAccounts(accRes.data)
     if (profRes.data?.default_account_id) setDefaultAccountId(profRes.data.default_account_id as string)
+
+    // Build allocations map
+    type AllocRow = {
+      account_id: string
+      purpose_kind: 'emergency_fund' | 'goal' | 'sinking_fund' | 'other'
+      goal_id: string | null
+      custom_label: string | null
+      amount: number
+    }
+    const goalNameById: Record<string, string> = {}
+    ;((goalsRes.data ?? []) as { id: string; name: string }[]).forEach((g) => {
+      goalNameById[g.id] = g.name
+    })
+    const map: Record<string, AllocationSummary[]> = {}
+    ;((allocRes.data ?? []) as AllocRow[]).forEach((row) => {
+      const label =
+        row.purpose_kind === 'emergency_fund' ? 'Dana Darurat'
+        : row.purpose_kind === 'goal' ? (goalNameById[row.goal_id ?? ''] ?? 'Goal')
+        : (row.custom_label?.trim() || 'Sinking Fund')
+      if (!map[row.account_id]) map[row.account_id] = []
+      map[row.account_id].push({ purpose_kind: row.purpose_kind, label, amount: row.amount })
+    })
+    setAllocationsByAccount(map)
+
     setLoading(false)
   }
 
@@ -249,57 +295,112 @@ export default function AccountsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {accounts.map((a) => (
-              <TableRow key={a.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    {a.name?.trim() || <span className="italic text-muted-foreground">Akun tanpa nama</span>}
-                    {a.id === defaultAccountId && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
-                        <Star className="size-3 fill-blue-700" /> Default
-                      </span>
+            {accounts.map((a) => {
+              const allocs = allocationsByAccount[a.id] ?? []
+              const totalAllocated = allocs.reduce((s, x) => s + x.amount, 0)
+              const free = (a.current_balance ?? 0) - totalAllocated
+              const pillBg: Record<string, string> = {
+                emergency_fund: 'rgba(16,185,129,0.10)',
+                goal: 'rgba(99,102,241,0.10)',
+                sinking_fund: 'rgba(245,158,11,0.12)',
+                other: 'rgba(107,114,128,0.10)',
+              }
+              const pillFg: Record<string, string> = {
+                emergency_fund: '#065F46',
+                goal: '#3730A3',
+                sinking_fund: '#92400E',
+                other: '#374151',
+              }
+              return (
+                <TableRow key={a.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {a.name?.trim() || <span className="italic text-muted-foreground">Akun tanpa nama</span>}
+                        {a.id === defaultAccountId && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+                            <Star className="size-3 fill-blue-700" /> Default
+                          </span>
+                        )}
+                      </div>
+                      {/* Allocation pills */}
+                      {allocs.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {allocs.map((al, i) => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                              style={{ background: pillBg[al.purpose_kind], color: pillFg[al.purpose_kind] }}
+                              title={`${al.label}: ${formatCurrency(al.amount)}`}
+                            >
+                              {al.label} · {formatCurrency(al.amount)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={TYPE_BADGE[a.type as AccountType]}>
+                      {ACCOUNT_TYPES[a.type as AccountType] ?? a.type}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums text-muted-foreground">
+                    {formatCurrency(a.starting_balance ?? 0)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums font-medium">
+                    <div>{formatCurrency(a.current_balance ?? 0)}</div>
+                    {totalAllocated > 0 && (
+                      <div className="text-[10px] mt-0.5" style={{ color: free < 0 ? '#DC2626' : 'var(--ink-soft)' }}>
+                        Bebas {formatCurrency(free)}
+                      </div>
                     )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge className={TYPE_BADGE[a.type as AccountType]}>
-                    {ACCOUNT_TYPES[a.type as AccountType] ?? a.type}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right tabular-nums text-muted-foreground">
-                  {formatCurrency(a.starting_balance ?? 0)}
-                </TableCell>
-                <TableCell className="text-right tabular-nums font-medium">
-                  {formatCurrency(a.current_balance ?? 0)}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    {a.id !== defaultAccountId && (
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleSetDefault(a.id)}
-                        disabled={settingDefaultId === a.id}
-                        title="Jadikan default"
+                        onClick={() => setAllocAccount(a)}
+                        title="Atur alokasi"
                       >
-                        {settingDefaultId === a.id
-                          ? <Loader2 className="size-4 animate-spin" />
-                          : <Star className="size-4" />}
+                        <Layers className="size-4" />
                       </Button>
-                    )}
-                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(a)} title="Edit">
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleteId(a.id)} title="Hapus">
-                      <Trash2 className="size-4 text-red-600" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+                      {a.id !== defaultAccountId && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleSetDefault(a.id)}
+                          disabled={settingDefaultId === a.id}
+                          title="Jadikan default"
+                        >
+                          {settingDefaultId === a.id
+                            ? <Loader2 className="size-4 animate-spin" />
+                            : <Star className="size-4" />}
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(a)} title="Edit">
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteId(a.id)} title="Hapus">
+                        <Trash2 className="size-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       )}
+
+      {/* Allocations dialog */}
+      <AccountAllocationsDialog
+        open={allocAccount !== null}
+        onClose={() => setAllocAccount(null)}
+        account={allocAccount}
+        onSaved={() => fetchData()}
+      />
 
       {!loading && accounts.length > 0 && (
         <p className="text-xs text-muted-foreground">

@@ -15,6 +15,32 @@ export interface Account {
   created_at: string
 }
 
+/**
+ * Per-account earmark — "Rp X in this account is reserved for purpose Y."
+ * Lets emergency fund / goals reflect real account balances instead of
+ * being separate typed-in numbers that drift out of date.
+ *
+ * Sum of allocations on one account should be ≤ that account's balance,
+ * but we don't hard-enforce — bank balances drift, and locking the user
+ * out of editing an allocation just because of a rounding mismatch sucks.
+ */
+export type AllocationPurpose = 'emergency_fund' | 'goal' | 'sinking_fund' | 'other'
+
+export interface AccountAllocation {
+  id: string
+  user_id: string
+  account_id: string
+  purpose_kind: AllocationPurpose
+  // Exactly one of these is set per purpose_kind
+  emergency_fund_id: string | null
+  goal_id: string | null
+  custom_label: string  // for sinking_fund / other
+  amount: number
+  notes: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Transaction {
   id: string
   user_id: string
