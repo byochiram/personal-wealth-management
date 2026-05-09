@@ -1,20 +1,19 @@
 'use client'
 
 /**
- * Crypto coin autocomplete — typeahead over a curated 80+ coin catalog
- * (top by market cap). Loaded once from /crypto-symbols.json on first
- * focus.
+ * Crypto coin autocomplete — typeahead over the FULL Binance USDT
+ * universe (~400 pairs), enriched with full names from our curated
+ * top-100 catalog so popular coins show "Bitcoin" not just "BTC".
  *
- * Why curated and not full Binance exchangeInfo (~2000 symbols):
- *   - 99% of Indonesian retail trades top 50-100 coins. Anything beyond
- *     is noise.
- *   - exchangeInfo is ~150KB JSON; curated list is 4KB.
- *   - We can pair coin SYMBOL with proper full NAME (Binance only gives
- *     symbol). User typing "bit" → matches "Bitcoin" not just BTC.
+ * Two data sources combined on first focus:
+ *   1. /api/crypto-symbols → live Binance exchangeInfo (filtered to
+ *      USDT pairs, deduped by base asset). Cached server-side 1h.
+ *   2. /crypto-symbols.json → our curated symbol→name mapping (~85
+ *      top coins). Provides full names for the popular ones.
  *
- * Picking a result auto-fills ticker as Yahoo-style ("BTC-USD") and
- * pre-fills name. Free typing still works for niche coins not in
- * the catalog.
+ * Coins on Binance but not in our name catalog still appear in
+ * results — just without a full name (only symbol shown). User can
+ * still pick them.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -23,7 +22,7 @@ import { CryptoLogo } from './crypto-logo'
 
 interface CryptoSymbol {
   s: string  // symbol (BTC, ETH)
-  n: string  // full name (Bitcoin, Ethereum)
+  n?: string // full name (Bitcoin, Ethereum) — optional, only set for top-100
 }
 
 interface Props {
@@ -40,15 +39,37 @@ let catalogPromise: Promise<CryptoSymbol[]> | null = null
 async function loadCatalog(): Promise<CryptoSymbol[]> {
   if (catalogCache) return catalogCache
   if (catalogPromise) return catalogPromise
-  catalogPromise = fetch('/crypto-symbols.json')
-    .then((r) => r.json() as Promise<CryptoSymbol[]>)
-    .then((data) => {
-      catalogCache = data
-      return data
-    })
-    .finally(() => {
-      catalogPromise = null
-    })
+  catalogPromise = (async () => {
+    // Fetch both in parallel
+    const [binanceRes, curatedRes] = await Promise.all([
+      fetch('/api/crypto-symbols').then((r) => r.ok ? r.json() : { symbols: [] }) as Promise<{ symbols: { s: string }[] }>,
+      fetch('/crypto-symbols.json').then((r) => r.ok ? r.json() : []) as Promise<CryptoSymbol[]>,
+    ])
+
+    // Build symbol → name map from curated catalog
+    const nameMap = new Map<string, string>()
+    for (const c of curatedRes) if (c.n) nameMap.set(c.s, c.n)
+
+    // Merge: prefer Binance list (full universe), enrich with names where we have them
+    const seen = new Set<string>()
+    const merged: CryptoSymbol[] = []
+
+    // Curated coins first (preserves market-cap order for popular results)
+    for (const c of curatedRes) {
+      if (seen.has(c.s)) continue
+      seen.add(c.s)
+      merged.push(c)
+    }
+    // Then Binance coins not already in curated
+    for (const b of binanceRes.symbols) {
+      if (seen.has(b.s)) continue
+      seen.add(b.s)
+      merged.push({ s: b.s, n: nameMap.get(b.s) })
+    }
+
+    catalogCache = merged
+    return merged
+  })().finally(() => { catalogPromise = null })
   return catalogPromise
 }
 
@@ -91,7 +112,7 @@ export function CryptoSearch({ value, onSelect, placeholder }: Props) {
     for (const c of catalog) {
       if (c.s.startsWith(q)) {
         symMatches.push(c)
-      } else if (c.n.toUpperCase().includes(q)) {
+      } else if (c.n && c.n.toUpperCase().includes(q)) {
         nameMatches.push(c)
       }
       if (symMatches.length + nameMatches.length >= 30) break
@@ -145,7 +166,7 @@ export function CryptoSearch({ value, onSelect, placeholder }: Props) {
           ) : results.length === 0 ? (
             <p className="px-3 py-4 text-center text-xs" style={{ color: 'var(--ink-soft)' }}>
               {query
-                ? `Tidak ada di top 80 — bisa langsung ketik ticker manual (mis. "${query}-USD")`
+                ? `Tidak ada di Binance — bisa langsung ketik ticker manual (mis. "${query}-USD")`
                 : 'Memuat katalog…'}
             </p>
           ) : (
@@ -168,7 +189,7 @@ export function CryptoSearch({ value, onSelect, placeholder }: Props) {
                     </span>
                   </div>
                   <p className="text-xs truncate mt-0.5" style={{ color: 'var(--ink)' }}>
-                    {c.n}
+                    {c.n ?? <span style={{ color: 'var(--ink-soft)', fontStyle: 'italic' }}>(nama tidak tersedia)</span>}
                   </p>
                 </div>
               </button>

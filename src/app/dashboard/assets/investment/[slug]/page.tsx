@@ -572,7 +572,7 @@ export default function InvestmentCategoryPage() {
                         ...form,
                         // Yahoo-style ticker so /api/quotes (or our crypto-price endpoint) understands it
                         ticker: `${c.s}-USD`,
-                        name: c.n,
+                        name: c.n ?? c.s, // fallback to symbol if no full name
                       })
                     }
                   />
