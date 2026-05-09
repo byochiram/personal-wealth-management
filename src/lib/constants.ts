@@ -137,6 +137,7 @@ export type NavSection =
   | 'debt'
   | 'invest_advanced'
   | 'tools'
+  | 'account'
 
 export type NavItem = {
   label: string
@@ -158,6 +159,7 @@ export const NAV_SECTIONS: { key: NavSection; titleKey: string }[] = [
   { key: 'debt',            titleKey: 'nav.section.debt' },
   { key: 'invest_advanced', titleKey: 'nav.section.invest_advanced' },
   { key: 'tools',           titleKey: 'nav.section.tools' },
+  { key: 'account',         titleKey: 'nav.section.account' },
 ]
 
 export const NAV_ITEMS: NavItem[] = [
@@ -206,4 +208,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Subscription',    titleKey: 'nav.subscriptions',   href: '/dashboard/subscriptions',  icon: 'Clock',       section: 'tools' },
   { label: 'Kontrak',         titleKey: 'nav.contracts',       href: '/dashboard/contracts',      icon: 'FileClock',   section: 'tools' },
   { label: 'Aturan Kategori', titleKey: 'nav.rules',           href: '/dashboard/rules',          icon: 'Sparkles',    section: 'tools' },
+
+  // ACCOUNT — pricing & profile
+  { label: 'Paket',           titleKey: 'nav.pricing',         href: '/dashboard/pricing',        icon: 'Crown',       section: 'account' },
+  { label: 'Profil',          titleKey: 'nav.profile',         href: '/dashboard/profile',        icon: 'UserCircle',  section: 'account' },
 ]

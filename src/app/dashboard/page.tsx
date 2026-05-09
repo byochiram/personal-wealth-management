@@ -6,6 +6,7 @@ import { formatCurrency, getMonthName } from '@/lib/utils'
 import { MONTHS } from '@/lib/constants'
 import { fetchLiquidEntries, sumLiquid } from '@/lib/liquid'
 import { useT } from '@/lib/i18n/context'
+import { GettingStarted } from '@/components/dashboard/getting-started'
 import type { Transaction, Investment, CreditCard, Contract } from '@/types'
 
 import {
@@ -291,6 +292,9 @@ export default function DashboardPage() {
         efCurrent={emergencyFundCurrent}
         efTarget={emergencyFundTarget}
       />
+
+      {/* Onboarding mission card — auto-hides when user completes setup */}
+      <GettingStarted />
 
       {/* KPI Cards — clean, no sparklines */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

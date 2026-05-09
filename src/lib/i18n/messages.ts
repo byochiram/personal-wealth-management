@@ -80,6 +80,8 @@ export const messages = {
       rules: 'Aturan Kategori',
       calculators: 'Kalkulator',
       wrapped: 'Wrapped',
+      pricing: 'Paket',
+      profile: 'Profil',
       menu: 'Menu',
       section: {
         overview: '',
@@ -90,6 +92,7 @@ export const messages = {
         planning: 'Perencanaan',
         reports: 'Laporan',
         tools: 'Alat',
+        account: 'Akunmu',
       },
     },
     dashboard: {
@@ -246,6 +249,8 @@ export const messages = {
       rules: 'Category Rules',
       calculators: 'Calculators',
       wrapped: 'Wrapped',
+      pricing: 'Pricing',
+      profile: 'Profile',
       menu: 'Menu',
       section: {
         overview: '',
@@ -256,6 +261,7 @@ export const messages = {
         planning: 'Planning',
         reports: 'Reports',
         tools: 'Tools',
+        account: 'Your Account',
       },
     },
     dashboard: {
