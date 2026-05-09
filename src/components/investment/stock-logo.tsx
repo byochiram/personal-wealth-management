@@ -1,0 +1,116 @@
+'use client'
+
+/**
+ * Stock company logo with graceful fallback.
+ *
+ * Tries to load /stock-logos/{TICKER}.png (Stockbit-scraped IDX logos,
+ * 971 tickers cover most of the IDX universe). If the image fails to
+ * load — either the ticker isn't IDX, the file doesn't exist, or it's
+ * a US/crypto symbol — falls back to a tinted circle with the first
+ * 1-2 characters of the ticker as a monogram.
+ *
+ * Yahoo Finance tickers come in as "BBCA.JK" / "AAPL" / "BTC-USD" —
+ * we strip the .JK suffix before lookup since the logo files are named
+ * by bare IDX ticker.
+ */
+
+import { useState } from 'react'
+import Image from 'next/image'
+
+interface StockLogoProps {
+  ticker?: string | null
+  size?: number  // px, default 28
+  className?: string
+}
+
+// Strip exchange suffix (BBCA.JK → BBCA, GOOGL.NASDAQ → GOOGL).
+// Crypto tickers like BTC-USD also pass through unchanged.
+function normalizeForLogo(ticker: string): string {
+  return ticker.split('.')[0].toUpperCase().trim()
+}
+
+// Hash the ticker to pick a deterministic gradient color
+const FALLBACK_GRADIENTS = [
+  'linear-gradient(135deg, #10B981, #14B8A6)',  // emerald
+  'linear-gradient(135deg, #6366F1, #8B5CF6)',  // indigo
+  'linear-gradient(135deg, #F59E0B, #D97706)',  // amber
+  'linear-gradient(135deg, #EF4444, #EC4899)',  // rose
+  'linear-gradient(135deg, #0EA5E9, #06B6D4)',  // sky
+  'linear-gradient(135deg, #A855F7, #7C3AED)',  // violet
+  'linear-gradient(135deg, #84CC16, #22C55E)',  // lime
+  'linear-gradient(135deg, #14B8A6, #0EA5E9)',  // teal-sky
+]
+
+function pickGradient(ticker: string): string {
+  let hash = 0
+  for (let i = 0; i < ticker.length; i++) {
+    hash = (hash * 31 + ticker.charCodeAt(i)) | 0
+  }
+  return FALLBACK_GRADIENTS[Math.abs(hash) % FALLBACK_GRADIENTS.length]
+}
+
+export function StockLogo({ ticker, size = 28, className }: StockLogoProps) {
+  const [errored, setErrored] = useState(false)
+
+  if (!ticker) {
+    return <FallbackMonogram label="—" size={size} className={className} gradient={FALLBACK_GRADIENTS[0]} />
+  }
+
+  const normalized = normalizeForLogo(ticker)
+  const monogram = normalized.slice(0, 4)
+
+  if (errored) {
+    return (
+      <FallbackMonogram
+        label={monogram}
+        size={size}
+        className={className}
+        gradient={pickGradient(normalized)}
+      />
+    )
+  }
+
+  return (
+    <div
+      className={`relative shrink-0 rounded-lg overflow-hidden bg-white ring-1 ring-black/5 ${className ?? ''}`}
+      style={{ width: size, height: size }}
+    >
+      <Image
+        src={`/stock-logos/${normalized}.png`}
+        alt={`Logo ${normalized}`}
+        width={size}
+        height={size}
+        className="object-contain w-full h-full"
+        onError={() => setErrored(true)}
+        unoptimized // many small images, skip Next image opt to avoid build cost
+      />
+    </div>
+  )
+}
+
+function FallbackMonogram({
+  label, size, className, gradient,
+}: {
+  label: string
+  size: number
+  className?: string
+  gradient: string
+}) {
+  // Auto-shrink font to fit the monogram regardless of length (1-4 chars)
+  const fontSize = size * (label.length >= 4 ? 0.30 : label.length === 3 ? 0.36 : 0.42)
+  return (
+    <div
+      className={`shrink-0 flex items-center justify-center rounded-lg text-white font-bold ${className ?? ''}`}
+      style={{
+        width: size,
+        height: size,
+        background: gradient,
+        fontSize,
+        letterSpacing: '-0.03em',
+      }}
+      aria-label={label}
+    >
+      {label}
+    </div>
+  )
+}

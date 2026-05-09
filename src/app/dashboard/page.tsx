@@ -10,6 +10,7 @@ import { useT } from '@/lib/i18n/context'
 import { GettingStarted } from '@/components/dashboard/getting-started'
 import { AIInsightsCard } from '@/components/dashboard/ai-insights'
 import { MoneyFlowSankey, type FlowKind } from '@/components/dashboard/money-flow-sankey'
+import { StockLogo } from '@/components/investment/stock-logo'
 import type { Transaction, Investment, CreditCard, Contract } from '@/types'
 
 import {
@@ -124,7 +125,7 @@ export default function DashboardPage() {
         .order('date', { ascending: false }),
       supabase
         .from('investments')
-        .select('category, total_value, name, platform, quantity, avg_cost, current_price')
+        .select('category, total_value, name, platform, ticker, quantity, avg_cost, current_price')
         .eq('user_id', user.id),
       supabase
         .from('budgets')
@@ -284,6 +285,7 @@ export default function DashboardPage() {
         id: i.id,
         name: i.name || INVESTMENT_CATEGORY_LABELS[i.category] || i.category,
         platform: i.platform || '',
+        ticker: i.ticker ?? null,
         category: i.category,
         value: i.total_value || 0,
         cost: (i.quantity || 0) * (i.avg_cost || 0),
@@ -854,13 +856,18 @@ export default function DashboardPage() {
                     {investmentSummary.topHoldings.map((h, i) => {
                       const pct = investmentSummary.totalValue > 0 ? (h.value / investmentSummary.totalValue) * 100 : 0
                       const plPct = h.cost > 0 ? (h.pl / h.cost) * 100 : 0
+                      const isStock = h.category === 'stock'
                       return (
                         <div key={h.id}>
                           <div className="flex items-center justify-between gap-2 text-[12px]">
-                            <span className="truncate flex items-center gap-1.5">
-                              <span className="text-[10px] tabular shrink-0" style={{ color: 'var(--ink-soft)' }}>
-                                #{i + 1}
-                              </span>
+                            <span className="truncate flex items-center gap-1.5 min-w-0">
+                              {isStock ? (
+                                <StockLogo ticker={h.ticker} size={20} />
+                              ) : (
+                                <span className="text-[10px] tabular shrink-0" style={{ color: 'var(--ink-soft)' }}>
+                                  #{i + 1}
+                                </span>
+                              )}
                               <span className="font-medium truncate" style={{ color: 'var(--ink)' }} title={h.name}>
                                 {h.name}
                               </span>

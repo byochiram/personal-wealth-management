@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { StockLogo } from '@/components/investment/stock-logo'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog'
@@ -285,9 +286,15 @@ export default function InvestmentCategoryPage() {
                   return (
                     <tr key={e.i.id} className="border-b hover:bg-[var(--surface-alt)]/50 transition-colors" style={{ borderColor: 'var(--border-soft)' }}>
                       <Td>
-                        <Badge className="rounded-full px-2 py-0.5 text-[11px] font-semibold border-0" style={{ background: 'var(--indigo-50)', color: 'var(--indigo-700)' }}>
-                          {e.i.ticker ?? '—'}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <StockLogo ticker={e.i.ticker} size={28} />
+                          <Badge
+                            className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold border-0 tabular"
+                            style={{ background: 'var(--surface-2)', color: 'var(--ink)' }}
+                          >
+                            {e.i.ticker ?? '—'}
+                          </Badge>
+                        </div>
                       </Td>
                       <Td className="font-medium" style={{ color: 'var(--ink)' }}>{e.i.name}</Td>
                       <Td style={{ color: 'var(--ink-muted)' }}>
