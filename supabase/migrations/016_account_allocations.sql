@@ -70,19 +70,11 @@ create policy "Users manage own account allocations"
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
--- If household sharing is in play, members of the same household can read
--- each other's allocations (write stays per-user to avoid surprises).
-drop policy if exists "Household members can read allocations" on public.account_allocations;
-create policy "Household members can read allocations"
-  on public.account_allocations for select
-  using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.household_id is not null
-        and p.household_id = (select household_id from public.profiles where id = account_allocations.user_id)
-    )
-  );
+-- (Household read policy intentionally omitted — family members can already
+-- see shared accounts via the existing accounts RLS, and an allocation has
+-- no value without seeing what kind of bucket it belongs to. If we later
+-- want shared visibility into goal/EF allocations specifically, add a
+-- household_id column to this table mirroring the accounts pattern.)
 
 comment on table public.account_allocations is
   'Per-account earmarks: emergency fund / goals / sinking funds drawn from this account.';
