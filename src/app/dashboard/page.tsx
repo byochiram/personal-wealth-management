@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, getMonthName } from '@/lib/utils'
 import { MONTHS } from '@/lib/constants'
@@ -123,7 +124,7 @@ export default function DashboardPage() {
         .order('date', { ascending: false }),
       supabase
         .from('investments')
-        .select('category, total_value')
+        .select('category, total_value, name, platform, quantity, avg_cost, current_price')
         .eq('user_id', user.id),
       supabase
         .from('budgets')
@@ -264,6 +265,39 @@ export default function DashboardPage() {
     return Object.entries(byCategory)
       .filter(([, v]) => v > 0)
       .map(([name, value]) => ({ name, value }))
+  }, [investments])
+
+  // ---- Investment portfolio metrics: total value, top holdings, P/L,
+  //      and concentration risk. Used by the upgraded composition card.
+  const investmentSummary = useMemo(() => {
+    const totalValue = investments.reduce((s, i) => s + (i.total_value || 0), 0)
+    const totalCost = investments.reduce(
+      (s, i) => s + (i.quantity || 0) * (i.avg_cost || 0),
+      0,
+    )
+    const unrealizedPL = totalValue - totalCost
+    const unrealizedPct = totalCost > 0 ? (unrealizedPL / totalCost) * 100 : 0
+
+    const enriched = investments
+      .filter((i) => (i.total_value || 0) > 0)
+      .map((i) => ({
+        id: i.id,
+        name: i.name || INVESTMENT_CATEGORY_LABELS[i.category] || i.category,
+        platform: i.platform || '',
+        category: i.category,
+        value: i.total_value || 0,
+        cost: (i.quantity || 0) * (i.avg_cost || 0),
+        pl: (i.total_value || 0) - (i.quantity || 0) * (i.avg_cost || 0),
+      }))
+      .sort((a, b) => b.value - a.value)
+
+    const topHoldings = enriched.slice(0, 4)
+    const topPct = totalValue > 0 ? (topHoldings[0]?.value ?? 0) / totalValue * 100 : 0
+    // Concentration risk threshold: top holding > 40% is "tinggi"
+    const risk: 'rendah' | 'sedang' | 'tinggi' =
+      topPct > 40 ? 'tinggi' : topPct > 25 ? 'sedang' : 'rendah'
+
+    return { totalValue, totalCost, unrealizedPL, unrealizedPct, topHoldings, topPct, risk, count: enriched.length }
   }, [investments])
 
   // ---- Calendar: daily net per day of selected month ----
@@ -660,50 +694,197 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
 
-        <div className="s-card p-6 lg:col-span-2">
-          <p className="caps">Portofolio</p>
-          <h3 className="text-lg font-semibold mt-0.5" style={{ color: 'var(--ink)' }}>
-            Alokasi Investasi
-          </h3>
+        <div className="s-card p-5 sm:p-6 lg:col-span-2 flex flex-col">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="caps">Portofolio</p>
+              <h3 className="text-lg font-semibold mt-0.5" style={{ color: 'var(--ink)' }}>
+                Alokasi Investasi
+              </h3>
+            </div>
+            <Link
+              href="/dashboard/assets/investment"
+              className="text-[11px] font-medium inline-flex items-center gap-0.5 hover:underline"
+              style={{ color: 'var(--emerald-600, #059669)' }}
+            >
+              Detail <ArrowRight className="size-3" />
+            </Link>
+          </div>
+
           {investmentPieData.length === 0 ? (
-            <div className="flex h-[240px] items-center justify-center text-sm" style={{ color: 'var(--ink-soft)' }}>
-              Belum ada data investasi.
+            <div className="flex flex-1 min-h-[240px] flex-col items-center justify-center text-center px-6">
+              <div className="size-14 rounded-2xl flex items-center justify-center text-2xl mb-3"
+                style={{ background: 'rgba(14, 165, 233, 0.12)' }}>
+                📈
+              </div>
+              <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>
+                Belum ada investasi
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--ink-soft)' }}>
+                Mulai catat saham, reksa dana, crypto, atau emas yang kamu pegang.
+              </p>
+              <Link
+                href="/dashboard/assets/investment"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition"
+                style={{
+                  background: 'linear-gradient(135deg, #10B981, #059669)',
+                  color: '#FFFFFF',
+                }}
+              >
+                Tambah investasi <ArrowRight className="size-3" />
+              </Link>
             </div>
           ) : (
             <>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={investmentPieData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={2} dataKey="value" stroke="var(--surface)" strokeWidth={2}>
-                    {investmentPieData.map((_, i) => (
-                      <Cell key={i} fill={CHART_PALETTE[i % CHART_PALETTE.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={formatTooltipValue}
-                    contentStyle={{
-                      backgroundColor: 'var(--surface)',
-                      border: '1px solid var(--border-soft)',
-                      borderRadius: '8px',
-                      fontSize: 12,
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-3 space-y-1.5">
-                {investmentPieData.map((row, i) => {
-                  const total = investmentPieData.reduce((s, r) => s + r.value, 0)
-                  const pct = total > 0 ? (row.value / total) * 100 : 0
-                  return (
-                    <div key={row.name} className="flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-2" style={{ color: 'var(--ink-muted)' }}>
-                        <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: CHART_PALETTE[i % CHART_PALETTE.length] }} />
-                        {row.name}
+              {/* Total + P/L hero */}
+              <div className="mt-3 flex items-end gap-3 flex-wrap">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--ink-soft)' }}>
+                    Total Nilai
+                  </p>
+                  <p className="num tabular text-2xl font-semibold mt-0.5" style={{ color: 'var(--ink)' }}>
+                    {formatCurrency(investmentSummary.totalValue)}
+                  </p>
+                </div>
+                {investmentSummary.totalCost > 0 && (
+                  <div className="ml-auto text-right">
+                    <p className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--ink-soft)' }}>
+                      Untung / Rugi
+                    </p>
+                    <p
+                      className="num tabular text-sm font-semibold mt-0.5"
+                      style={{
+                        color: investmentSummary.unrealizedPL >= 0
+                          ? '#059669'
+                          : '#DC2626',
+                      }}
+                    >
+                      {investmentSummary.unrealizedPL >= 0 ? '+' : ''}
+                      {formatCurrency(investmentSummary.unrealizedPL)}
+                      <span className="text-[10px] ml-1 opacity-70">
+                        ({investmentSummary.unrealizedPct >= 0 ? '+' : ''}
+                        {investmentSummary.unrealizedPct.toFixed(2)}%)
                       </span>
-                      <span className="tabular" style={{ color: 'var(--ink)' }}>{pct.toFixed(1)}%</span>
-                    </div>
-                  )
-                })}
+                    </p>
+                  </div>
+                )}
               </div>
+
+              {/* Compact donut + category legend side-by-side */}
+              <div className="mt-3 flex items-center gap-3">
+                <div className="shrink-0">
+                  <ResponsiveContainer width={120} height={120}>
+                    <PieChart>
+                      <Pie data={investmentPieData} cx="50%" cy="50%" innerRadius={36} outerRadius={56} paddingAngle={2} dataKey="value" stroke="var(--surface)" strokeWidth={2}>
+                        {investmentPieData.map((_, i) => (
+                          <Cell key={i} fill={CHART_PALETTE[i % CHART_PALETTE.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={formatTooltipValue}
+                        contentStyle={{
+                          backgroundColor: 'var(--surface)',
+                          border: '1px solid var(--border-soft)',
+                          borderRadius: '8px',
+                          fontSize: 12,
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 min-w-0 space-y-1">
+                  {investmentPieData.slice(0, 5).map((row, i) => {
+                    const total = investmentPieData.reduce((s, r) => s + r.value, 0)
+                    const pct = total > 0 ? (row.value / total) * 100 : 0
+                    return (
+                      <div key={row.name} className="flex items-center justify-between text-[11px]">
+                        <span className="flex items-center gap-1.5 truncate" style={{ color: 'var(--ink-muted)' }}>
+                          <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CHART_PALETTE[i % CHART_PALETTE.length] }} />
+                          <span className="truncate">{row.name}</span>
+                        </span>
+                        <span className="tabular shrink-0 ml-2" style={{ color: 'var(--ink)' }}>{pct.toFixed(1)}%</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Top holdings list */}
+              {investmentSummary.topHoldings.length > 0 && (
+                <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border-soft)' }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[10px] uppercase tracking-wide font-semibold" style={{ color: 'var(--ink-soft)' }}>
+                      Top Holding
+                    </p>
+                    <span
+                      className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                      style={{
+                        background:
+                          investmentSummary.risk === 'tinggi' ? 'rgba(239,68,68,0.12)'
+                          : investmentSummary.risk === 'sedang' ? 'rgba(245,158,11,0.14)'
+                          : 'rgba(16,185,129,0.12)',
+                        color:
+                          investmentSummary.risk === 'tinggi' ? '#991B1B'
+                          : investmentSummary.risk === 'sedang' ? '#92400E'
+                          : '#065F46',
+                      }}
+                      title={`Top holding = ${investmentSummary.topPct.toFixed(0)}% dari total. >40% = risiko konsentrasi tinggi.`}
+                    >
+                      Konsentrasi {investmentSummary.risk}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {investmentSummary.topHoldings.map((h, i) => {
+                      const pct = investmentSummary.totalValue > 0 ? (h.value / investmentSummary.totalValue) * 100 : 0
+                      const plPct = h.cost > 0 ? (h.pl / h.cost) * 100 : 0
+                      return (
+                        <div key={h.id}>
+                          <div className="flex items-center justify-between gap-2 text-[12px]">
+                            <span className="truncate flex items-center gap-1.5">
+                              <span className="text-[10px] tabular shrink-0" style={{ color: 'var(--ink-soft)' }}>
+                                #{i + 1}
+                              </span>
+                              <span className="font-medium truncate" style={{ color: 'var(--ink)' }} title={h.name}>
+                                {h.name}
+                              </span>
+                            </span>
+                            <span className="num tabular shrink-0" style={{ color: 'var(--ink)' }}>
+                              {formatCurrency(h.value)}
+                            </span>
+                          </div>
+                          <div className="mt-1 flex items-center gap-2">
+                            <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'var(--surface-2)' }}>
+                              <div
+                                className="h-full rounded-full"
+                                style={{
+                                  width: `${pct}%`,
+                                  background: CHART_PALETTE[i % CHART_PALETTE.length],
+                                }}
+                              />
+                            </div>
+                            <span className="text-[10px] tabular shrink-0" style={{ color: 'var(--ink-soft)' }}>
+                              {pct.toFixed(0)}%
+                            </span>
+                            {h.cost > 0 && (
+                              <span
+                                className="text-[10px] tabular shrink-0 font-medium"
+                                style={{ color: h.pl >= 0 ? '#059669' : '#DC2626' }}
+                              >
+                                {h.pl >= 0 ? '+' : ''}{plPct.toFixed(1)}%
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {investmentSummary.count > 4 && (
+                    <p className="text-[10px] mt-2.5 text-center" style={{ color: 'var(--ink-soft)' }}>
+                      +{investmentSummary.count - 4} holding lainnya
+                    </p>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
