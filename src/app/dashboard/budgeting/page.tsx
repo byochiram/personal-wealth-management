@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Loader2, SlidersHorizontal, Check } from 'lucide-react'
+import { MobileBudgetingView } from '@/components/budgeting/mobile-budgeting-view'
 
 const SHORT_MONTHS = [
   'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
@@ -430,8 +431,22 @@ export default function BudgetingPage() {
           <span className="ml-2" style={{ color: 'var(--ink-muted)' }}>Memuat anggaran...</span>
         </div>
       ) : (
-        // Compact 12-month grid — fits typical laptop width without horizontal scroll
-        <div className="overflow-x-auto rounded-lg border border-[color:var(--border-soft)]">
+      <>
+        {/* Mobile: focused single-month view (one column, vertical) */}
+        <div className="md:hidden">
+          <MobileBudgetingView
+            year={Number(year)}
+            visibleIncome={visibleIncome}
+            visibleExpense={visibleExpense}
+            visibleSaving={visibleSaving}
+            visibleInvestment={visibleInvestment}
+            getValue={getValue}
+            onCellChange={handleCellBlur}
+          />
+        </div>
+
+        {/* Desktop: 12-month spreadsheet grid */}
+        <div className="hidden md:block overflow-x-auto rounded-lg border border-[color:var(--border-soft)]">
           <table className="w-full border-collapse text-sm" style={{ tableLayout: 'fixed' }}>
             <colgroup>
               <col style={{ width: '160px' }} />
@@ -504,6 +519,7 @@ export default function BudgetingPage() {
             </tbody>
           </table>
         </div>
+      </>
       )}
 
       {/* Category Selector Dialog */}

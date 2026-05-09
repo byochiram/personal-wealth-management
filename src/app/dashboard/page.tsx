@@ -8,6 +8,7 @@ import { fetchLiquidEntries, sumLiquid } from '@/lib/liquid'
 import { useT } from '@/lib/i18n/context'
 import { GettingStarted } from '@/components/dashboard/getting-started'
 import { AIInsightsCard } from '@/components/dashboard/ai-insights'
+import { MoneyFlowSankey, type FlowKind } from '@/components/dashboard/money-flow-sankey'
 import type { Transaction, Investment, CreditCard, Contract } from '@/types'
 
 import {
@@ -208,6 +209,36 @@ export default function DashboardPage() {
     }
   }, [monthTransactions])
 
+  // ---- Money Flow Sankey data ----
+  // Aggregate by category for each kind. We cap to top 8 per side so the
+  // diagram stays legible — anything beyond gets bucketed into "Lainnya".
+  const sankeyData = useMemo(() => {
+    function bucket(kind: 'income' | 'expense' | 'saving' | 'investment') {
+      const byCat: Record<string, number> = {}
+      for (const t of monthTransactions) {
+        if (t.type !== kind) continue
+        const cat = (t.category || 'Lainnya').trim() || 'Lainnya'
+        byCat[cat] = (byCat[cat] || 0) + t.amount
+      }
+      const sorted = Object.entries(byCat)
+        .map(([name, amount]) => ({ name, amount, kind: kind as FlowKind }))
+        .sort((a, b) => b.amount - a.amount)
+      const top = sorted.slice(0, 8)
+      const rest = sorted.slice(8)
+      if (rest.length > 0) {
+        const restSum = rest.reduce((s, c) => s + c.amount, 0)
+        if (restSum > 0) top.push({ name: `+${rest.length} lainnya`, amount: restSum, kind })
+      }
+      return top
+    }
+
+    const income = bucket('income')
+    const expense = bucket('expense')
+    const saving = bucket('saving')
+    const investment = bucket('investment')
+    return { income, outflow: [...expense, ...saving, ...investment] }
+  }, [monthTransactions])
+
   // ---- Monthly chart (area with net) ----
   const monthlyData = useMemo<MonthlyData[]>(() => {
     return MONTHS.map((name, idx) => {
@@ -337,6 +368,48 @@ export default function DashboardPage() {
         selectedMonth={selectedMonth}
         goals={activeGoals}
       />
+
+      {/* Phase 9 — Money Flow Sankey: Pemasukan → Total → Penggunaan */}
+      <div className="s-card p-5 sm:p-6">
+        <div className="mb-4 flex items-end justify-between flex-wrap gap-3">
+          <div>
+            <p className="caps">Aliran Uang</p>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--ink-soft)' }}>
+              Dari mana datangnya, ke mana perginya — bulan ini
+            </p>
+          </div>
+          {/* Legend */}
+          <div className="flex items-center gap-3 text-[11px]" style={{ color: 'var(--ink-soft)' }}>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-sm" style={{ background: '#10B981' }} />
+              Pemasukan
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-sm" style={{ background: '#EF4444' }} />
+              Pengeluaran
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-sm" style={{ background: '#F59E0B' }} />
+              Tabungan
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-sm" style={{ background: '#0EA5E9' }} />
+              Investasi
+            </span>
+          </div>
+        </div>
+        {/* Mobile: scroll horizontally if too narrow */}
+        <div className="overflow-x-auto -mx-1 px-1">
+          <div className="min-w-[640px]">
+            <MoneyFlowSankey
+              income={sankeyData.income}
+              outflow={sankeyData.outflow}
+              height={Math.max(320, Math.min(440, 80 + (sankeyData.income.length + sankeyData.outflow.length) * 28))}
+              emptyMessage="Belum ada transaksi bulan ini — input dulu transaksi pertamamu."
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Phase 2.1 + 3.1 — Recent Transactions + Upcoming Bills + Goals row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
