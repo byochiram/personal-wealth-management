@@ -1,28 +1,28 @@
 'use client'
 
 /**
- * Money Flow Sankey — Stockbit-style bipartite flow viz for personal finance.
+ * Money Flow Sankey — Stockbit-style flow viz applied to personal finance.
  *
- *   Income source (left)  ──────►  Spending category (right)
+ *   Income source (left)  →  Total Pemasukan (middle hub)  →  Spending (right)
  *
- * No middle hub: every income source connects DIRECTLY to every outflow
- * category, with link width = income's pro-rata share of that outflow.
- * (e.g. if Gaji is 80% of total income and Bonus is 20%, then for a
- * Rp 1M Makanan expense, the diagram draws Gaji→Makanan at 800K and
- * Bonus→Makanan at 200K.)
+ * Why a middle hub?
+ *   It anchors the visual — every link width sums INTO the hub on one side
+ *   and back OUT the other. Reads as "all your income pools here, then
+ *   gets distributed."
  *
- * Why bipartite over a middle "Total" hub:
- *   - Smaller income sources don't visually orphan into a thin arc that
- *     curves into a central node — they get direct lines to everywhere.
- *   - Matches the Stockbit broker-flow pattern the user referenced.
- *   - Reads honestly: every rupiah of income funds every rupiah of
- *     outflow proportionally.
+ * Conservation matters. If sum(income) ≠ sum(outflow), recharts visually
+ * shrinks the middle bar to the smaller side, which makes the smaller
+ * income source (e.g. Side Hustle at the bottom) appear to drop off into
+ * empty space. Fix: add a synthetic balancing node so in == out always.
+ *   - Surplus (income > outflow) → "Belum Terpakai" pseudo-outflow.
+ *   - Deficit (outflow > income) → "Defisit Bulan Ini" pseudo-income.
  *
- * Categories colored consistently:
+ * Categories colored by kind:
  *   - Income     → emerald
  *   - Expense    → coral
  *   - Saving     → amber
  *   - Investment → sky
+ *   - Hub/Surplus/Deficit → indigo (neutral)
  */
 
 import { useMemo } from 'react'
@@ -35,7 +35,7 @@ import {
 } from 'recharts'
 import { formatCurrency } from '@/lib/utils'
 
-export type FlowKind = 'income' | 'expense' | 'saving' | 'investment'
+export type FlowKind = 'income' | 'expense' | 'saving' | 'investment' | 'middle'
 
 interface CategoryAmount {
   name: string
@@ -46,6 +46,9 @@ interface CategoryAmount {
 interface MoneyFlowSankeyProps {
   income: CategoryAmount[]      // left side
   outflow: CategoryAmount[]     // right side: expense + saving + investment
+  middleLabel?: string          // default "Total Pemasukan"
+  surplusLabel?: string         // label for the balancing pseudo-outflow
+  deficitLabel?: string         // label for the balancing pseudo-income
   height?: number
   emptyMessage?: string
   /** When true, render a more compact layout suited to <600px viewports. */
@@ -58,16 +61,16 @@ const COLORS: Record<FlowKind, { node: string; link: string }> = {
   expense:    { node: '#EF4444', link: 'rgba(239, 68, 68, 0.40)' },  // coral
   saving:     { node: '#F59E0B', link: 'rgba(245, 158, 11, 0.42)' }, // amber
   investment: { node: '#0EA5E9', link: 'rgba(14, 165, 233, 0.42)' }, // sky
+  middle:     { node: '#6366F1', link: 'rgba(99, 102, 241, 0.32)' }, // indigo (hub + balancing)
 }
 
-// Truncate long names so the label column doesn't blow out the layout
 function trunc(s: string, max: number): string {
   if (s.length <= max) return s
   return s.slice(0, max - 1) + '…'
 }
 
 // ─── Custom node renderer ───────────────────────────────────────────────
-// In recharts Sankey, the original data props (kind) are merged onto the
+// In recharts Sankey, original data props (kind) are merged onto the
 // payload object directly — NOT under payload.payload.
 interface SankeyNodeData {
   name: string
@@ -93,7 +96,9 @@ function makeRenderNode(compact: boolean) {
     const { x, y, width, height, payload, containerWidth } = props
     const kind: FlowKind = payload.kind ?? 'income'
     const color = COLORS[kind].node
-    const isLeft = x < containerWidth / 2
+    // The middle hub sits roughly centered — anchor labels right of it
+    const isLeft = x < containerWidth * 0.4
+    const isMiddle = !isLeft && x < containerWidth * 0.6
     const labelX = isLeft ? x - labelGap : x + width + labelGap
     const anchor = isLeft ? 'end' : 'start'
 
@@ -105,7 +110,7 @@ function makeRenderNode(compact: boolean) {
           width={width}
           height={Math.max(height, 4)}
           fill={color}
-          fillOpacity={0.95}
+          fillOpacity={isMiddle ? 1 : 0.95}
         />
         <text
           x={labelX}
@@ -140,10 +145,9 @@ function makeRenderNode(compact: boolean) {
 }
 
 // ─── Custom link renderer ───────────────────────────────────────────────
-// Color each link by its TARGET kind — the destination determines what
-// "kind" of flow this is (an expense flow vs a saving flow vs an
-// investment flow). Income on left always source-emerald isn't useful
-// since you already see it from the source bar.
+// Color income-side (source kind income) by source kind = emerald.
+// Color outflow-side (target kind != middle) by target kind so each
+// branch from the hub clearly reads as expense/saving/investment.
 interface SankeyLinkData {
   sourceX: number
   sourceY: number
@@ -153,9 +157,8 @@ interface SankeyLinkData {
   targetControlX: number
   linkWidth: number
   payload: {
-    target: { kind?: FlowKind; name?: string; value?: number }
-    source: { kind?: FlowKind; name?: string; value?: number }
-    value?: number
+    target: { kind?: FlowKind; name?: string }
+    source: { kind?: FlowKind; name?: string }
   }
 }
 
@@ -165,7 +168,17 @@ function renderLink(props: SankeyLinkData) {
     targetX, targetY, targetControlX,
     linkWidth, payload,
   } = props
-  const kind: FlowKind = payload.target.kind ?? payload.source.kind ?? 'expense'
+  const targetKind = payload.target.kind
+  const sourceKind = payload.source.kind
+  // Inflow side: source is income (or deficit pseudo-income), target is hub
+  //   → use source kind so deficit can be shown in indigo and real income in green
+  // Outflow side: source is hub, target is expense/saving/investment/surplus
+  //   → use target kind
+  const kind: FlowKind = (targetKind && targetKind !== 'middle')
+    ? targetKind
+    : (sourceKind && sourceKind !== 'middle')
+      ? sourceKind
+      : 'middle'
   const stroke = COLORS[kind].link
 
   return (
@@ -189,6 +202,9 @@ function renderLink(props: SankeyLinkData) {
 export function MoneyFlowSankey({
   income,
   outflow,
+  middleLabel = 'Total Pemasukan',
+  surplusLabel = 'Belum Terpakai',
+  deficitLabel = 'Defisit Bulan Ini',
   height = 360,
   emptyMessage = 'Belum ada transaksi untuk periode ini.',
   compact = false,
@@ -197,43 +213,55 @@ export function MoneyFlowSankey({
     const incomeFiltered = income.filter((c) => c.amount > 0)
     const outflowFiltered = outflow.filter((c) => c.amount > 0)
 
-    if (incomeFiltered.length === 0 || outflowFiltered.length === 0) {
-      return null
-    }
+    if (incomeFiltered.length === 0 && outflowFiltered.length === 0) return null
 
     const totalIn = incomeFiltered.reduce((s, c) => s + c.amount, 0)
-    if (totalIn <= 0) return null
+    const totalOut = outflowFiltered.reduce((s, c) => s + c.amount, 0)
 
-    // Build node arrays. Income first, then outflow, so the layout
-    // engine puts income on the left and outflow on the right naturally.
+    // Balance the diagram so the middle hub bar height = totalIn = totalOut.
+    // This is what makes Side Hustle (or any small income source) connect
+    // properly to the bottom of the hub instead of being visually orphaned.
+    const balancedIncome = [...incomeFiltered]
+    const balancedOutflow = [...outflowFiltered]
+    if (totalIn > totalOut) {
+      // Surplus — money came in but isn't spent/saved/invested yet
+      balancedOutflow.push({
+        name: surplusLabel,
+        amount: totalIn - totalOut,
+        kind: 'middle',
+      })
+    } else if (totalOut > totalIn) {
+      // Deficit — spent more than earned (drew from savings, debt, etc.)
+      balancedIncome.push({
+        name: deficitLabel,
+        amount: totalOut - totalIn,
+        kind: 'middle',
+      })
+    }
+
+    // Build nodes: income | middle | outflow
     const nodes: { name: string; kind: FlowKind }[] = []
     const incomeStartIdx = nodes.length
-    incomeFiltered.forEach((c) => nodes.push({ name: c.name, kind: c.kind }))
+    balancedIncome.forEach((c) => nodes.push({ name: c.name, kind: c.kind }))
+
+    const middleIdx = nodes.length
+    nodes.push({ name: middleLabel, kind: 'middle' })
 
     const outflowStartIdx = nodes.length
-    outflowFiltered.forEach((c) => nodes.push({ name: c.name, kind: c.kind }))
+    balancedOutflow.forEach((c) => nodes.push({ name: c.name, kind: c.kind }))
 
-    // Pro-rata link generation:
-    //   For each outflow, allocate it across income sources by share.
-    //   Skip dust (<1) so we don't draw 18 hairlines for trivia.
+    // Links: every income → middle, middle → every outflow
     const links: { source: number; target: number; value: number }[] = []
-    outflowFiltered.forEach((dst, dstIdx) => {
-      incomeFiltered.forEach((src, srcIdx) => {
-        const share = src.amount / totalIn
-        const value = dst.amount * share
-        if (value < 1) return
-        links.push({
-          source: incomeStartIdx + srcIdx,
-          target: outflowStartIdx + dstIdx,
-          value,
-        })
-      })
+    balancedIncome.forEach((c, i) => {
+      links.push({ source: incomeStartIdx + i, target: middleIdx, value: c.amount })
+    })
+    balancedOutflow.forEach((c, i) => {
+      links.push({ source: middleIdx, target: outflowStartIdx + i, value: c.amount })
     })
 
     if (links.length === 0) return null
-
     return { nodes, links }
-  }, [income, outflow])
+  }, [income, outflow, middleLabel, surplusLabel, deficitLabel])
 
   if (!data) {
     return (
@@ -251,7 +279,6 @@ export function MoneyFlowSankey({
     )
   }
 
-  // Tight margins on mobile so labels still fit within the chart container
   const margin = compact
     ? { top: 8, right: 70, bottom: 8, left: 70 }
     : { top: 14, right: 130, bottom: 14, left: 130 }
