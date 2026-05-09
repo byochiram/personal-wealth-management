@@ -562,6 +562,59 @@ export default function TransactionsPage() {
     fetchData()
   }
 
+  // ─── Quick-add (inline row) ─────────────────────────────────
+  // Faster than opening the modal — Tab between fields, Enter to submit.
+  const [quickForm, setQuickForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    account_id: '',
+    type: 'expense' as TransactionType,
+    category: '',
+    description: '',
+    amount: 0,
+  })
+  const [quickSaving, setQuickSaving] = useState(false)
+
+  // Pre-fill account when accounts load (use Cash/default)
+  useEffect(() => {
+    if (!quickForm.account_id) {
+      const picked = pickAccount()
+      if (picked) setQuickForm((q) => ({ ...q, account_id: picked.id }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accounts.length, creditCards.length])
+
+  async function quickSubmit() {
+    if (!quickForm.account_id) { alert('Pilih akun dulu.'); return }
+    if (!quickForm.category) { alert('Pilih kategori dulu.'); return }
+    if (!quickForm.amount || quickForm.amount <= 0) { alert('Jumlah harus > 0.'); return }
+    setQuickSaving(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setQuickSaving(false); return }
+    // Auto-tag household if member
+    const memRes = await supabase.from('household_members').select('household_id').eq('user_id', user.id).maybeSingle()
+    const householdId = (memRes.data as { household_id: string } | null)?.household_id ?? null
+
+    const payload: Record<string, unknown> = {
+      user_id: user.id,
+      date: quickForm.date,
+      account_id: quickForm.account_id,
+      type: quickForm.type,
+      category: quickForm.category,
+      description: quickForm.description,
+      amount: quickForm.amount,
+    }
+    if (householdId) payload.household_id = householdId
+
+    const { error } = await supabase.from('transactions').insert(payload)
+    setQuickSaving(false)
+    if (error) { alert(`Gagal: ${error.message}`); return }
+
+    // Reset only amount + description; keep date/account/type/category
+    // (most users add multiple similar transactions in a row)
+    setQuickForm((q) => ({ ...q, description: '', amount: 0 }))
+    fetchData()
+  }
+
   function getAccountName(accountId: string) {
     const acc = accounts.find((a) => a.id === accountId)
     if (acc) return acc.name?.trim() || `Akun tanpa nama (${acc.type})`
@@ -735,6 +788,120 @@ export default function TransactionsPage() {
           </Select>
         </div>
       </div>
+
+      {/* Quick-add inline bar — fastest way to log a transaction without opening modal.
+          Tab between fields, Enter to submit. Modal still available for receipt OCR + edit. */}
+      {!loading && accounts.length + creditCards.length > 0 && (
+        <div className="rounded-xl border bg-white p-3" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex items-center gap-2 mb-2 px-1">
+            <Plus className="size-3.5" style={{ color: 'var(--emerald-600)' }} />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: 'var(--ink-muted)' }}>
+              Tambah Cepat
+            </p>
+            <span className="text-[10px]" style={{ color: 'var(--ink-soft)' }}>
+              · Tab antar field, Enter untuk simpan
+            </span>
+          </div>
+          <form
+            onSubmit={(e) => { e.preventDefault(); void quickSubmit() }}
+            className="grid gap-2 grid-cols-2 sm:grid-cols-12 items-center"
+          >
+            {/* Date */}
+            <Input
+              type="date"
+              value={quickForm.date}
+              onChange={(e) => setQuickForm({ ...quickForm, date: e.target.value })}
+              className="h-9 text-xs col-span-1 sm:col-span-2"
+            />
+            {/* Account */}
+            <Select
+              value={quickForm.account_id}
+              onValueChange={(v) => setQuickForm({ ...quickForm, account_id: v ?? '' })}
+            >
+              <SelectTrigger className="h-9 text-xs col-span-1 sm:col-span-2">
+                <SelectValue placeholder="Akun">
+                  {(v) => {
+                    const acc = accounts.find((a) => a.id === v)
+                    if (acc) return acc.name?.trim() || `Akun (${acc.type})`
+                    const cc = creditCards.find((c) => c.id === v)
+                    if (cc) return cc.name?.trim() || 'Kartu Kredit'
+                    return 'Akun'
+                  }}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name?.trim() || `Akun tanpa nama (${a.type})`}
+                  </SelectItem>
+                ))}
+                {creditCards.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    Kredit · {c.name}{c.last_four ? ` ••${c.last_four}` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {/* Type */}
+            <Select
+              value={quickForm.type}
+              onValueChange={(v) => setQuickForm({ ...quickForm, type: (v ?? 'expense') as TransactionType, category: '' })}
+            >
+              <SelectTrigger className="h-9 text-xs col-span-1 sm:col-span-1">
+                <SelectValue placeholder="Tipe">
+                  {(v) => TYPE_LABELS[v as TransactionType] ?? 'Tipe'}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(TYPE_LABELS) as TransactionType[]).map((t) => (
+                  <SelectItem key={t} value={t}>{TYPE_LABELS[t]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {/* Category */}
+            <Select
+              value={quickForm.category}
+              onValueChange={(v) => setQuickForm({ ...quickForm, category: v ?? '' })}
+            >
+              <SelectTrigger className="h-9 text-xs col-span-1 sm:col-span-2">
+                <SelectValue placeholder="Kategori">
+                  {(v) => v || 'Kategori'}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {getCategoriesForType(quickForm.type).map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {/* Description */}
+            <Input
+              value={quickForm.description}
+              onChange={(e) => setQuickForm({ ...quickForm, description: e.target.value })}
+              placeholder="Deskripsi (opsional)"
+              className="h-9 text-xs col-span-2 sm:col-span-2"
+            />
+            {/* Amount */}
+            <NumberInput
+              value={quickForm.amount}
+              onChange={(n) => setQuickForm({ ...quickForm, amount: n })}
+              placeholder="Jumlah"
+              className="h-9 text-xs col-span-1 sm:col-span-2"
+            />
+            {/* Submit */}
+            <Button
+              type="submit"
+              disabled={quickSaving || !quickForm.account_id || !quickForm.category || quickForm.amount <= 0}
+              className="h-9 text-xs col-span-1 sm:col-span-1"
+            >
+              {quickSaving ? <Loader2 className="size-3.5 animate-spin" /> : <><Plus className="size-3.5" />Simpan</>}
+            </Button>
+          </form>
+          <p className="text-[10px] mt-1.5 px-1" style={{ color: 'var(--ink-soft)' }}>
+            💡 Pakai <kbd className="font-mono px-1 rounded" style={{ background: 'var(--surface-2)' }}>⌘K</kbd> buat AI quick-add (&ldquo;indomaret 47rb&rdquo;), atau <strong>&quot;Tambah Transaksi&quot;</strong> di atas buat scan struk.
+          </p>
+        </div>
+      )}
 
       {/* Table */}
       {loading ? (
