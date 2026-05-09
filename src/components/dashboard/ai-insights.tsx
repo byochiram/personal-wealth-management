@@ -154,6 +154,19 @@ export function AIInsightsCard({
     }
   }, [monthTransactions, yearTransactions, selectedYear, selectedMonth, goals])
 
+  // Detect if there's enough data to call AI (current month OR last month)
+  const hasAnyData = useMemo(() => {
+    if (monthTransactions.length >= 1) return true
+    // Check if last month has data (use yearTransactions to peek)
+    const lastMonth = selectedMonth === 1 ? 12 : selectedMonth - 1
+    const lastYear = selectedMonth === 1 ? selectedYear - 1 : selectedYear
+    const lmStart = `${lastYear}-${String(lastMonth).padStart(2, '0')}-01`
+    const lmEndMonth = lastMonth === 12 ? 1 : lastMonth + 1
+    const lmEndYear = lastMonth === 12 ? lastYear + 1 : lastYear
+    const lmEnd = `${lmEndYear}-${String(lmEndMonth).padStart(2, '0')}-01`
+    return yearTransactions.some((t) => t.date >= lmStart && t.date < lmEnd)
+  }, [monthTransactions.length, yearTransactions, selectedYear, selectedMonth])
+
   // On mount + period change: try cache first, only fetch if stale or missing
   useEffect(() => {
     const cached = getCache(periodKey)
@@ -163,12 +176,12 @@ export function AIInsightsCard({
       setError(null)
       return
     }
-    // No cache → fetch fresh (only if there's enough data — at least 3 transactions)
-    if (monthTransactions.length >= 3) {
+    // Only fetch if we have any data to analyze (current month OR last month)
+    if (hasAnyData) {
       void fetchInsights()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodKey, monthTransactions.length])
+  }, [periodKey, hasAnyData])
 
   async function fetchInsights() {
     // Check user is authed (cheap)
@@ -206,9 +219,11 @@ export function AIInsightsCard({
     }
   }
 
-  // Don't render if not enough data
-  if (monthTransactions.length < 3 && !insights) {
-    return null
+  // Welcome card — shown when user has zero data anywhere yet (free + paid).
+  // No API call wasted, but card still renders so paying users see the
+  // feature exists and what to expect once they start logging.
+  if (!hasAnyData && !insights) {
+    return <WelcomeInsights />
   }
 
   return (
@@ -328,4 +343,91 @@ function formatRelative(iso: string): string {
   if (hours < 24) return `${hours} jam lalu`
   const days = Math.floor(hours / 24)
   return `${days} hari lalu`
+}
+
+// ─── Welcome card for users with zero data ───────────────────────
+// Static helpful tips. No API call. Disappears once user logs first transaction.
+
+const WELCOME_TIPS: Array<{ emoji: string; title: string; body: string; href: string; tone: Insight['tone'] }> = [
+  {
+    emoji: '⚡',
+    title: 'Mulai dari Tambah Cepat',
+    body: 'Buka /Transaksi → bar inline di atas tabel. Tab antar field, Enter simpan. 5 detik per transaksi.',
+    href: '/dashboard/transactions',
+    tone: 'observation',
+  },
+  {
+    emoji: '✨',
+    title: 'Foto struk → otomatis tercatat',
+    body: 'Klik "Tambah Transaksi" → upload foto struk. Claude AI ekstrak merchant, tanggal, total, kategori dalam 3 detik.',
+    href: '/dashboard/transactions',
+    tone: 'positive',
+  },
+  {
+    emoji: '⌘',
+    title: 'Tekan ⌘K dari mana aja',
+    body: 'Quick add via natural language — ketik "indomaret 47rb cash", AI parse + langsung simpan ke akun default.',
+    href: '/dashboard',
+    tone: 'observation',
+  },
+]
+
+function WelcomeInsights() {
+  return (
+    <div
+      className="rounded-2xl border p-5"
+      style={{
+        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.04), rgba(14, 165, 233, 0.04))',
+        borderColor: 'var(--border)',
+      }}
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <div
+          className="size-8 rounded-lg flex items-center justify-center"
+          style={{ background: 'linear-gradient(135deg, var(--emerald-500), var(--sky-500))' }}
+        >
+          <Sparkles className="size-4 text-white" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>
+            Insight AI Personal — Siap Buat Kamu 🎉
+          </p>
+          <p className="text-[11px]" style={{ color: 'var(--ink-soft)' }}>
+            Mulai catat transaksi pertamamu, AI bakal kasih analisis pola pengeluaran dan saran konkret.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-2.5 sm:grid-cols-3">
+        {WELCOME_TIPS.map((tip, i) => {
+          const t = TONE_STYLES[tip.tone]
+          return (
+            <a
+              key={i}
+              href={tip.href}
+              className="rounded-lg border p-3 transition hover:scale-[1.02] hover:shadow-sm cursor-pointer"
+              style={{ background: t.bg, borderColor: t.border }}
+            >
+              <div className="flex items-start gap-2.5">
+                <div
+                  className="size-8 rounded-lg flex items-center justify-center text-base shrink-0"
+                  style={{ background: t.emoji_bg }}
+                >
+                  {tip.emoji}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold leading-snug" style={{ color: 'var(--ink)' }}>
+                    {tip.title}
+                  </p>
+                  <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
+                    {tip.body}
+                  </p>
+                </div>
+              </div>
+            </a>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
