@@ -188,14 +188,19 @@ export function Sidebar({ user }: SidebarProps) {
             if (items.length === 0) return null
             const sectionLabel = t(sec.titleKey)
             return (
-              <div key={sec.key} className="mb-2 last:mb-0">
+              <div key={sec.key} className="mb-1 last:mb-0">
+                {/* Section label rendered as a thin divider with tiny inline label.
+                    More visual hierarchy via separator + minimal text noise. */}
                 {sectionLabel && (
-                  <p
-                    className="px-3 pt-1.5 pb-0.5 text-[10px] uppercase tracking-[0.14em] font-semibold"
-                    style={{ color: '#52525B' }}
-                  >
-                    {sectionLabel}
-                  </p>
+                  <div className="px-3 pt-3 pb-1 flex items-center gap-2">
+                    <span
+                      className="text-[9px] uppercase tracking-[0.18em] font-medium"
+                      style={{ color: '#3F3F46' }}
+                    >
+                      {sectionLabel}
+                    </span>
+                    <span className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
+                  </div>
                 )}
                 <div>
                   {items.map((item) => renderItem(item, 0))}

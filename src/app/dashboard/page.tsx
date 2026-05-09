@@ -309,67 +309,79 @@ export default function DashboardPage() {
         <KpiCard label={t('dashboard.kpi_net_cashflow')} value={totals.net} direction={totals.net >= 0 ? 'up' : 'down'} />
       </div>
 
-      {/* Calendar + Budget Progress (moved up) */}
+      {/* Daily activity + Budget Progress */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-        {/* Calendar */}
+        {/* Daily expense trend — compact bar chart with inline insights */}
         <div className="s-card p-6 lg:col-span-3">
-          <div className="mb-4 flex items-end justify-between">
+          <div className="mb-4 flex items-end justify-between flex-wrap gap-3">
             <div>
-              <p className="caps">{t('dashboard.activity_daily')}</p>
+              <p className="caps">Aktivitas Harian</p>
               <h3 className="text-lg font-semibold mt-0.5" style={{ color: 'var(--ink)' }}>
-                {t('dashboard.calendar_title')}
+                Pengeluaran per Hari
               </h3>
             </div>
-            <div className="flex items-center gap-3 text-[11px]" style={{ color: 'var(--ink-muted)' }}>
-              <span className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: 'var(--lime-400)' }} />
-                {t('dashboard.surplus')}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: 'var(--ink)' }} />
-                {t('dashboard.deficit')}
-              </span>
-            </div>
-          </div>
-          <div className="grid grid-cols-7 gap-1.5">
-            {['M', 'S', 'S', 'R', 'K', 'J', 'S'].map((dow, i) => (
-              <div key={i} className="text-center py-1 text-xs font-semibold" style={{ color: 'var(--ink-soft)' }}>
-                {dow}
-              </div>
-            ))}
-            {calendarData.map((cell, i) => {
-              if (cell.day === null) return <div key={i} className="min-h-[60px]" />
-              const hasActivity = cell.count > 0
-              const isSurplus = cell.net > 0
-              const isDeficit = cell.net < 0
-              const bg = !hasActivity ? 'var(--surface-2)'
-                : isSurplus ? 'var(--lime-100)'
-                : isDeficit ? 'var(--ink)'
-                : 'var(--surface-2)'
-              const fg = isDeficit ? '#FFFFFF' : 'var(--ink)'
-              const netFg = !hasActivity ? 'var(--ink-soft)'
-                : isSurplus ? 'var(--lime-700)'
-                : isDeficit ? 'var(--lime-400)'
-                : 'var(--ink-muted)'
+            {(() => {
+              const dailyExp = calendarData
+                .filter((c) => c.day !== null)
+                .map((c) => c.expense)
+              const totalExp = dailyExp.reduce((s, x) => s + x, 0)
+              const activeDays = dailyExp.filter((x) => x > 0).length
+              const avgDaily = activeDays > 0 ? totalExp / activeDays : 0
+              const peakIdx = dailyExp.indexOf(Math.max(...dailyExp, 0))
+              const peakDay = peakIdx >= 0 && dailyExp[peakIdx] > 0 ? peakIdx + 1 : null
               return (
-                <div
-                  key={i}
-                  className="min-h-[60px] rounded-md p-2 flex flex-col justify-between cursor-default transition-all hover:ring-2 hover:ring-[var(--ink)]"
-                  style={{ backgroundColor: bg, color: fg }}
-                  title={hasActivity ? `${cell.day}: ${cell.count} transaksi — Net ${formatCurrency(cell.net)}` : `${cell.day}: tidak ada transaksi`}
-                >
-                  <span className="text-sm font-semibold leading-none">{cell.day}</span>
-                  {hasActivity && (
-                    <span className="text-[11px] num tabular font-semibold leading-tight" style={{ color: netFg }}>
-                      {isSurplus ? '+' : ''}
-                      {Math.abs(cell.net) >= 1_000_000
-                        ? `${(cell.net / 1_000_000).toFixed(1)}jt`
-                        : `${Math.round(cell.net / 1000)}rb`}
+                <div className="flex items-center gap-4 text-[11px]" style={{ color: 'var(--ink-muted)' }}>
+                  <span>
+                    Rata-rata <span className="num font-semibold" style={{ color: 'var(--ink)' }}>
+                      {formatCurrency(avgDaily)}
+                    </span>/hari aktif
+                  </span>
+                  {peakDay && (
+                    <span>
+                      Tertinggi <span className="num font-semibold" style={{ color: '#E11D48' }}>
+                        tgl {peakDay}
+                      </span>
                     </span>
                   )}
                 </div>
               )
-            })}
+            })()}
+          </div>
+          {/* Compact bar chart: each day = a vertical bar, height proportional to expense */}
+          {(() => {
+            const days = calendarData.filter((c) => c.day !== null) as Array<{
+              day: number; date?: string; income: number; expense: number; net: number; count: number
+            }>
+            const maxExp = Math.max(...days.map((d) => d.expense), 1)
+            return (
+              <div className="flex items-end gap-[3px] h-[140px]">
+                {days.map((d) => {
+                  const heightPct = (d.expense / maxExp) * 100
+                  const hasActivity = d.expense > 0
+                  return (
+                    <div
+                      key={d.day}
+                      className="flex-1 flex flex-col items-center justify-end group cursor-default"
+                      title={hasActivity ? `Tgl ${d.day}: ${formatCurrency(d.expense)} (${d.count} transaksi)` : `Tgl ${d.day}: tidak ada pengeluaran`}
+                    >
+                      <div
+                        className="w-full rounded-t transition-all group-hover:opacity-80"
+                        style={{
+                          height: hasActivity ? `${Math.max(heightPct, 4)}%` : '2px',
+                          minHeight: hasActivity ? '4px' : '2px',
+                          background: hasActivity ? '#8B1538' : 'var(--border-soft)',
+                        }}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })()}
+          <div className="mt-2 flex justify-between text-[10px]" style={{ color: 'var(--ink-soft)' }}>
+            <span>Tgl 1</span>
+            <span className="font-semibold">Tgl {Math.ceil(calendarData.filter((c) => c.day !== null).length / 2)}</span>
+            <span>Tgl {calendarData.filter((c) => c.day !== null).length}</span>
           </div>
         </div>
 

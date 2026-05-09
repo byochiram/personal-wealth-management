@@ -187,13 +187,21 @@ export default function MonthlyReportPage() {
             </div>
             <div className="flex flex-wrap gap-2 items-center no-print">
               <Select value={String(month)} onValueChange={(v) => v && setMonth(Number(v))}>
-                <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-[130px]">
+                  <SelectValue placeholder="Bulan">
+                    {(v) => MONTHS[Number(v) - 1] ?? v}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   {monthOpts.map((m) => <SelectItem key={m.value} value={String(m.value)}>{m.label}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={String(year)} onValueChange={(v) => v && setYear(Number(v))}>
-                <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue placeholder="Tahun">
+                    {(v) => v}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   {yearOpts.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
                 </SelectContent>

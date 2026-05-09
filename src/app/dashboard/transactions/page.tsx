@@ -16,6 +16,7 @@ import Papa from 'papaparse'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -647,7 +648,9 @@ export default function TransactionsPage() {
           <label className="caps" style={{ fontSize: '0.625rem' }}>Bulan</label>
           <Select value={filterMonth} onValueChange={(v) => setFilterMonth(v ?? 'all')}>
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Semua" />
+              <SelectValue placeholder="Semua Bulan">
+                {(v) => v === 'all' ? 'Semua Bulan' : (MONTHS[Number(v) - 1] ?? v)}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Bulan</SelectItem>
@@ -664,7 +667,13 @@ export default function TransactionsPage() {
           <label className="caps" style={{ fontSize: '0.625rem' }}>Akun</label>
           <Select value={filterAccount} onValueChange={(v) => setFilterAccount(v ?? 'all')}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Semua" />
+              <SelectValue placeholder="Semua Akun">
+                {(v) => v === 'all'
+                  ? 'Semua Akun'
+                  : accounts.find((a) => a.id === v)?.name?.trim()
+                    || creditCards.find((c) => c.id === v)?.name
+                    || 'Akun'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Akun</SelectItem>
@@ -692,7 +701,9 @@ export default function TransactionsPage() {
             }}
           >
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Semua" />
+              <SelectValue placeholder="Semua Tipe">
+                {(v) => v === 'all' ? 'Semua Tipe' : (TYPE_LABELS[v as TransactionType] ?? v)}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Tipe</SelectItem>
@@ -709,7 +720,9 @@ export default function TransactionsPage() {
           <label className="caps" style={{ fontSize: '0.625rem' }}>Kategori</label>
           <Select value={filterCategory} onValueChange={(v) => setFilterCategory(v ?? 'all')}>
             <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="Semua" />
+              <SelectValue placeholder="Semua Kategori">
+                {(v) => v === 'all' ? 'Semua Kategori' : v}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Semua Kategori</SelectItem>
@@ -910,12 +923,20 @@ export default function TransactionsPage() {
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih akun" />
+                  <SelectValue placeholder="Pilih akun">
+                    {(v) => {
+                      const acc = accounts.find((a) => a.id === v)
+                      if (acc) return acc.name?.trim() || `Akun tanpa nama (${acc.type})`
+                      const cc = creditCards.find((c) => c.id === v)
+                      if (cc) return `Kredit · ${cc.name}${cc.last_four ? ` ••${cc.last_four}` : ''}`
+                      return 'Pilih akun'
+                    }}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {accounts.map((a) => (
                     <SelectItem key={a.id} value={a.id}>
-                      {a.name}
+                      {a.name?.trim() || `Akun tanpa nama (${a.type})`}
                     </SelectItem>
                   ))}
                   {creditCards.map((c) => (
@@ -975,7 +996,9 @@ export default function TransactionsPage() {
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih tipe" />
+                  <SelectValue placeholder="Pilih tipe">
+                    {(v) => TYPE_LABELS[v as TransactionType] ?? 'Pilih tipe'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {(Object.keys(TYPE_LABELS) as TransactionType[]).map((t) => (
@@ -995,7 +1018,9 @@ export default function TransactionsPage() {
                 onValueChange={(v) => setForm({ ...form, category: v ?? '' })}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih kategori" />
+                  <SelectValue placeholder="Pilih kategori">
+                    {(v) => v || 'Pilih kategori'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {getCategoriesForType(form.type).map((c) => (
@@ -1016,21 +1041,17 @@ export default function TransactionsPage() {
                 onChange={(e) =>
                   setForm({ ...form, description: e.target.value })
                 }
-                placeholder="Catatan transaksi"
+                placeholder="cth: Belanja groceries di Indomaret"
               />
             </div>
 
             {/* Amount */}
             <div className="grid gap-1.5">
               <Label htmlFor="tx-amount">Jumlah (Rp)</Label>
-              <Input
+              <NumberInput
                 id="tx-amount"
-                type="number"
-                min={0}
-                value={form.amount || ''}
-                onChange={(e) =>
-                  setForm({ ...form, amount: Number(e.target.value) })
-                }
+                value={form.amount}
+                onChange={(n) => setForm({ ...form, amount: n })}
                 placeholder="0"
               />
             </div>
@@ -1174,7 +1195,7 @@ export default function TransactionsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label>Jumlah (Rp)</Label>
-                <Input type="number" min={0} value={transferForm.amount || ''} onChange={(e) => setTransferForm({ ...transferForm, amount: Number(e.target.value) || 0 })} />
+                <NumberInput value={transferForm.amount} onChange={(n) => setTransferForm({ ...transferForm, amount: n })} placeholder="0" />
               </div>
               <div className="grid gap-1.5">
                 <Label>Tanggal</Label>

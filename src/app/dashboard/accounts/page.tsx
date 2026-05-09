@@ -9,6 +9,7 @@ import type { Account } from '@/types'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -363,12 +364,10 @@ export default function AccountsPage() {
                   — saldo saat akun ini mulai dicatat
                 </span>
               </Label>
-              <Input
+              <NumberInput
                 id="acc-balance"
-                type="number"
-                min={0}
-                value={form.starting_balance || ''}
-                onChange={(e) => setForm({ ...form, starting_balance: Number(e.target.value) })}
+                value={form.starting_balance}
+                onChange={(n) => setForm({ ...form, starting_balance: n })}
                 placeholder="0"
               />
             </div>

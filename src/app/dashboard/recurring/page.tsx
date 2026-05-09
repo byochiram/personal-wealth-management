@@ -9,6 +9,7 @@ import {
 import type { Account, RecurringTransaction } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -295,7 +296,11 @@ export default function RecurringPage() {
               <div className="grid gap-1.5">
                 <Label>Tipe</Label>
                 <Select value={form.type} onValueChange={(v) => v && setForm({ ...form, type: v as TxType, category: categoriesFor(v as TxType)[0] })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih tipe">
+                      {(v) => TYPE_LABELS[v as TxType] ?? 'Pilih tipe'}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {(Object.keys(TYPE_LABELS) as TxType[]).map((k) => (
                       <SelectItem key={k} value={k}>{TYPE_LABELS[k]}</SelectItem>
@@ -306,7 +311,11 @@ export default function RecurringPage() {
               <div className="grid gap-1.5">
                 <Label>Kategori</Label>
                 <Select value={form.category} onValueChange={(v) => v && setForm({ ...form, category: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih kategori">
+                      {(v) => v || 'Pilih kategori'}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {categoriesFor(form.type).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
@@ -316,7 +325,7 @@ export default function RecurringPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label>Jumlah (Rp)</Label>
-                <Input type="number" min={0} value={form.amount || ''} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) || 0 })} />
+                <NumberInput value={form.amount} onChange={(n) => setForm({ ...form, amount: n })} placeholder="0" />
               </div>
               <div className="grid gap-1.5">
                 <Label>Akun</Label>
@@ -332,7 +341,11 @@ export default function RecurringPage() {
               <div className="grid gap-1.5">
                 <Label>Frekuensi</Label>
                 <Select value={form.frequency} onValueChange={(v) => v && setForm({ ...form, frequency: v as Freq })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih frekuensi">
+                      {(v) => FREQ_LABELS[v as Freq] ?? 'Pilih frekuensi'}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {(Object.keys(FREQ_LABELS) as Freq[]).map((k) => <SelectItem key={k} value={k}>{FREQ_LABELS[k]}</SelectItem>)}
                   </SelectContent>
