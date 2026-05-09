@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { StockLogo } from '@/components/investment/stock-logo'
 import { StockTickerSearch } from '@/components/investment/stock-ticker-search'
 import { IDX_BROKERS } from '@/lib/idx-brokers'
+import { CryptoLogo } from '@/components/investment/crypto-logo'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog'
@@ -376,22 +377,32 @@ export default function InvestmentCategoryPage() {
             return (
               <div
                 key={e.i.id}
-                className="group relative rounded-lg p-5 bg-white border border-[var(--border-soft)] hover:border-[var(--ink)] transition-colors"
+                className="group relative rounded-xl p-4 bg-white border transition-all hover:shadow-md hover:-translate-y-0.5"
+                style={{ borderColor: 'var(--border-soft)' }}
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-semibold" style={{ color: 'var(--ink)' }}>{e.i.name}</p>
-                    <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink-muted)' }}>
-                      {e.i.platform || '—'} {e.i.ticker ? `· ${e.i.ticker}` : ''}
-                    </p>
-                  </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                    <Button variant="ghost" size="icon-sm" onClick={() => openEdit(e.i)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon-sm" onClick={() => remove(e.i.id)}>
-                      <Trash2 className="h-3.5 w-3.5" style={{ color: 'var(--danger)' }} />
-                    </Button>
+                <div className="flex items-start gap-3">
+                  {/* Crypto category gets coin logo, others get nothing (could
+                      add gold/bond icons later — for now keep clean). */}
+                  {category === 'crypto' && (
+                    <CryptoLogo symbol={e.i.ticker} size={40} shape="circle" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm truncate" style={{ color: 'var(--ink)' }}>{e.i.name}</p>
+                        <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--ink-muted)' }}>
+                          {e.i.platform || '—'} {e.i.ticker ? `· ${e.i.ticker}` : ''}
+                        </p>
+                      </div>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
+                        <Button variant="ghost" size="icon-sm" onClick={() => openEdit(e.i)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon-sm" onClick={() => remove(e.i.id)}>
+                          <Trash2 className="h-3.5 w-3.5" style={{ color: 'var(--danger)' }} />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <p className="num text-2xl mt-4 tabular font-semibold" style={{ color: 'var(--ink)' }}>

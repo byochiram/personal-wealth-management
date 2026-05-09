@@ -11,6 +11,7 @@ import { GettingStarted } from '@/components/dashboard/getting-started'
 import { AIInsightsCard } from '@/components/dashboard/ai-insights'
 import { MoneyFlowSankey, type FlowKind } from '@/components/dashboard/money-flow-sankey'
 import { StockLogo } from '@/components/investment/stock-logo'
+import { CryptoLogo } from '@/components/investment/crypto-logo'
 import type { Transaction, Investment, CreditCard, Contract } from '@/types'
 
 import {
@@ -863,6 +864,8 @@ export default function DashboardPage() {
                             <span className="truncate flex items-center gap-1.5 min-w-0">
                               {isStock ? (
                                 <StockLogo ticker={h.ticker} size={28} />
+                              ) : h.category === 'crypto' ? (
+                                <CryptoLogo symbol={h.ticker} size={28} />
                               ) : (
                                 <span className="text-[10px] tabular shrink-0" style={{ color: 'var(--ink-soft)' }}>
                                   #{i + 1}
