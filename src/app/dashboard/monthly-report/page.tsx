@@ -206,7 +206,10 @@ export default function MonthlyReportPage() {
                   {yearOpts.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button onClick={() => window.print()} disabled={recap.tx_count === 0}>
+              <Button
+                onClick={() => window.open(`/print/monthly-report?year=${year}&month=${month}`, '_blank')}
+                disabled={recap.tx_count === 0}
+              >
                 <Printer className="size-4" data-icon="inline-start" />
                 Cetak / Simpan PDF
               </Button>
