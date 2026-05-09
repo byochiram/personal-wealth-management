@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select'
 import {
   Loader2, Plus, Pencil, Trash2, RefreshCw, TrendingUp, TrendingDown,
-  LineChart, Coins,
+  LineChart, Coins, LayoutGrid, List,
 } from 'lucide-react'
 import { NumberInput } from '@/components/ui/number-input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -58,6 +58,25 @@ export default function InvestmentCategoryPage() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [items, setItems] = useState<Investment[]>([])
+
+  // View toggle (card | list) — persisted per category in localStorage so
+  // user's preference survives page reloads. Default: list for stock (table
+  // with detail columns is more useful for active traders), card for everything
+  // else (crypto/gold/etc don't have as many columns to show).
+  const [view, setView] = useState<'card' | 'list'>('card')
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`pwm.investmentView.${slug}`)
+      if (stored === 'card' || stored === 'list') setView(stored)
+      else setView(category === 'stock' ? 'list' : 'card')
+    } catch {
+      setView(category === 'stock' ? 'list' : 'card')
+    }
+  }, [slug, category])
+  function changeView(next: 'card' | 'list') {
+    setView(next)
+    try { localStorage.setItem(`pwm.investmentView.${slug}`, next) } catch {}
+  }
   const [quotes, setQuotes] = useState<Record<string, Quote>>({})
   const [dialogOpen, setDialogOpen] = useState(false)
   const [form, setForm] = useState<FormState>(EMPTY)
@@ -249,7 +268,41 @@ export default function InvestmentCategoryPage() {
               ? 'Format Yahoo: BTC-USD, ETH-USD, SOL-USD.'
               : 'Kelola posisi ' + subcat.label.toLowerCase() + ' Anda.'}
         </p>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {/* View toggle — Card / List. Hidden when no positions yet. */}
+          {items.length > 0 && (
+            <div
+              className="flex items-center rounded-md border overflow-hidden"
+              style={{ borderColor: 'var(--border-soft)' }}
+            >
+              <button
+                type="button"
+                onClick={() => changeView('card')}
+                className="size-8 flex items-center justify-center transition"
+                style={{
+                  background: view === 'card' ? 'var(--ink)' : 'var(--surface)',
+                  color: view === 'card' ? 'var(--surface)' : 'var(--ink-muted)',
+                }}
+                title="Tampilan kartu"
+                aria-label="Tampilan kartu"
+              >
+                <LayoutGrid className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => changeView('list')}
+                className="size-8 flex items-center justify-center transition"
+                style={{
+                  background: view === 'list' ? 'var(--ink)' : 'var(--surface)',
+                  color: view === 'list' ? 'var(--surface)' : 'var(--ink-muted)',
+                }}
+                title="Tampilan tabel"
+                aria-label="Tampilan tabel"
+              >
+                <List className="size-4" />
+              </button>
+            </div>
+          )}
           {(category === 'stock' || category === 'crypto') && (
             <Button
               variant="outline"
@@ -274,41 +327,44 @@ export default function InvestmentCategoryPage() {
           <p className="mt-3 font-semibold">Belum ada posisi {subcat.label}</p>
           <p className="text-sm mt-1" style={{ color: 'var(--ink-muted)' }}>Klik Tambah untuk memulai.</p>
         </div>
-      ) : category === 'stock' ? (
-        // Stock sheet
+      ) : view === 'list' ? (
+        // ─── LIST VIEW ─── shared by all categories. Logo column adapts:
+        // stock → StockLogo, crypto → CryptoLogo, others → no logo cell.
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <MiniStat label="Modal" value={formatCurrency(totals.invested)} glow="glow-indigo" />
-            <MiniStat label="Nilai Pasar" value={formatCurrency(totals.market)} glow="glow-violet" />
-            <MiniStat
-              label="P/L"
-              value={formatCurrency(totals.pl)}
-              glow={up ? 'glow-emerald' : 'glow-rose'}
-              accent={up ? '#059669' : '#E11D48'}
-            />
-            <MiniStat
-              label="Return"
-              value={`${up ? '+' : ''}${totals.plPct.toFixed(2)}%`}
-              glow={up ? 'glow-emerald' : 'glow-rose'}
-              accent={up ? '#059669' : '#E11D48'}
-            />
-          </div>
+          {category === 'stock' && (
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <MiniStat label="Modal" value={formatCurrency(totals.invested)} glow="glow-indigo" />
+              <MiniStat label="Nilai Pasar" value={formatCurrency(totals.market)} glow="glow-violet" />
+              <MiniStat
+                label="P/L"
+                value={formatCurrency(totals.pl)}
+                glow={up ? 'glow-emerald' : 'glow-rose'}
+                accent={up ? '#059669' : '#E11D48'}
+              />
+              <MiniStat
+                label="Return"
+                value={`${up ? '+' : ''}${totals.plPct.toFixed(2)}%`}
+                glow={up ? 'glow-emerald' : 'glow-rose'}
+                accent={up ? '#059669' : '#E11D48'}
+              />
+            </div>
+          )}
 
           <div className="glass-card overflow-x-auto p-0">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b" style={{ borderColor: 'var(--border-soft)' }}>
-                  <Th>Ticker</Th>
-                  <Th>Perusahaan</Th>
-                  <Th>Sektor</Th>
-                  <Th className="text-right">Shares</Th>
+                  <Th>{category === 'stock' ? 'Ticker' : 'Coin'}</Th>
+                  <Th>{category === 'stock' ? 'Perusahaan' : 'Nama'}</Th>
+                  {category === 'stock' && <Th>Sektor</Th>}
+                  <Th className="text-right">{category === 'stock' ? 'Shares' : 'Qty'}</Th>
                   <Th className="text-right">Avg Cost</Th>
                   <Th className="text-right">Invested</Th>
                   <Th className="text-right">Harga</Th>
                   <Th className="text-right">Market Value</Th>
                   <Th className="text-right">P/L</Th>
                   <Th className="text-right">%P/L</Th>
-                  <Th>Sekuritas</Th>
+                  <Th>Platform</Th>
                   <Th className="text-right"></Th>
                 </tr>
               </thead>
@@ -319,7 +375,11 @@ export default function InvestmentCategoryPage() {
                     <tr key={e.i.id} className="border-b hover:bg-[var(--surface-alt)]/50 transition-colors" style={{ borderColor: 'var(--border-soft)' }}>
                       <Td>
                         <div className="flex items-center gap-2.5">
-                          <StockLogo ticker={e.i.ticker} size={40} />
+                          {category === 'stock' ? (
+                            <StockLogo ticker={e.i.ticker} size={36} />
+                          ) : category === 'crypto' ? (
+                            <CryptoLogo symbol={e.i.ticker} size={36} />
+                          ) : null}
                           <Badge
                             className="rounded-md px-1.5 py-0.5 text-[11px] font-semibold border-0 tabular"
                             style={{ background: 'var(--surface-2)', color: 'var(--ink)' }}
@@ -329,9 +389,11 @@ export default function InvestmentCategoryPage() {
                         </div>
                       </Td>
                       <Td className="font-medium" style={{ color: 'var(--ink)' }}>{e.i.name}</Td>
-                      <Td style={{ color: 'var(--ink-muted)' }}>
-                        {(e.i as Investment & { sector?: string }).sector ?? '—'}
-                      </Td>
+                      {category === 'stock' && (
+                        <Td style={{ color: 'var(--ink-muted)' }}>
+                          {(e.i as Investment & { sector?: string }).sector ?? '—'}
+                        </Td>
+                      )}
                       <Td className="text-right tabular" style={{ color: 'var(--ink-muted)' }}>
                         {e.shares.toLocaleString('id-ID')}
                       </Td>
@@ -382,11 +444,14 @@ export default function InvestmentCategoryPage() {
                 style={{ borderColor: 'var(--border-soft)' }}
               >
                 <div className="flex items-start gap-3">
-                  {/* Crypto category gets coin logo, others get nothing (could
-                      add gold/bond icons later — for now keep clean). */}
-                  {category === 'crypto' && (
+                  {/* Logo by category — stock from IDX library, crypto from
+                      spothq. Other categories (gold/bond/etc) skip the logo
+                      slot to keep cards clean. */}
+                  {category === 'stock' ? (
+                    <StockLogo ticker={e.i.ticker} size={40} shape="circle" />
+                  ) : category === 'crypto' ? (
                     <CryptoLogo symbol={e.i.ticker} size={40} shape="circle" />
-                  )}
+                  ) : null}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
