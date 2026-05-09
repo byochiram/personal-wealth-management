@@ -82,6 +82,7 @@ export const messages = {
       wrapped: 'Wrapped',
       pricing: 'Paket',
       profile: 'Profil',
+      family: 'Keluarga',
       menu: 'Menu',
       section: {
         overview: '',
@@ -251,6 +252,7 @@ export const messages = {
       wrapped: 'Wrapped',
       pricing: 'Pricing',
       profile: 'Profile',
+      family: 'Family',
       menu: 'Menu',
       section: {
         overview: '',

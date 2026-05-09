@@ -494,6 +494,15 @@ export default function TransactionsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setSaving(false); return }
 
+    // Look up active household — new transactions auto-tagged so they
+    // become visible to all family members (if user is in a household).
+    const memRes = await supabase
+      .from('household_members')
+      .select('household_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    const householdId = (memRes.data as { household_id: string } | null)?.household_id ?? null
+
     // Upload receipt to Storage first (if attached on a NEW transaction)
     let receiptPath: string | null = null
     if (receiptFile && !editingId) {
@@ -520,6 +529,7 @@ export default function TransactionsPage() {
       amount: form.amount,
     }
     if (receiptPath) payload.receipt_url = receiptPath
+    if (householdId && !editingId) payload.household_id = householdId
 
     const { error: saveErr } = editingId
       ? await supabase.from('transactions').update(payload).eq('id', editingId)

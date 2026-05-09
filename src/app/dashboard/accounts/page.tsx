@@ -134,16 +134,25 @@ export default function AccountsPage() {
         return
       }
     } else {
-      // Insert: current_balance starts at starting_balance
-      const { error } = await supabase
-        .from('accounts')
-        .insert({
-          user_id: user.id,
-          name: form.name.trim(),
-          type: form.type,
-          starting_balance: form.starting_balance,
-          current_balance: form.starting_balance,
-        })
+      // Auto-tag household_id if user is in a household — makes new accounts
+      // shared with family members.
+      const memRes = await supabase
+        .from('household_members')
+        .select('household_id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      const householdId = (memRes.data as { household_id: string } | null)?.household_id ?? null
+
+      const insertPayload: Record<string, unknown> = {
+        user_id: user.id,
+        name: form.name.trim(),
+        type: form.type,
+        starting_balance: form.starting_balance,
+        current_balance: form.starting_balance,
+      }
+      if (householdId) insertPayload.household_id = householdId
+
+      const { error } = await supabase.from('accounts').insert(insertPayload)
       if (error) {
         setSaving(false)
         alert(`Gagal buat akun: ${error.message}`)

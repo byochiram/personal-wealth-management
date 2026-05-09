@@ -209,7 +209,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Kontrak',         titleKey: 'nav.contracts',       href: '/dashboard/contracts',      icon: 'FileClock',   section: 'tools' },
   { label: 'Aturan Kategori', titleKey: 'nav.rules',           href: '/dashboard/rules',          icon: 'Sparkles',    section: 'tools' },
 
-  // ACCOUNT — pricing & profile
+  // ACCOUNT — pricing, profile, & family
+  { label: 'Keluarga',        titleKey: 'nav.family',          href: '/dashboard/family',         icon: 'Home',        section: 'account' },
   { label: 'Paket',           titleKey: 'nav.pricing',         href: '/dashboard/pricing',        icon: 'Crown',       section: 'account' },
   { label: 'Profil',          titleKey: 'nav.profile',         href: '/dashboard/profile',        icon: 'UserCircle',  section: 'account' },
 ]
