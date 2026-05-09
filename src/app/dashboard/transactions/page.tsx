@@ -903,80 +903,124 @@ export default function TransactionsPage() {
         </div>
       )}
 
-      {/* Table */}
+      {/* Transactions list — table on md+, cards on mobile */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="size-6 animate-spin" style={{ color: 'var(--burgundy-700)' }} />
           <span className="ml-2 text-gray-500">Memuat data...</span>
         </div>
+      ) : filteredTransactions.length === 0 ? (
+        <div className="rounded-xl border bg-white p-10 text-center" style={{ borderColor: 'var(--border)' }}>
+          <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>Tidak ada transaksi ditemukan.</p>
+        </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Tanggal</TableHead>
-              <TableHead>Akun</TableHead>
-              <TableHead>Tipe</TableHead>
-              <TableHead>Kategori</TableHead>
-              <TableHead>Deskripsi</TableHead>
-              <TableHead className="text-right">Jumlah</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredTransactions.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center text-gray-400 py-10">
-                  Tidak ada transaksi ditemukan.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredTransactions.map((tx) => (
-                <TableRow key={tx.id}>
-                  <TableCell>{formatDate(tx.date)}</TableCell>
-                  <TableCell>{getAccountName(tx.account_id)}</TableCell>
-                  <TableCell>
-                    <Badge
-                      className={TYPE_BADGE_COLORS[tx.type]}
-                    >
-                      {TYPE_LABELS[tx.type]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{tx.category}</TableCell>
-                  <TableCell>{tx.description}</TableCell>
-                  <TableCell
-                    className={`text-right font-medium ${
-                      tx.type === 'income'
-                        ? 'text-emerald-600'
-                        : tx.type === 'expense'
-                          ? 'text-red-600'
-                          : 'text-gray-700'
-                    }`}
-                  >
-                    {formatCurrency(tx.amount)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => openEditDialog(tx)}
-                      >
-                        <Pencil className="size-4 text-gray-500" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleDelete(tx.id)}
-                      >
-                        <Trash2 className="size-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </TableCell>
+        <>
+          {/* Desktop: table */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Akun</TableHead>
+                  <TableHead>Tipe</TableHead>
+                  <TableHead>Kategori</TableHead>
+                  <TableHead>Deskripsi</TableHead>
+                  <TableHead className="text-right">Jumlah</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredTransactions.map((tx) => (
+                  <TableRow key={tx.id}>
+                    <TableCell>{formatDate(tx.date)}</TableCell>
+                    <TableCell>{getAccountName(tx.account_id)}</TableCell>
+                    <TableCell>
+                      <Badge className={TYPE_BADGE_COLORS[tx.type]}>
+                        {TYPE_LABELS[tx.type]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{tx.category}</TableCell>
+                    <TableCell>{tx.description}</TableCell>
+                    <TableCell
+                      className={`text-right font-medium ${
+                        tx.type === 'income'
+                          ? 'text-emerald-600'
+                          : tx.type === 'expense'
+                            ? 'text-red-600'
+                            : 'text-gray-700'
+                      }`}
+                    >
+                      {formatCurrency(tx.amount)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon-sm" onClick={() => openEditDialog(tx)}>
+                          <Pencil className="size-4 text-gray-500" />
+                        </Button>
+                        <Button variant="ghost" size="icon-sm" onClick={() => handleDelete(tx.id)}>
+                          <Trash2 className="size-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile: stacked card list */}
+          <div className="md:hidden space-y-2">
+            {filteredTransactions.map((tx) => {
+              const amountColor = tx.type === 'income'
+                ? 'var(--emerald-600)'
+                : tx.type === 'expense'
+                  ? 'var(--coral-600)'
+                  : tx.type === 'saving'
+                    ? 'var(--amber-600)'
+                    : 'var(--sky-600)'
+              return (
+                <div
+                  key={tx.id}
+                  className="rounded-xl border bg-white p-3 active:bg-[var(--surface-2)] transition"
+                  style={{ borderColor: 'var(--border)' }}
+                  onClick={() => openEditDialog(tx)}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <Badge className={`${TYPE_BADGE_COLORS[tx.type]} text-[10px] px-1.5 py-0`}>
+                          {TYPE_LABELS[tx.type]}
+                        </Badge>
+                        <span className="text-[11px]" style={{ color: 'var(--ink-soft)' }}>
+                          {formatDate(tx.date)}
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>
+                        {tx.description || tx.category}
+                      </p>
+                      <p className="text-[11px] truncate mt-0.5" style={{ color: 'var(--ink-soft)' }}>
+                        {tx.category} · {getAccountName(tx.account_id)}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-bold tabular-nums" style={{ color: amountColor }}>
+                        {tx.type === 'income' ? '+' : tx.type === 'expense' ? '−' : ''}{formatCurrency(tx.amount)}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleDelete(tx.id) }}
+                        className="text-[11px] mt-1 inline-flex items-center gap-0.5 font-medium"
+                        style={{ color: 'var(--coral-600)' }}
+                      >
+                        <Trash2 className="size-3" /> Hapus
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>
       )}
 
       {/* Add / Edit Dialog */}
