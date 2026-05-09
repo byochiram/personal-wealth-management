@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Offline · PWM</title>
+    <meta name="theme-color" content="#10B981" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #FAFAF7;
+        --surface: #FFFFFF;
+        --ink: #0A0A0A;
+        --ink-soft: #525252;
+        --emerald: #10B981;
+        --emerald-dark: #059669;
+        --border: rgba(0, 0, 0, 0.08);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0A0A0F;
+          --surface: #14141A;
+          --ink: #F4F4F5;
+          --ink-soft: #A1A1AA;
+          --border: rgba(255, 255, 255, 0.08);
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: system-ui, -apple-system, "Segoe UI", Inter, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        max-width: 420px;
+        width: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 32px 28px;
+        text-align: center;
+        box-shadow: 0 10px 40px -12px rgba(0, 0, 0, 0.18);
+      }
+      .icon {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 20px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--emerald), var(--emerald-dark));
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0 0 8px;
+        letter-spacing: -0.02em;
+      }
+      p {
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--ink-soft);
+        margin: 0 0 24px;
+      }
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--emerald), var(--emerald-dark));
+        color: #fff;
+        cursor: pointer;
+        font-family: inherit;
+        transition: transform 0.1s ease;
+      }
+      button:active { transform: scale(0.97); }
+      .status {
+        margin-top: 16px;
+        font-size: 12px;
+        color: var(--ink-soft);
+        opacity: 0.7;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="icon">P</div>
+      <h1>Tidak ada koneksi</h1>
+      <p>Halaman ini belum tersimpan offline. Sambungkan internet, lalu coba lagi.</p>
+      <button onclick="location.reload()">Coba lagi</button>
+      <p class="status" id="status">Status: <span id="online">memeriksa…</span></p>
+    </main>
+    <script>
+      function tick() {
+        var el = document.getElementById('online');
+        el.textContent = navigator.onLine ? 'online' : 'offline';
+      }
+      tick();
+      window.addEventListener('online', tick);
+      window.addEventListener('offline', tick);
+    </script>
+  </body>
+</html>
