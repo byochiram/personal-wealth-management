@@ -37,6 +37,8 @@ import {
 } from '@/components/ui/select'
 import { Pencil, Trash2, Plus, Loader2, Wallet, Star, Layers } from 'lucide-react'
 import { AccountAllocationsDialog } from '@/components/accounts/allocations-dialog'
+import { InstitutionLogo } from '@/components/accounts/institution-logo'
+import { InstitutionSearch } from '@/components/accounts/institution-search'
 
 type AccountType = keyof typeof ACCOUNT_TYPES
 
@@ -314,7 +316,9 @@ export default function AccountsPage() {
               return (
                 <TableRow key={a.id}>
                   <TableCell className="font-medium">
-                    <div className="flex flex-col gap-1.5">
+                    <div className="flex items-start gap-2.5">
+                      <InstitutionLogo accountName={a.name} size={36} className="mt-0.5" />
+                      <div className="flex flex-col gap-1.5 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         {a.name?.trim() || <span className="italic text-muted-foreground">Akun tanpa nama</span>}
                         {a.id === defaultAccountId && (
@@ -338,6 +342,7 @@ export default function AccountsPage() {
                           ))}
                         </div>
                       )}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -432,13 +437,21 @@ export default function AccountsPage() {
           <div className="grid gap-4 py-2">
             <div className="grid gap-1.5">
               <Label htmlFor="acc-name">Nama Akun</Label>
-              <Input
-                id="acc-name"
+              <InstitutionSearch
                 value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="contoh: BCA Tahapan, Cash, GoPay"
-                autoFocus
+                onTextChange={(text) => setForm({ ...form, name: text })}
+                onPick={(inst) =>
+                  setForm({
+                    ...form,
+                    name: inst.brand,
+                    type: inst.type as AccountType,
+                  })
+                }
+                placeholder="contoh: BCA, Jenius, GoPay, Cash..."
               />
+              <p className="text-[11px]" style={{ color: 'var(--ink-soft)' }}>
+                Pilih dari daftar atau ketik nama custom (misal &ldquo;BCA Tahapan Utama&rdquo;)
+              </p>
             </div>
 
             <div className="grid gap-1.5">
