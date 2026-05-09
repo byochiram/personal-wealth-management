@@ -20,6 +20,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { Plus, Trash2, Loader2, TrendingUp, TrendingDown } from 'lucide-react'
+import { StockLogo } from '@/components/investment/stock-logo'
+import { IDX_BROKERS, getBrokerByName, computeFee } from '@/lib/idx-brokers'
 
 interface FormState {
   id: string | null
@@ -211,9 +213,12 @@ export function StockLogPanel() {
                 <tr key={t.id} className="border-b" style={{ borderColor: 'var(--border-soft)' }}>
                   <Td>{formatDate(t.date)}</Td>
                   <Td>
-                    <span className="num font-semibold text-[11px] px-1.5 py-0.5 rounded" style={{ background: 'var(--surface-2)', color: 'var(--ink)' }}>
-                      {t.ticker ?? '—'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <StockLogo ticker={t.ticker} size={28} shape="circle" />
+                      <span className="num font-semibold text-[11px] px-1.5 py-0.5 rounded" style={{ background: 'var(--surface-2)', color: 'var(--ink)' }}>
+                        {t.ticker ?? '—'}
+                      </span>
+                    </div>
                   </Td>
                   <Td>
                     <span
@@ -299,7 +304,76 @@ export function StockLogPanel() {
             </div>
             <div className="grid gap-1.5">
               <Label>Broker / Sekuritas</Label>
-              <Input value={form.broker} onChange={(e) => setForm({ ...form, broker: e.target.value })} placeholder="Stockbit, Ajaib, IBKR..." />
+              <Select
+                value={form.broker || ''}
+                onValueChange={(v) => {
+                  // When broker picked, auto-compute fee from rate × transaction value
+                  // (only fills if user hasn't manually set fee yet, else respect manual entry).
+                  const broker = IDX_BROKERS.find((b) => b.short === v)
+                  const txValue = form.shares * form.price
+                  const autoFee =
+                    broker && broker.code && txValue > 0
+                      ? computeFee(broker.code, form.side, txValue) ?? 0
+                      : form.fee
+                  setForm({ ...form, broker: v ?? '', fee: form.fee || autoFee })
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih sekuritas">
+                    {(v) => {
+                      const b = getBrokerByName(v)
+                      if (!b) return v || 'Pilih sekuritas'
+                      return b.code ? `${b.short} (${b.code})` : b.short
+                    }}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="min-w-[280px]">
+                  {IDX_BROKERS.map((b) => (
+                    <SelectItem key={b.code || b.short} value={b.short}>
+                      <div className="flex flex-col py-0.5 gap-0.5 min-w-0">
+                        <span className="flex items-center gap-1.5 min-w-0">
+                          {b.code && (
+                            <span
+                              className="font-mono text-[9px] px-1 py-0.5 rounded shrink-0"
+                              style={{ background: 'var(--surface-2)', color: 'var(--ink-muted)' }}
+                            >
+                              {b.code}
+                            </span>
+                          )}
+                          <span className="truncate text-sm">{b.short}</span>
+                        </span>
+                        {b.buyRate > 0 && (
+                          <span className="text-[10px] tabular" style={{ color: 'var(--ink-soft)' }}>
+                            Beli {(b.buyRate * 100).toFixed(2)}% · Jual {(b.sellRate * 100).toFixed(2)}%
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.broker && (() => {
+                const b = getBrokerByName(form.broker)
+                const txValue = form.shares * form.price
+                if (!b || !b.code || txValue === 0) return null
+                const fee = computeFee(b.code, form.side, txValue) ?? 0
+                return (
+                  <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>
+                    Auto-fee {form.side === 'buy' ? 'beli' : 'jual'}: {formatCurrency(fee)}
+                    {' '}({((form.side === 'buy' ? b.buyRate : b.sellRate) * 100).toFixed(2)}%)
+                    {form.fee !== fee && (
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, fee })}
+                        className="ml-1.5 underline hover:no-underline"
+                        style={{ color: 'var(--emerald-600, #059669)' }}
+                      >
+                        Pakai
+                      </button>
+                    )}
+                  </p>
+                )
+              })()}
             </div>
             <div className="grid gap-1.5">
               <Label>Catatan</Label>

@@ -562,3 +562,25 @@ body {
     radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.04), transparent 40%),
     radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.04), transparent 45%);
 }
+
+/* ============================================
+   Privacy Mode — blur all monetary numbers when body[data-privacy=hidden].
+   Convention: every Rp/% number in the app uses class="num" (already
+   pervasive in the codebase). One global rule covers everything without
+   per-component wiring. Hover reveals briefly so the user can peek if
+   they need to.
+   ============================================ */
+body[data-privacy="hidden"] .num {
+  filter: blur(7px);
+  user-select: none;
+  transition: filter 0.18s ease;
+}
+body[data-privacy="hidden"] .num:hover {
+  filter: blur(0);
+}
+/* Also blur recharts chart text/labels (SVG) so amount tooltips don't leak */
+body[data-privacy="hidden"] .recharts-tooltip-wrapper,
+body[data-privacy="hidden"] .recharts-text {
+  filter: blur(5px);
+  pointer-events: none;
+}

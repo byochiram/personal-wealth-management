@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Menu, LogOut, ChevronDown, Search, Crown, Sun, Moon, Monitor } from 'lucide-react'
+import { Menu, LogOut, ChevronDown, Search, Crown, Sun, Moon, Monitor, Eye, EyeOff } from 'lucide-react'
 import { useTheme } from '@/components/theme/theme-provider'
+import { usePrivacy } from '@/components/privacy/privacy-provider'
 import { NAV_ITEMS, type NavItem } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -67,6 +68,7 @@ export function Header({ user }: HeaderProps) {
   const router = useRouter()
   const t = useT()
   const { mode, setMode, resolved } = useTheme()
+  const { hidden: privacyHidden, toggle: togglePrivacy } = usePrivacy()
 
   // Cycle: light → dark → auto → light. Same pattern as the desktop avatar dropdown.
   function cycleTheme() {
@@ -160,6 +162,19 @@ export function Header({ user }: HeaderProps) {
           <span>{t('common.search')}</span>
           <kbd className="text-[10px] ml-3 px-1 rounded font-mono" style={{ background: 'var(--surface-2)', color: 'var(--ink-soft)' }}>⌘K</kbd>
         </button>
+
+        {/* Privacy toggle — hide all monetary numbers when in public */}
+        <button
+          type="button"
+          onClick={togglePrivacy}
+          className="size-8 rounded-md flex items-center justify-center transition hover:bg-[var(--surface-2)]"
+          style={{ color: privacyHidden ? 'var(--emerald-600, #059669)' : 'var(--ink-muted)' }}
+          aria-label={privacyHidden ? 'Tampilkan angka' : 'Sembunyikan angka'}
+          title={privacyHidden ? 'Klik untuk tampilkan angka' : 'Klik untuk sembunyikan angka (mode privacy)'}
+        >
+          {privacyHidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </button>
+
         <LanguageToggle />
         <AvatarMenu user={user} />
       </div>
@@ -237,6 +252,20 @@ export function Header({ user }: HeaderProps) {
                 <span className="flex-1 font-medium">Paket Langganan</span>
               </Link>
             </SheetClose>
+
+            {/* Privacy toggle — hide/show monetary numbers */}
+            <button
+              type="button"
+              onClick={togglePrivacy}
+              className="flex w-full items-center gap-2 rounded-lg p-2 text-sm transition hover:bg-white/5"
+              style={{ color: '#E2E8F0' }}
+            >
+              {privacyHidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              <span className="flex-1 text-left font-medium">
+                {privacyHidden ? 'Angka Disembunyikan' : 'Sembunyikan Angka'}
+              </span>
+              <span className="text-[10px] text-white/40">tap</span>
+            </button>
 
             {/* Theme cycle — keep the sheet open after click so the user
                 can see the theme switch and tap again if they want. */}

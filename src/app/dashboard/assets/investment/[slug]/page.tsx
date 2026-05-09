@@ -88,6 +88,34 @@ export default function InvestmentCategoryPage() {
     if (tickers.length === 0) return
     setRefreshing(true)
     try {
+      // Crypto holdings: prefer Binance public market data (more reliable from
+      // Indonesian ISPs than Yahoo's crypto endpoints which often geoblock).
+      // Convert Yahoo-style "BTC-USD" → Binance "BTCUSDT" before sending.
+      if (category === 'crypto') {
+        const binanceTickers = tickers
+          .map((t) => t.replace(/-USD$/i, 'USDT').toUpperCase())
+        const res = await fetch(`/api/crypto-price?symbols=${encodeURIComponent(binanceTickers.join(','))}`)
+        if (!res.ok) return
+        const json = (await res.json()) as {
+          tickers: Array<{ symbol: string; lastPrice: number; priceChangePercent: number }>
+        }
+        const map: Record<string, Quote> = {}
+        for (const t of json.tickers) {
+          // Map Binance symbol back to user's stored ticker (BTCUSDT → BTC-USD)
+          const userTicker = t.symbol.replace(/USDT$/, '-USD')
+          map[userTicker] = {
+            ticker: userTicker,
+            price: t.lastPrice,
+            currency: 'USD',
+            changePct: t.priceChangePercent,
+            marketState: null,
+          }
+        }
+        setQuotes(map)
+        return
+      }
+
+      // Stocks / etc: Yahoo Finance via existing /api/quotes
       const res = await fetch(`/api/quotes?tickers=${encodeURIComponent(tickers.join(','))}`)
       if (!res.ok) return
       const json = (await res.json()) as { quotes: Quote[] }
@@ -488,21 +516,27 @@ export default function InvestmentCategoryPage() {
                       }}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
+                  {/* Wider min-width so name + fee don't clip; stacked fee
+                      (small text under name) so it never gets truncated even
+                      on narrow viewports. */}
+                  <SelectContent className="min-w-[280px]">
                     {IDX_BROKERS.map((b) => (
                       <SelectItem key={b.code || b.short} value={b.short}>
-                        <div className="flex items-center justify-between gap-3 w-full">
-                          <span>
+                        <div className="flex flex-col py-0.5 gap-0.5 min-w-0">
+                          <span className="flex items-center gap-1.5 min-w-0">
                             {b.code && (
-                              <span className="font-mono text-[10px] mr-1.5 px-1 rounded" style={{ background: 'var(--surface-2)' }}>
+                              <span
+                                className="font-mono text-[9px] px-1 py-0.5 rounded shrink-0"
+                                style={{ background: 'var(--surface-2)', color: 'var(--ink-muted)' }}
+                              >
                                 {b.code}
                               </span>
                             )}
-                            {b.short}
+                            <span className="truncate text-sm">{b.short}</span>
                           </span>
                           {b.buyRate > 0 && (
-                            <span className="text-[10px] tabular shrink-0" style={{ color: 'var(--ink-soft)' }}>
-                              {(b.buyRate * 100).toFixed(2)}% / {(b.sellRate * 100).toFixed(2)}%
+                            <span className="text-[10px] tabular" style={{ color: 'var(--ink-soft)' }}>
+                              Beli {(b.buyRate * 100).toFixed(2)}% · Jual {(b.sellRate * 100).toFixed(2)}%
                             </span>
                           )}
                         </div>

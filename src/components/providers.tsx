@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
 import { LanguageProvider } from '@/lib/i18n/context'
 import { ThemeProvider } from '@/components/theme/theme-provider'
+import { PrivacyProvider } from '@/components/privacy/privacy-provider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -20,7 +21,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <LanguageProvider>{children}</LanguageProvider>
+        <PrivacyProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </PrivacyProvider>
       </ThemeProvider>
     </QueryClientProvider>
   )
