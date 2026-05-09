@@ -5,6 +5,7 @@ import { Header } from '@/components/layout/header'
 import { QuickAddFab } from '@/components/layout/quick-add-fab'
 import { CommandPalette } from '@/components/layout/command-palette'
 import { BottomTabBar } from '@/components/layout/bottom-tab-bar'
+import { InstallPrompt } from '@/components/layout/install-prompt'
 
 export default async function DashboardLayout({
   children,
@@ -39,6 +40,7 @@ export default async function DashboardLayout({
       </div>
       <CommandPalette />
       <BottomTabBar />
+      <InstallPrompt />
     </div>
   )
 }

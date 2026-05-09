@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
@@ -17,15 +17,42 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Personal Wealth Management",
-  description: "Kelola pendapatan, pengeluaran, aset, utang, dan investasi Anda.",
+  title: {
+    default: "PWM — Personal Wealth Management",
+    template: "%s · PWM",
+  },
+  description:
+    "Catat pendapatan, pengeluaran, aset, utang, dan investasi — pakai AI biar cepat.",
+  applicationName: "PWM",
   manifest: "/manifest.json",
-  themeColor: "#10B981",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    // 'black-translucent' makes the iOS status bar overlay the app — feels native
+    statusBarStyle: "black-translucent",
     title: "PWM",
   },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/apple-icon", sizes: "180x180", type: "image/png" },
+    ],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#10B981" },
+    { media: "(prefers-color-scheme: dark)", color: "#0A0A0F" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover", // for iPhone notch / safe areas
 };
 
 // Inline script to set dark class BEFORE first paint, preventing FOUC.

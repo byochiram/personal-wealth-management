@@ -1,18 +1,58 @@
 {
   "name": "Personal Wealth Management",
   "short_name": "PWM",
-  "description": "Kelola pendapatan, pengeluaran, aset, utang, dan investasi Anda.",
+  "description": "Catat pendapatan, pengeluaran, aset, utang, dan investasi — pakai AI biar cepat.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#A3E635",
-  "orientation": "portrait-primary",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#0A0A0F",
+  "theme_color": "#10B981",
+  "orientation": "portrait",
+  "lang": "id-ID",
+  "dir": "ltr",
+  "categories": ["finance", "productivity", "lifestyle"],
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "256x256",
-      "type": "image/x-icon"
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-icon",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tambah Transaksi",
+      "short_name": "+ Transaksi",
+      "description": "Catat transaksi baru cepat dengan AI",
+      "url": "/dashboard/transactions?quickadd=1",
+      "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Anggaran",
+      "short_name": "Anggaran",
+      "description": "Lihat anggaran bulan ini",
+      "url": "/dashboard/budgeting",
+      "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Net Worth",
+      "short_name": "Kekayaan",
+      "description": "Lihat total kekayaan saat ini",
+      "url": "/dashboard/net-worth",
+      "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
   ]
 }
