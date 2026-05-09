@@ -56,10 +56,14 @@ const COLORS: Record<FlowKind, { node: string; link: string }> = {
 }
 
 // ─── Custom node renderer — bar + name + amount ─────────────────────────
+// Recharts Sankey merges your original node data props onto the payload
+// object directly (alongside computed name/value/x/y). So `payload.kind`
+// works — `payload.payload.kind` does NOT (that path is undefined and was
+// silently falling through to the 'income' default → all-emerald diagram).
 interface SankeyNodeData {
   name: string
   value: number
-  payload?: { kind?: FlowKind }
+  kind?: FlowKind
 }
 
 function renderNode(props: {
@@ -72,7 +76,7 @@ function renderNode(props: {
   containerWidth: number
 }) {
   const { x, y, width, height, payload, containerWidth } = props
-  const kind: FlowKind = payload.payload?.kind ?? 'income'
+  const kind: FlowKind = payload.kind ?? 'income'
   const color = COLORS[kind].node
   const isLeft = x < containerWidth / 2
   const labelX = isLeft ? x - 8 : x + width + 8
@@ -120,6 +124,8 @@ function renderNode(props: {
 }
 
 // ─── Custom link renderer — colored by source/target kind ───────────────
+// Same gotcha as the node renderer: payload.source/target are the node
+// objects directly with our `kind` merged in — not nested under .payload.
 interface SankeyLinkData {
   sourceX: number
   sourceY: number
@@ -129,8 +135,8 @@ interface SankeyLinkData {
   targetControlX: number
   linkWidth: number
   payload: {
-    target: { payload?: { kind?: FlowKind } }
-    source: { payload?: { kind?: FlowKind } }
+    target: { kind?: FlowKind; name?: string }
+    source: { kind?: FlowKind; name?: string }
   }
 }
 
@@ -140,9 +146,11 @@ function renderLink(props: SankeyLinkData) {
     targetX, targetY, targetControlX,
     linkWidth, payload,
   } = props
-  // Color the link by target kind on outflow side, source kind on inflow side
-  const targetKind = payload.target.payload?.kind
-  const sourceKind = payload.source.payload?.kind
+  // Color the link by target kind on outflow side, source kind on inflow side.
+  // Middle hub itself is indigo, but its outgoing links should adopt the
+  // destination's kind so each branch reads as expense/saving/investment.
+  const targetKind = payload.target.kind
+  const sourceKind = payload.source.kind
   const kind: FlowKind = (targetKind && targetKind !== 'middle')
     ? targetKind
     : (sourceKind ?? 'income')
