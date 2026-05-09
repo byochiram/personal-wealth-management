@@ -212,6 +212,11 @@ export default function TransactionsPage() {
     if (extracted?.payment_method === 'credit_card' && creditCards.length > 0) {
       return { id: creditCards[0].id, source: 'ai' }
     }
+    // Cash payment method → match any cash-type account
+    if (extracted?.payment_method === 'cash') {
+      const cashAcc = accounts.find((a) => a.type === 'cash')
+      if (cashAcc) return { id: cashAcc.id, source: 'ai' }
+    }
 
     // Layer 2: User's saved default
     if (defaultAccountId && allAccounts.some((a) => a.id === defaultAccountId)) {
@@ -224,7 +229,11 @@ export default function TransactionsPage() {
       return { id: lastTx.account_id, source: 'last_used' }
     }
 
-    // Layer 4: First in list
+    // Layer 4: Fallback — prefer cash-type account, else first in list.
+    // Most ID transactions are cash; this gives a sensible default for users
+    // who haven't explicitly set one yet.
+    const cashFallback = accounts.find((a) => a.type === 'cash')
+    if (cashFallback) return { id: cashFallback.id, source: 'first' }
     return { id: allAccounts[0].id, source: 'first' }
   }
 
