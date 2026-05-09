@@ -61,23 +61,18 @@ export function InstitutionLogo({ accountName, institution, size = 28, className
     return <StockLogo ticker={inst.ticker} size={size} className={className} />
   }
 
-  // Path 2: Try /wallet-logos/{slug}.png if a slug is set
+  // Path 2: Try /wallet-logos/{slug}.svg first (preferred — single-color brand
+  // marks from simpleicons are SVG), fall back to .png if SVG missing, then
+  // monogram if PNG also missing.
   if (inst?.slug && !walletErrored) {
     return (
-      <div
-        className={`relative shrink-0 rounded-lg overflow-hidden bg-white ring-1 ring-black/5 ${className ?? ''}`}
-        style={{ width: size, height: size }}
-      >
-        <Image
-          src={`/wallet-logos/${inst.slug}.png`}
-          alt={`Logo ${inst.brand}`}
-          width={size}
-          height={size}
-          className="object-contain w-full h-full"
-          onError={() => setWalletErrored(true)}
-          unoptimized
-        />
-      </div>
+      <WalletLogoImage
+        slug={inst.slug}
+        brand={inst.brand}
+        size={size}
+        className={className}
+        onAllFailed={() => setWalletErrored(true)}
+      />
     )
   }
 
@@ -106,6 +101,42 @@ export function InstitutionLogo({ accountName, institution, size = 28, className
       aria-label={label}
     >
       {monogram}
+    </div>
+  )
+}
+
+/**
+ * Tries /wallet-logos/{slug}.svg → .png → triggers onAllFailed.
+ * Splitting this out keeps the parent component's render logic clean.
+ */
+function WalletLogoImage({
+  slug, brand, size, className, onAllFailed,
+}: {
+  slug: string
+  brand: string
+  size: number
+  className?: string
+  onAllFailed: () => void
+}) {
+  const [tried, setTried] = useState<'svg' | 'png'>('svg')
+  const ext = tried
+  return (
+    <div
+      className={`relative shrink-0 rounded-lg overflow-hidden bg-white ring-1 ring-black/5 flex items-center justify-center ${className ?? ''}`}
+      style={{ width: size, height: size, padding: Math.max(2, Math.floor(size * 0.10)) }}
+    >
+      <Image
+        src={`/wallet-logos/${slug}.${ext}`}
+        alt={`Logo ${brand}`}
+        width={size}
+        height={size}
+        className="object-contain"
+        onError={() => {
+          if (tried === 'svg') setTried('png')
+          else onAllFailed()
+        }}
+        unoptimized
+      />
     </div>
   )
 }
