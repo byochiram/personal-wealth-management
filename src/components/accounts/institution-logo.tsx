@@ -56,14 +56,9 @@ export function InstitutionLogo({ accountName, institution, size = 28, className
   const inst = institution ?? identifyInstitution(accountName)
   const [walletErrored, setWalletErrored] = useState(false)
 
-  // Path 1: IDX ticker → reuse stock logo
-  if (inst?.ticker) {
-    return <StockLogo ticker={inst.ticker} size={size} className={className} />
-  }
-
-  // Path 2: Try /wallet-logos/{slug}.svg first (preferred — single-color brand
-  // marks from simpleicons are SVG), fall back to .png if SVG missing, then
-  // monogram if PNG also missing.
+  // Path 1 (preferred): /wallet-logos/{slug}.png if a slug is set. Sub-brands
+  // (Jenius, Livin, D-Save) get their own logo here instead of the parent
+  // bank's. If the file doesn't exist, falls through to ticker / monogram.
   if (inst?.slug && !walletErrored) {
     return (
       <WalletLogoImage
@@ -74,6 +69,11 @@ export function InstitutionLogo({ accountName, institution, size = 28, className
         onAllFailed={() => setWalletErrored(true)}
       />
     )
+  }
+
+  // Path 2: IDX ticker → reuse stock logo
+  if (inst?.ticker) {
+    return <StockLogo ticker={inst.ticker} size={size} className={className} />
   }
 
   // Path 3: Monogram fallback
