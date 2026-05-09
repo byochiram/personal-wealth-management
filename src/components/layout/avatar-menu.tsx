@@ -52,26 +52,22 @@ export function AvatarMenu({ user }: AvatarMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-full pl-1 pr-2.5 py-1 transition hover:bg-[var(--surface-2)]"
+        className="flex items-center gap-2 rounded-full pl-1 pr-2.5 py-1 transition hover:bg-[var(--surface-2)] cursor-pointer"
+        aria-label="Menu akun"
+      >
+        <Avatar size="sm">
+          <AvatarFallback
+            className="text-xs font-bold"
+            style={{
+              background: 'var(--emerald-500)',
+              color: '#FFFFFF',
+            }}
           >
-            <Avatar size="sm">
-              <AvatarFallback
-                className="text-xs font-bold"
-                style={{
-                  background: 'var(--emerald-500)',
-                  color: '#FFFFFF',
-                }}
-              >
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <ChevronDown className="size-3.5" style={{ color: 'var(--ink-muted)' }} />
-          </button>
-        }
-      />
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        <ChevronDown className="size-3.5" style={{ color: 'var(--ink-muted)' }} />
+      </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel>
           <div className="flex flex-col">
