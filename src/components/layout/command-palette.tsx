@@ -16,9 +16,10 @@ import { NAV_ITEMS, type NavItem } from '@/lib/constants'
 import {
   Search, ArrowRight, Sparkles, Receipt, Wallet, Target, Calculator,
   Plus, FileText, History, CornerDownLeft, ChevronUp, ChevronDown,
-  Loader2, Check, AlertCircle,
+  Loader2, Check, AlertCircle, Mic, MicOff,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
 
 const RECENT_KEY = 'pwm-recent-pages'
 const RECENT_LIMIT = 3
@@ -118,9 +119,29 @@ export function CommandPalette() {
 
   const allPages = useMemo(() => flatten(NAV_ITEMS), [])
 
+  // ─── Voice input (Web Speech API, id-ID) ──────────────────────
+  // Live partial transcripts update the input. When recognition ends,
+  // if the result looks like a transaction (has digits, > 4 chars),
+  // auto-trigger AI parse so the user doesn't have to press Enter.
+  const speech = useSpeechRecognition({
+    onResult: (transcript) => setQuery(transcript),
+    onEnd: (finalTranscript) => {
+      const t = finalTranscript.trim()
+      if (t && /\d/.test(t) && t.length > 4) {
+        parseAndPreview(t)
+      }
+    },
+  })
+
   // Refresh recent list whenever palette opens (in case user navigated)
   useEffect(() => {
     if (open) setRecentHrefs(getRecent())
+  }, [open])
+
+  // Make sure the mic stops if the palette closes mid-listen
+  useEffect(() => {
+    if (!open && speech.listening) speech.stop()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   // Track current page into recent on path change
@@ -322,16 +343,54 @@ export function CommandPalette() {
           className="flex items-center gap-3 px-4 py-3.5 border-b"
           style={{ borderColor: 'var(--border-soft)' }}
         >
-          <Search className="size-4 shrink-0" style={{ color: 'var(--ink-soft)' }} />
+          {speech.listening ? (
+            <div className="relative size-4 shrink-0 flex items-center justify-center">
+              <span
+                className="absolute inset-0 rounded-full animate-ping"
+                style={{ background: 'var(--coral-500, #EF4444)', opacity: 0.4 }}
+              />
+              <span
+                className="relative size-2 rounded-full"
+                style={{ background: 'var(--coral-500, #EF4444)' }}
+              />
+            </div>
+          ) : (
+            <Search className="size-4 shrink-0" style={{ color: 'var(--ink-soft)' }} />
+          )}
+
           <input
             autoFocus
-            value={query}
+            value={speech.listening && speech.interim ? `${query} ${speech.interim}`.trim() : query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onInputKey}
-            placeholder="Cari halaman, aksi, atau ketik 'indomaret 50rb'…"
+            placeholder={
+              speech.listening
+                ? 'Mendengarkan… ucapkan transaksimu'
+                : "Cari halaman, aksi, atau ketik 'indomaret 50rb'…"
+            }
             className="flex-1 bg-transparent outline-none text-[15px]"
             style={{ color: 'var(--ink)' }}
+            readOnly={speech.listening}
           />
+
+          {speech.supported && (
+            <button
+              type="button"
+              onClick={() => (speech.listening ? speech.stop() : speech.start())}
+              className="shrink-0 size-7 rounded-md flex items-center justify-center transition"
+              style={{
+                background: speech.listening
+                  ? 'var(--coral-500, #EF4444)'
+                  : 'var(--surface-2)',
+                color: speech.listening ? '#FFFFFF' : 'var(--ink-muted)',
+              }}
+              aria-label={speech.listening ? 'Berhenti merekam' : 'Mulai input suara'}
+              title={speech.listening ? 'Berhenti (atau diam sebentar)' : 'Voice input — bicara transaksimu'}
+            >
+              {speech.listening ? <MicOff className="size-3.5" /> : <Mic className="size-3.5" />}
+            </button>
+          )}
+
           <kbd
             className="text-[10px] px-1.5 py-0.5 rounded font-mono shrink-0"
             style={{ background: 'var(--surface-2)', color: 'var(--ink-muted)' }}
