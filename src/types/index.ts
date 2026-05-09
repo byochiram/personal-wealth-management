@@ -9,7 +9,7 @@ export interface Account {
   id: string
   user_id: string
   name: string
-  type: 'cash' | 'bank' | 'digital_wallet' | 'investment'
+  type: 'cash' | 'bank' | 'digital_wallet' | 'rdn' | 'investment'
   starting_balance: number
   current_balance: number
   created_at: string

@@ -57,6 +57,7 @@ export const ACCOUNT_TYPES = {
   cash: 'Kas',
   bank: 'Bank',
   digital_wallet: 'Dompet Digital',
+  rdn: 'RDN / RDI',  // Rekening Dana Nasabah / Investasi (broker cash account)
   investment: 'Investasi',
 } as const
 

@@ -46,6 +46,7 @@ const TYPE_BADGE: Record<AccountType, string> = {
   cash: 'bg-amber-100 text-amber-700',
   bank: 'bg-blue-100 text-blue-700',
   digital_wallet: 'bg-purple-100 text-purple-700',
+  rdn: 'bg-teal-100 text-teal-700',
   investment: 'bg-emerald-100 text-emerald-700',
 }
 
@@ -286,117 +287,128 @@ export default function AccountsPage() {
           </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead>Tipe</TableHead>
-              <TableHead className="text-right">Saldo Awal</TableHead>
-              <TableHead className="text-right">Saldo Saat Ini</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {accounts.map((a) => {
-              const allocs = allocationsByAccount[a.id] ?? []
-              const totalAllocated = allocs.reduce((s, x) => s + x.amount, 0)
-              const free = (a.current_balance ?? 0) - totalAllocated
-              const pillBg: Record<string, string> = {
-                emergency_fund: 'rgba(16,185,129,0.10)',
-                goal: 'rgba(99,102,241,0.10)',
-                sinking_fund: 'rgba(245,158,11,0.12)',
-                other: 'rgba(107,114,128,0.10)',
-              }
-              const pillFg: Record<string, string> = {
-                emergency_fund: '#065F46',
-                goal: '#3730A3',
-                sinking_fund: '#92400E',
-                other: '#374151',
-              }
-              return (
-                <TableRow key={a.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-start gap-2.5">
-                      <InstitutionLogo accountName={a.name} size={36} className="mt-0.5" />
-                      <div className="flex flex-col gap-1.5 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {a.name?.trim() || <span className="italic text-muted-foreground">Akun tanpa nama</span>}
-                        {a.id === defaultAccountId && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
-                            <Star className="size-3 fill-blue-700" /> Default
-                          </span>
-                        )}
-                      </div>
-                      {/* Allocation pills */}
-                      {allocs.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {allocs.map((al, i) => (
-                            <span
-                              key={i}
-                              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-                              style={{ background: pillBg[al.purpose_kind], color: pillFg[al.purpose_kind] }}
-                              title={`${al.label}: ${formatCurrency(al.amount)}`}
-                            >
-                              {al.label} · {formatCurrency(al.amount)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {accounts.map((a) => {
+            const allocs = allocationsByAccount[a.id] ?? []
+            const totalAllocated = allocs.reduce((s, x) => s + x.amount, 0)
+            const free = (a.current_balance ?? 0) - totalAllocated
+            const pillBg: Record<string, string> = {
+              emergency_fund: 'rgba(16,185,129,0.10)',
+              goal: 'rgba(99,102,241,0.10)',
+              sinking_fund: 'rgba(245,158,11,0.12)',
+              other: 'rgba(107,114,128,0.10)',
+            }
+            const pillFg: Record<string, string> = {
+              emergency_fund: '#065F46',
+              goal: '#3730A3',
+              sinking_fund: '#92400E',
+              other: '#374151',
+            }
+            const typeLabel = ACCOUNT_TYPES[a.type as AccountType] ?? a.type
+            const typeAccent: Record<string, string> = {
+              cash: '#84CC16',
+              bank: '#3B82F6',
+              digital_wallet: '#8B5CF6',
+              rdn: '#14B8A6',
+              investment: '#0EA5E9',
+            }
+            const accent = typeAccent[a.type] ?? '#6B7280'
+            return (
+              <div
+                key={a.id}
+                className="group relative rounded-xl border bg-white p-4 transition-all hover:shadow-md hover:-translate-y-0.5 overflow-hidden"
+                style={{ borderColor: 'var(--border-soft)' }}
+              >
+                {/* Decorative accent stripe by type */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-0.5"
+                  style={{ background: accent }}
+                  aria-hidden="true"
+                />
+
+                <div className="flex items-start gap-3">
+                  <InstitutionLogo accountName={a.name} size={48} shape="circle" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-sm truncate" style={{ color: 'var(--ink)' }}>
+                          {a.name?.trim() || 'Akun tanpa nama'}
+                        </p>
+                        <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>
+                          {typeLabel}
+                          {a.id === defaultAccountId && (
+                            <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px]" style={{ color: '#3B82F6' }}>
+                              <Star className="size-2.5 fill-current" /> Default
                             </span>
-                          ))}
-                        </div>
-                      )}
+                          )}
+                        </p>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={TYPE_BADGE[a.type as AccountType]}>
-                      {ACCOUNT_TYPES[a.type as AccountType] ?? a.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums text-muted-foreground">
-                    {formatCurrency(a.starting_balance ?? 0)}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums font-medium">
-                    <div>{formatCurrency(a.current_balance ?? 0)}</div>
-                    {totalAllocated > 0 && (
-                      <div className="text-[10px] mt-0.5" style={{ color: free < 0 ? '#DC2626' : 'var(--ink-soft)' }}>
-                        Bebas {formatCurrency(free)}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setAllocAccount(a)}
-                        title="Atur alokasi"
-                      >
-                        <Layers className="size-4" />
-                      </Button>
-                      {a.id !== defaultAccountId && (
+
+                      {/* 3-dot menu — actions on hover */}
+                      <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
-                          size="icon"
-                          onClick={() => handleSetDefault(a.id)}
-                          disabled={settingDefaultId === a.id}
-                          title="Jadikan default"
+                          size="icon-sm"
+                          onClick={() => setAllocAccount(a)}
+                          title="Atur alokasi"
                         >
-                          {settingDefaultId === a.id
-                            ? <Loader2 className="size-4 animate-spin" />
-                            : <Star className="size-4" />}
+                          <Layers className="size-3.5" />
                         </Button>
-                      )}
-                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(a)} title="Edit">
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteId(a.id)} title="Hapus">
-                        <Trash2 className="size-4 text-red-600" />
-                      </Button>
+                        {a.id !== defaultAccountId && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => handleSetDefault(a.id)}
+                            disabled={settingDefaultId === a.id}
+                            title="Jadikan default"
+                          >
+                            {settingDefaultId === a.id
+                              ? <Loader2 className="size-3.5 animate-spin" />
+                              : <Star className="size-3.5" />}
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon-sm" onClick={() => openEditDialog(a)} title="Edit">
+                          <Pencil className="size-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon-sm" onClick={() => setDeleteId(a.id)} title="Hapus">
+                          <Trash2 className="size-3.5 text-red-600" />
+                        </Button>
+                      </div>
                     </div>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
+                  </div>
+                </div>
+
+                {/* Balance */}
+                <div className="mt-3">
+                  <p className="num tabular text-xl font-semibold" style={{ color: 'var(--ink)' }}>
+                    {formatCurrency(a.current_balance ?? 0)}
+                  </p>
+                  {totalAllocated > 0 && (
+                    <p className="text-[11px] mt-0.5" style={{ color: free < 0 ? '#DC2626' : 'var(--ink-soft)' }}>
+                      Bebas {formatCurrency(free)} · Dialokasi {formatCurrency(totalAllocated)}
+                    </p>
+                  )}
+                </div>
+
+                {/* Allocation pills */}
+                {allocs.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1">
+                    {allocs.map((al, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                        style={{ background: pillBg[al.purpose_kind], color: pillFg[al.purpose_kind] }}
+                        title={`${al.label}: ${formatCurrency(al.amount)}`}
+                      >
+                        {al.label} · {formatCurrency(al.amount)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
       )}
 
       {/* Allocations dialog */}

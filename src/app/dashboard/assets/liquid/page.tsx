@@ -23,6 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { Plus, Pencil, Trash2, Loader2, Link as LinkIcon, AlertTriangle } from 'lucide-react'
+import { InstitutionLogo } from '@/components/accounts/institution-logo'
 
 const TYPE_LABELS: Record<string, { label: string; emoji: string }> = {
   cash:           { label: 'Kas',       emoji: '💵' },
@@ -197,20 +198,26 @@ export default function LiquidAssetsPage() {
                   return (
                     <div
                       key={`acc-${a.id}`}
-                      className="rounded-lg p-5 bg-white border border-[var(--border-soft)]"
+                      className="rounded-xl p-4 bg-white border transition-all hover:shadow-md hover:-translate-y-0.5"
+                      style={{ borderColor: 'var(--border-soft)' }}
                     >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-semibold" style={{ color: 'var(--ink)' }}>{a.name}</p>
-                          <Badge className="mt-1 rounded-sm px-1.5 py-0 text-[10px] border-0 font-medium" style={{ background: 'var(--surface-2)', color: 'var(--ink-muted)' }}>
-                            {info?.label ?? a.type}
-                          </Badge>
+                      <div className="flex items-start gap-3">
+                        <InstitutionLogo accountName={a.name} size={44} shape="circle" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-sm truncate" style={{ color: 'var(--ink)' }}>{a.name}</p>
+                              <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>
+                                {info?.label ?? a.type}
+                              </p>
+                            </div>
+                            <span className="rounded-full px-2 py-0.5 text-[10px] font-medium shrink-0" style={{ background: 'rgba(16,185,129,0.10)', color: '#065F46' }}>
+                              Live
+                            </span>
+                          </div>
                         </div>
-                        <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: 'var(--indigo-50, #eef2ff)', color: 'var(--indigo-600, #4f46e5)' }}>
-                          Live
-                        </span>
                       </div>
-                      <p className="num text-2xl mt-4 tabular font-semibold" style={{ color: 'var(--ink)' }}>
+                      <p className="num text-xl mt-3 tabular font-semibold" style={{ color: 'var(--ink)' }}>
                         {formatCurrency(a.balance)}
                       </p>
                     </div>
@@ -249,41 +256,47 @@ export default function LiquidAssetsPage() {
                   return (
                     <div
                       key={`al-${a.id}`}
-                      className="group relative rounded-lg p-5 bg-white border border-[var(--border-soft)] hover:border-[var(--ink)] transition-colors"
+                      className="group relative rounded-xl p-4 bg-white border transition-all hover:shadow-md hover:-translate-y-0.5"
+                      style={{ borderColor: 'var(--border-soft)' }}
                     >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-semibold" style={{ color: 'var(--ink)' }}>{a.name}</p>
-                          <Badge className="mt-1 rounded-sm px-1.5 py-0 text-[10px] border-0 font-medium" style={{ background: 'var(--surface-2)', color: 'var(--ink-muted)' }}>
-                            {info?.label ?? a.type}
-                          </Badge>
-                        </div>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => {
-                              setForm({
-                                id: a.id,
-                                name: a.name,
-                                type: a.type as FormState['type'],
-                                balance: a.balance,
-                              })
-                              setDialogOpen(true)
-                            }}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => remove(a.id, a.source)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" style={{ color: 'var(--danger)' }} />
-                          </Button>
+                      <div className="flex items-start gap-3">
+                        <InstitutionLogo accountName={a.name} size={44} shape="circle" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-sm truncate" style={{ color: 'var(--ink)' }}>{a.name}</p>
+                              <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>
+                                {info?.label ?? a.type}
+                              </p>
+                            </div>
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => {
+                                  setForm({
+                                    id: a.id,
+                                    name: a.name,
+                                    type: a.type as FormState['type'],
+                                    balance: a.balance,
+                                  })
+                                  setDialogOpen(true)
+                                }}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => remove(a.id, a.source)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" style={{ color: 'var(--danger)' }} />
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <p className="num text-2xl mt-4 tabular font-semibold" style={{ color: 'var(--ink)' }}>
+                      <p className="num text-xl mt-3 tabular font-semibold" style={{ color: 'var(--ink)' }}>
                         {formatCurrency(a.balance)}
                       </p>
                     </div>

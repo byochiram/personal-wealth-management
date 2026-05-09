@@ -28,6 +28,8 @@ interface Props {
   institution?: FinancialInstitution
   size?: number
   className?: string
+  /** 'circle' (default — no white gaps) or 'rounded' (rounded square) */
+  shape?: 'circle' | 'rounded'
 }
 
 const BANK_GRADIENTS = [
@@ -44,15 +46,16 @@ const WALLET_GRADIENTS = [
 ]
 const CASH_GRADIENT = 'linear-gradient(135deg, #84CC16, #4D7C0F)'
 
-function pickGradient(brand: string, type: 'bank' | 'digital_wallet' | 'cash' | 'investment'): string {
+function pickGradient(brand: string, type: 'bank' | 'digital_wallet' | 'cash' | 'rdn' | 'investment'): string {
   if (type === 'cash') return CASH_GRADIENT
+  if (type === 'rdn') return 'linear-gradient(135deg, #14B8A6, #0F766E)'  // teal — distinguish RDN visually
   const palette = type === 'bank' ? BANK_GRADIENTS : WALLET_GRADIENTS
   let hash = 0
   for (let i = 0; i < brand.length; i++) hash = (hash * 31 + brand.charCodeAt(i)) | 0
   return palette[Math.abs(hash) % palette.length]
 }
 
-export function InstitutionLogo({ accountName, institution, size = 28, className }: Props) {
+export function InstitutionLogo({ accountName, institution, size = 28, className, shape = 'circle' }: Props) {
   const inst = institution ?? identifyInstitution(accountName)
   const [walletErrored, setWalletErrored] = useState(false)
 
@@ -66,6 +69,7 @@ export function InstitutionLogo({ accountName, institution, size = 28, className
         brand={inst.brand}
         size={size}
         className={className}
+        shape={shape}
         onAllFailed={() => setWalletErrored(true)}
       />
     )
@@ -73,7 +77,7 @@ export function InstitutionLogo({ accountName, institution, size = 28, className
 
   // Path 2: IDX ticker → reuse stock logo
   if (inst?.ticker) {
-    return <StockLogo ticker={inst.ticker} size={size} className={className} />
+    return <StockLogo ticker={inst.ticker} size={size} className={className} shape={shape} />
   }
 
   // Path 3: Monogram fallback
@@ -87,10 +91,11 @@ export function InstitutionLogo({ accountName, institution, size = 28, className
     .toUpperCase() || '?'
   const gradient = pickGradient(label, inst?.type ?? 'bank')
   const fontSize = size * (monogram.length >= 2 ? 0.40 : 0.50)
+  const radiusCls = shape === 'circle' ? 'rounded-full' : 'rounded-lg'
 
   return (
     <div
-      className={`shrink-0 flex items-center justify-center rounded-lg text-white font-bold ${className ?? ''}`}
+      className={`shrink-0 flex items-center justify-center ${radiusCls} text-white font-bold ${className ?? ''}`}
       style={{
         width: size,
         height: size,
@@ -110,29 +115,31 @@ export function InstitutionLogo({ accountName, institution, size = 28, className
  * Splitting this out keeps the parent component's render logic clean.
  */
 function WalletLogoImage({
-  slug, brand, size, className, onAllFailed,
+  slug, brand, size, className, shape, onAllFailed,
 }: {
   slug: string
   brand: string
   size: number
   className?: string
+  shape: 'circle' | 'rounded'
   onAllFailed: () => void
 }) {
-  const [tried, setTried] = useState<'svg' | 'png'>('svg')
-  const ext = tried
+  // Try .png first (most logos shipped as PNG), fall back to .svg
+  const [tried, setTried] = useState<'png' | 'svg'>('png')
+  const radiusCls = shape === 'circle' ? 'rounded-full' : 'rounded-lg'
   return (
     <div
-      className={`relative shrink-0 rounded-lg overflow-hidden bg-white ring-1 ring-black/5 flex items-center justify-center ${className ?? ''}`}
-      style={{ width: size, height: size, padding: Math.max(2, Math.floor(size * 0.10)) }}
+      className={`relative shrink-0 ${radiusCls} overflow-hidden bg-white ring-1 ring-black/5 flex items-center justify-center ${className ?? ''}`}
+      style={{ width: size, height: size }}
     >
       <Image
-        src={`/wallet-logos/${slug}.${ext}`}
+        src={`/wallet-logos/${slug}.${tried}`}
         alt={`Logo ${brand}`}
         width={size}
         height={size}
-        className="object-contain"
+        className="object-cover w-full h-full"
         onError={() => {
-          if (tried === 'svg') setTried('png')
+          if (tried === 'png') setTried('svg')
           else onAllFailed()
         }}
         unoptimized

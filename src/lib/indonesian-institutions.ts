@@ -18,7 +18,7 @@
  * /public/wallet-logos/{slug}.png to fill these in later.
  */
 
-export type InstitutionType = 'cash' | 'bank' | 'digital_wallet'
+export type InstitutionType = 'cash' | 'bank' | 'digital_wallet' | 'rdn'
 
 export interface FinancialInstitution {
   /** Brand the user types ("BCA", "GoPay") — case-insensitive match key */

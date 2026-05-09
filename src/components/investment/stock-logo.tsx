@@ -21,6 +21,8 @@ interface StockLogoProps {
   ticker?: string | null
   size?: number  // px, default 28
   className?: string
+  /** 'circle' (default, no white gaps) or 'rounded' (rounded square) */
+  shape?: 'circle' | 'rounded'
 }
 
 // Strip exchange suffix (BBCA.JK → BBCA, GOOGL.NASDAQ → GOOGL).
@@ -49,11 +51,12 @@ function pickGradient(ticker: string): string {
   return FALLBACK_GRADIENTS[Math.abs(hash) % FALLBACK_GRADIENTS.length]
 }
 
-export function StockLogo({ ticker, size = 28, className }: StockLogoProps) {
+export function StockLogo({ ticker, size = 28, className, shape = 'circle' }: StockLogoProps) {
   const [errored, setErrored] = useState(false)
+  const radius = shape === 'circle' ? 'rounded-full' : 'rounded-lg'
 
   if (!ticker) {
-    return <FallbackMonogram label="—" size={size} className={className} gradient={FALLBACK_GRADIENTS[0]} />
+    return <FallbackMonogram label="—" size={size} className={className} gradient={FALLBACK_GRADIENTS[0]} radius={radius} />
   }
 
   const normalized = normalizeForLogo(ticker)
@@ -66,13 +69,14 @@ export function StockLogo({ ticker, size = 28, className }: StockLogoProps) {
         size={size}
         className={className}
         gradient={pickGradient(normalized)}
+        radius={radius}
       />
     )
   }
 
   return (
     <div
-      className={`relative shrink-0 rounded-lg overflow-hidden bg-white ring-1 ring-black/5 ${className ?? ''}`}
+      className={`relative shrink-0 ${radius} overflow-hidden bg-white ring-1 ring-black/5 ${className ?? ''}`}
       style={{ width: size, height: size }}
     >
       <Image
@@ -89,18 +93,19 @@ export function StockLogo({ ticker, size = 28, className }: StockLogoProps) {
 }
 
 function FallbackMonogram({
-  label, size, className, gradient,
+  label, size, className, gradient, radius,
 }: {
   label: string
   size: number
   className?: string
   gradient: string
+  radius?: string
 }) {
   // Auto-shrink font to fit the monogram regardless of length (1-4 chars)
   const fontSize = size * (label.length >= 4 ? 0.30 : label.length === 3 ? 0.36 : 0.42)
   return (
     <div
-      className={`shrink-0 flex items-center justify-center rounded-lg text-white font-bold ${className ?? ''}`}
+      className={`shrink-0 flex items-center justify-center ${radius ?? 'rounded-full'} text-white font-bold ${className ?? ''}`}
       style={{
         width: size,
         height: size,

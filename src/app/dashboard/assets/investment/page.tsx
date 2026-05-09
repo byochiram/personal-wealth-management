@@ -10,6 +10,7 @@ import type { Investment } from '@/types'
 import { Loader2, ArrowUpRight, TrendingUp, TrendingDown, Percent, Wallet } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { CurrencyRates } from '@/components/investment/currency-rates'
+import { InstitutionLogo } from '@/components/accounts/institution-logo'
 
 const CAT_LABELS: Record<string, string> = {
   stock: 'Saham', mutual_fund: 'Reksa Dana', crypto: 'Crypto',
@@ -33,10 +34,17 @@ const DONUT_PALETTE = [
 // Asset class for diversification analysis (matches Investment.type schema)
 const FIXED_INCOME_CATS = new Set(['bond', 'sbn', 'time_deposit'])
 
+interface RdnAccount {
+  id: string
+  name: string
+  current_balance: number
+}
+
 export default function InvestmentOverviewPage() {
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<Investment[]>([])
+  const [rdnAccounts, setRdnAccounts] = useState<RdnAccount[]>([])
 
   useEffect(() => { void load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -44,10 +52,20 @@ export default function InvestmentOverviewPage() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { data } = await supabase.from('investments').select('*').eq('user_id', user.id)
-    setItems((data ?? []) as Investment[])
+    const [invRes, rdnRes] = await Promise.all([
+      supabase.from('investments').select('*').eq('user_id', user.id),
+      supabase
+        .from('accounts')
+        .select('id, name, current_balance')
+        .eq('user_id', user.id)
+        .eq('type', 'rdn'),
+    ])
+    setItems((invRes.data ?? []) as Investment[])
+    setRdnAccounts((rdnRes.data ?? []) as RdnAccount[])
     setLoading(false)
   }
+
+  const rdnTotal = rdnAccounts.reduce((s, a) => s + (a.current_balance ?? 0), 0)
 
   const enriched = useMemo(() => {
     return items.map((i) => {
@@ -159,6 +177,55 @@ export default function InvestmentOverviewPage() {
           P/L <span className="num">{formatCurrency(totals.pl)}</span>
         </p>
       </div>
+
+      {/* RDN/RDI cash card — total broker cash sitting idle, with per-broker breakdown */}
+      {rdnAccounts.length > 0 && (
+        <div
+          className="rounded-xl border p-4 sm:p-5"
+          style={{
+            background: 'linear-gradient(135deg, rgba(20,184,166,0.06), rgba(14,165,233,0.04))',
+            borderColor: 'rgba(20,184,166,0.25)',
+          }}
+        >
+          <div className="flex items-end justify-between flex-wrap gap-3 mb-3">
+            <div>
+              <p className="caps">Dana di RDN / RDI</p>
+              <p className="num tabular text-2xl font-semibold mt-1" style={{ color: 'var(--ink)' }}>
+                {formatCurrency(rdnTotal)}
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>
+                Cash di rekening broker — siap dipakai beli/sell
+              </p>
+            </div>
+            <Link
+              href="/dashboard/accounts"
+              className="text-[11px] font-medium inline-flex items-center gap-0.5 hover:underline"
+              style={{ color: 'var(--emerald-700, #047857)' }}
+            >
+              Kelola akun <ArrowUpRight className="size-3" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            {rdnAccounts.map((a) => (
+              <div
+                key={a.id}
+                className="rounded-lg border p-2.5 flex items-center gap-2"
+                style={{ background: 'var(--surface)', borderColor: 'var(--border-soft)' }}
+              >
+                <InstitutionLogo accountName={a.name} size={32} shape="circle" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-medium truncate" style={{ color: 'var(--ink)' }}>
+                    {a.name}
+                  </p>
+                  <p className="num tabular text-sm font-semibold" style={{ color: 'var(--ink)' }}>
+                    {formatCurrency(a.current_balance)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* KPI row */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
