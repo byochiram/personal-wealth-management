@@ -11,11 +11,14 @@
    ============================================ */
 
 :root {
-  /* ── Surfaces (Light) ─────────────────────────── */
-  --paper:       #FAFAF9;    /* slightly warm page bg */
+  /* ── Surfaces (Light) ──────────────────────────
+     Slight cool tint on the page bg picks up the emerald accent
+     and gives the dashboard a "premium app" feel vs flat off-white.
+     Cards stay pure white so kpi tints + section colors pop. */
+  --paper:       #F6F8F7;    /* very subtle cool mint-ish bg */
   --surface:     #FFFFFF;    /* card bg */
-  --surface-2:   #F4F4F5;    /* hover/secondary */
-  --surface-3:   #E4E4E7;    /* tertiary, subtle dividers */
+  --surface-2:   #F1F3F2;    /* hover/secondary, slightly cool */
+  --surface-3:   #E2E5E4;    /* tertiary, subtle dividers */
 
   /* ── Text (Light) ─────────────────────────────── */
   --ink:         #0A0A0F;    /* primary */
@@ -540,4 +543,22 @@ html {
 }
 body, .s-card, .dark-card, .ink-card, .glass-card {
   transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Subtle ambient color glows in the page background — adds "premium app"
+   atmosphere without distracting from content. Two soft radial gradients
+   in the corners that fade into transparency. Only on light mode; dark
+   mode handles its own atmosphere via paper color. */
+body {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.06), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.05), transparent 45%);
+  background-attachment: fixed;
+}
+
+.dark body {
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.04), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.04), transparent 45%);
 }

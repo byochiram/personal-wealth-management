@@ -10,6 +10,7 @@ import { useT } from '@/lib/i18n/context'
 import { GettingStarted } from '@/components/dashboard/getting-started'
 import { AIInsightsCard } from '@/components/dashboard/ai-insights'
 import { MoneyFlowSankey, type FlowKind } from '@/components/dashboard/money-flow-sankey'
+import { CurrencyRates } from '@/components/dashboard/currency-rates'
 import type { Transaction, Investment, CreditCard, Contract } from '@/types'
 
 import {
@@ -381,17 +382,18 @@ export default function DashboardPage() {
       {/* Onboarding mission card — auto-hides when user completes setup */}
       <GettingStarted />
 
-      {/* KPI Cards — clean, no sparklines */}
+      {/* KPI Cards — color-tinted by kind for visual variety */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label={t('dashboard.kpi_income')}  value={totals.income}  direction="up" />
-        <KpiCard label={t('dashboard.kpi_expense')} value={totals.expense} direction="down" />
+        <KpiCard label={t('dashboard.kpi_income')}  value={totals.income}  direction="up"   kind="income" />
+        <KpiCard label={t('dashboard.kpi_expense')} value={totals.expense} direction="down" kind="expense" />
         <KpiCard
           label={t('dashboard.kpi_saving_investment')}
           value={totals.saving + totals.investment}
           note={`${t('dashboard.saving_rate')} ${totals.savingRate.toFixed(1)}%`}
           direction="up"
+          kind="saving"
         />
-        <KpiCard label={t('dashboard.kpi_net_cashflow')} value={totals.net} direction={totals.net >= 0 ? 'up' : 'down'} />
+        <KpiCard label={t('dashboard.kpi_net_cashflow')} value={totals.net} direction={totals.net >= 0 ? 'up' : 'down'} kind="net" />
       </div>
 
       {/* Phase 2.3 — AI-generated personalized insights */}
@@ -402,6 +404,10 @@ export default function DashboardPage() {
         selectedMonth={selectedMonth}
         goals={activeGoals}
       />
+
+      {/* Currency rates strip — IDR vs major currencies, useful for travelers
+          and for users with USD/SGD investments to gauge portfolio value */}
+      <CurrencyRates />
 
       {/* Phase 9 — Money Flow Sankey: Pemasukan ↔ Penggunaan (bipartite) */}
       <div className="s-card p-4 sm:p-6">
@@ -895,46 +901,94 @@ export default function DashboardPage() {
 }
 
 function KpiCard({
-  label, value, note, direction,
+  label, value, note, direction, kind,
 }: {
   label: string
   value: number
   note?: string
   direction?: 'up' | 'down'
+  /** Color identity: tints background + accent indicator */
+  kind?: 'income' | 'expense' | 'saving' | 'net'
 }) {
   const t = useT()
-  // Small circular indicator in top-right: lime for "up", orange for "down"
-  const indicatorColor = direction === 'up'
-    ? 'var(--butter-400)'
-    : direction === 'down'
-    ? 'var(--orange-400)'
-    : 'transparent'
+  // Per-kind palette for tints + accents — gives the 4 KPI cards distinct
+  // identities so the row reads as 4 different signals, not 4 white boxes.
+  const palette = (() => {
+    switch (kind) {
+      case 'income':
+        return {
+          tint: 'linear-gradient(135deg, rgba(16,185,129,0.10), rgba(16,185,129,0.02))',
+          accent: '#10B981',
+          ring: 'rgba(16,185,129,0.20)',
+          glyph: '↑',
+        }
+      case 'expense':
+        return {
+          tint: 'linear-gradient(135deg, rgba(239,68,68,0.10), rgba(239,68,68,0.02))',
+          accent: '#EF4444',
+          ring: 'rgba(239,68,68,0.20)',
+          glyph: '↓',
+        }
+      case 'saving':
+        return {
+          tint: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(14,165,233,0.04))',
+          accent: '#F59E0B',
+          ring: 'rgba(245,158,11,0.20)',
+          glyph: '＋',
+        }
+      case 'net':
+        return {
+          tint:
+            value >= 0
+              ? 'linear-gradient(135deg, rgba(99,102,241,0.10), rgba(16,185,129,0.04))'
+              : 'linear-gradient(135deg, rgba(239,68,68,0.12), rgba(245,158,11,0.04))',
+          accent: value >= 0 ? '#6366F1' : '#EF4444',
+          ring: value >= 0 ? 'rgba(99,102,241,0.20)' : 'rgba(239,68,68,0.20)',
+          glyph: value >= 0 ? '↑' : '↓',
+        }
+      default:
+        return {
+          tint: 'var(--surface)',
+          accent: 'var(--ink)',
+          ring: 'var(--border)',
+          glyph: '•',
+        }
+    }
+  })()
+
   return (
     <div
-      className="rounded-xl p-5 relative overflow-hidden transition-all hover:shadow-sm"
+      className="rounded-xl p-5 relative overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5"
       style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border-soft)',
+        background: palette.tint,
+        border: `1px solid ${palette.ring}`,
       }}
     >
-      <div className="flex items-start justify-between gap-2">
+      {/* Decorative blob in corner — purely visual, gives the card depth */}
+      <div
+        className="absolute -top-8 -right-8 size-24 rounded-full pointer-events-none"
+        style={{ background: palette.accent, opacity: 0.06, filter: 'blur(12px)' }}
+        aria-hidden="true"
+      />
+
+      <div className="relative flex items-start justify-between gap-2">
         <p className="caps">{label}</p>
         {direction && (
           <span
-            className="inline-flex h-6 w-6 items-center justify-center rounded-full shrink-0 text-[10px] font-bold"
-            style={{ background: indicatorColor, color: 'var(--ink)' }}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full shrink-0 text-[12px] font-bold shadow-sm"
+            style={{ background: palette.accent, color: '#FFFFFF' }}
           >
             {direction === 'up' ? '↑' : '↓'}
           </span>
         )}
       </div>
       <p
-        className="num tabular mt-4 text-[26px] leading-tight font-semibold"
+        className="relative num tabular mt-4 text-[26px] leading-tight font-semibold"
         style={{ color: 'var(--ink)' }}
       >
         {formatCurrency(value)}
       </p>
-      <p className="text-[11px] mt-1.5" style={{ color: 'var(--ink-soft)' }}>
+      <p className="relative text-[11px] mt-1.5" style={{ color: 'var(--ink-soft)' }}>
         {note ?? t('dashboard.current_month')}
       </p>
     </div>
