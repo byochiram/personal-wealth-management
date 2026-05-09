@@ -20,13 +20,28 @@ export const metadata: Metadata = {
   title: "Personal Wealth Management",
   description: "Kelola pendapatan, pengeluaran, aset, utang, dan investasi Anda.",
   manifest: "/manifest.json",
-  themeColor: "#A3E635",
+  themeColor: "#10B981",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "PWM",
   },
 };
+
+// Inline script to set dark class BEFORE first paint, preventing FOUC.
+// Reads localStorage 'pwm-theme' (light/dark/auto) and matches system preference.
+const themeInitScript = `
+(function() {
+  try {
+    var stored = localStorage.getItem('pwm-theme');
+    var mode = stored === 'light' || stored === 'dark' || stored === 'auto' ? stored : 'auto';
+    var resolved = mode === 'auto'
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : mode;
+    if (resolved === 'dark') document.documentElement.classList.add('dark');
+  } catch (e) {}
+})();
+`
 
 export default function RootLayout({
   children,
@@ -38,7 +53,11 @@ export default function RootLayout({
       lang="id"
       data-scroll-behavior="smooth"
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
       </body>

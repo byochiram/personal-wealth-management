@@ -1,42 +1,33 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Moon, Sun } from 'lucide-react'
+import { Moon, Sun, Monitor } from 'lucide-react'
+import { useTheme } from '@/components/theme/theme-provider'
 
-const STORAGE_KEY = 'pwm.theme'
-
+/**
+ * Header theme toggle — compact icon button that cycles light → dark → auto.
+ * Backed by the global ThemeProvider so it's in sync with the segmented
+ * picker in /dashboard/profile.
+ */
 export function ThemeToggle() {
-  const [dark, setDark] = useState(false)
+  const { mode, setMode } = useTheme()
 
-  useEffect(() => {
-    const saved = typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_KEY) : null
-    const prefersDark = saved === 'dark'
-    setDark(prefersDark)
-    if (prefersDark) document.documentElement.classList.add('dark')
-    else document.documentElement.classList.remove('dark')
-  }, [])
-
-  function toggle() {
-    const next = !dark
-    setDark(next)
-    if (next) document.documentElement.classList.add('dark')
-    else document.documentElement.classList.remove('dark')
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next ? 'dark' : 'light')
-    } catch {
-      // ignore
-    }
+  function cycle() {
+    const next = mode === 'light' ? 'dark' : mode === 'dark' ? 'auto' : 'light'
+    setMode(next)
   }
+
+  const Icon = mode === 'light' ? Sun : mode === 'dark' ? Moon : Monitor
+  const label = mode === 'light' ? 'Mode terang' : mode === 'dark' ? 'Mode gelap' : 'Mode otomatis'
 
   return (
     <button
       type="button"
-      onClick={toggle}
+      onClick={cycle}
       className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-[var(--surface-2)]"
-      aria-label={dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
-      title={dark ? 'Light mode' : 'Dark mode'}
+      aria-label={`${label} (klik untuk ubah)`}
+      title={label}
     >
-      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      <Icon className="h-4 w-4" />
     </button>
   )
 }

@@ -93,11 +93,8 @@ export function Header({ user }: HeaderProps) {
 
   return (
     <header
-      className="flex h-16 items-center gap-4 border-b px-4 md:px-8 sticky top-0 z-20"
+      className="flex h-16 items-center gap-4 border-b px-4 md:px-8 sticky top-0 z-20 backdrop-blur-md bg-[color:var(--surface)]/72"
       style={{
-        backgroundColor: 'rgba(255,255,255,0.72)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
         borderColor: 'var(--border-soft)',
       }}
     >

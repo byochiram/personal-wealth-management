@@ -5,147 +5,180 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================
-   Personal Wealth Management — Finspine-inspired
-   Warm off-white · fresh lime pop · orange secondary · near-black
+   Personal Wealth Management — Design System v2
+   "Fun premium" — emerald accent, deep navy dark
+   Inspired by: Mercury (dark), Wise (light), Linear (typography)
    ============================================ */
+
 :root {
-  /* Neutrals — paper & ink */
-  --paper:       #F7F5EF;    /* warm off-white page bg */
-  --surface:     #FFFFFF;    /* pure white cards */
-  --surface-2:   #F3F1EB;    /* warm alt bg */
-  --surface-3:   #E8E5DD;
+  /* ── Surfaces (Light) ─────────────────────────── */
+  --paper:       #FAFAF9;    /* slightly warm page bg */
+  --surface:     #FFFFFF;    /* card bg */
+  --surface-2:   #F4F4F5;    /* hover/secondary */
+  --surface-3:   #E4E4E7;    /* tertiary, subtle dividers */
 
-  --ink:         #0A0A0A;    /* near-black primary text */
-  --ink-muted:   #525252;    /* neutral gray */
-  --ink-soft:    #A3A3A3;    /* soft light gray */
-  --border:      #E8E5DD;
-  --border-soft: #EFEDE6;
+  /* ── Text (Light) ─────────────────────────────── */
+  --ink:         #0A0A0F;    /* primary */
+  --ink-muted:   #52525B;    /* secondary */
+  --ink-soft:    #A1A1AA;    /* tertiary, placeholders */
+  --border:      #E4E4E7;
+  --border-soft: #F4F4F5;
 
-  /* Dark base (sidebar, dark hero cards) — neutral charcoal */
-  --black:       #0A0A0A;
-  --black-soft:  #18181B;
-  --black-2:     #27272A;
+  /* ── Dark inverse (sidebar, hero cards in light mode) ── */
+  --black:       #0A0A0F;
+  --black-soft:  #14141A;
+  --black-2:     #1C1C24;
   --black-line:  rgba(255, 255, 255, 0.08);
-  --on-black:    #FAFAFA;
+  --on-black:    #F5F5F7;
   --on-black-mut:#A1A1AA;
 
-  /* Fresh lime — SIGNATURE POP (Finspine green) */
-  --butter-50:   #F7FEE7;
-  --butter-100:  #ECFCCB;
-  --butter-200:  #D9F99D;
-  --butter-300:  #BEF264;
-  --butter-400:  #A3E635;   /* primary lime-400 — THE pop */
-  --butter-500:  #84CC16;
-  --butter-600:  #65A30D;
-  --butter-700:  #4D7C0F;
-  --butter-800:  #365314;
+  /* ── Emerald — primary accent (the signature) ── */
+  --emerald-50:  #ECFDF5;
+  --emerald-100: #D1FAE5;
+  --emerald-200: #A7F3D0;
+  --emerald-300: #6EE7B7;
+  --emerald-400: #34D399;
+  --emerald-500: #10B981;   /* primary */
+  --emerald-600: #059669;
+  --emerald-700: #047857;
+  --emerald-800: #065F46;
+  --emerald-900: #064E3B;
 
-  /* Orange — SECONDARY POP (for contrast/expense direction) */
-  --orange-50:   #FFF7ED;
-  --orange-100:  #FFEDD5;
-  --orange-200:  #FED7AA;
-  --orange-300:  #FDBA74;
-  --orange-400:  #FB923C;
-  --orange-500:  #F97316;
-  --orange-600:  #EA580C;
-  --orange-700:  #C2410C;
+  /* ── Coral — secondary accent (warmth, fun) ── */
+  --coral-50:    #FFF1F2;
+  --coral-100:   #FFE4E6;
+  --coral-200:   #FECDD3;
+  --coral-300:   #FDA4AF;
+  --coral-400:   #FB7185;
+  --coral-500:   #F43F5E;
+  --coral-600:   #E11D48;
+  --coral-700:   #BE123C;
 
-  /* Emerald — supporting (different hue from lime, for success ring etc.) */
-  --moss-50:     #ECFDF5;
-  --moss-100:    #D1FAE5;
-  --moss-300:    #6EE7B7;
-  --moss-500:    #10B981;
-  --moss-600:    #059669;
-  --moss-700:    #047857;
-  --moss-800:    #065F46;
+  /* ── Amber — tertiary (warning, savings tier) ── */
+  --amber-50:    #FFFBEB;
+  --amber-100:   #FEF3C7;
+  --amber-200:   #FDE68A;
+  --amber-300:   #FCD34D;
+  --amber-400:   #FBBF24;
+  --amber-500:   #F59E0B;
+  --amber-600:   #D97706;
+  --amber-700:   #B45309;
 
-  /* Cool stone (supporting muted) */
-  --stone:       #737373;
-  --stone-light: #A3A3A3;
+  /* ── Sky — supplementary info color ── */
+  --sky-50:    #F0F9FF;
+  --sky-100:   #E0F2FE;
+  --sky-300:   #7DD3FC;
+  --sky-500:   #0EA5E9;
+  --sky-600:   #0284C7;
 
-  /* Semantic — clean modern */
-  --success:     #65A30D;    /* lime-600 (echo signature) */
-  --success-bg:  #ECFCCB;    /* lime-100 */
-  --warning:     #F97316;    /* orange-500 */
-  --warning-bg:  #FFEDD5;    /* orange-100 */
-  --danger:      #EF4444;
-  --danger-bg:   #FEE2E2;
-  --info:        #3B82F6;
-  --info-bg:     #DBEAFE;
+  /* ── Semantic ─────────────────────────────────── */
+  --success:     var(--emerald-500);
+  --success-bg:  var(--emerald-50);
+  --warning:     var(--amber-500);
+  --warning-bg:  var(--amber-50);
+  --danger:      var(--coral-500);
+  --danger-bg:   var(--coral-50);
+  --info:        var(--sky-500);
+  --info-bg:     var(--sky-50);
 
-  /* App-wide aliases */
+  /* ── App-wide aliases ─────────────────────────── */
   --bg:          var(--paper);
   --surface-alt: var(--surface-2);
 
-  /* ─── Legacy alias map ─── */
-  /* All lime-* tokens → butter (the signature pop is now butter mustard) */
-  --lime-50:     var(--butter-50);
-  --lime-100:    var(--butter-100);
-  --lime-200:    var(--butter-200);
-  --lime-300:    var(--butter-300);
-  --lime-400:    var(--butter-400);
-  --lime-500:    var(--butter-500);
-  --lime-600:    var(--butter-600);
-  --lime-700:    var(--butter-700);
-  --lime-800:    var(--butter-800);
+  /* ── LEGACY alias map — keeps existing components working ── */
+  /* Old butter/lime → emerald (the new signature) */
+  --butter-50:   var(--emerald-50);
+  --butter-100:  var(--emerald-100);
+  --butter-200:  var(--emerald-200);
+  --butter-300:  var(--emerald-300);
+  --butter-400:  var(--emerald-400);
+  --butter-500:  var(--emerald-500);
+  --butter-600:  var(--emerald-600);
+  --butter-700:  var(--emerald-700);
+  --butter-800:  var(--emerald-800);
 
-  /* indigo/olive/gold → butter family too */
-  --indigo-50:   var(--butter-50);
-  --indigo-100:  var(--butter-100);
-  --indigo-200:  var(--butter-200);
-  --indigo-300:  var(--butter-300);
-  --indigo-400:  var(--butter-400);
-  --indigo-500:  var(--butter-500);
-  --indigo-600:  var(--butter-700);
-  --indigo-700:  var(--butter-800);
-  --indigo-800:  var(--ink);
+  --lime-50:     var(--emerald-50);
+  --lime-100:    var(--emerald-100);
+  --lime-200:    var(--emerald-200);
+  --lime-300:    var(--emerald-300);
+  --lime-400:    var(--emerald-400);
+  --lime-500:    var(--emerald-500);
+  --lime-600:    var(--emerald-600);
+  --lime-700:    var(--emerald-700);
+  --lime-800:    var(--emerald-800);
 
-  --olive-50:    var(--butter-50);
-  --olive-100:   var(--butter-100);
-  --olive-200:   var(--butter-200);
-  --olive-300:   var(--butter-300);
-  --olive-400:   var(--butter-400);
-  --olive-500:   var(--butter-500);
-  --olive-600:   var(--butter-600);
-  --olive-700:   var(--butter-700);
-  --olive-800:   var(--butter-800);
+  /* indigo/olive/gold → emerald family */
+  --indigo-50:   var(--emerald-50);
+  --indigo-100:  var(--emerald-100);
+  --indigo-200:  var(--emerald-200);
+  --indigo-300:  var(--emerald-300);
+  --indigo-400:  var(--emerald-400);
+  --indigo-500:  var(--emerald-500);
+  --indigo-600:  var(--emerald-600);
+  --indigo-700:  var(--emerald-700);
+  --indigo-800:  var(--emerald-800);
 
-  --gold-50:   var(--butter-50);
-  --gold-100:  var(--butter-100);
-  --gold-200:  var(--butter-200);
-  --gold-300:  var(--butter-300);
-  --gold-400:  var(--butter-400);
-  --gold-500:  var(--butter-500);
-  --gold-600:  var(--butter-700);
-  --gold-700:  var(--butter-800);
+  --olive-50:    var(--emerald-50);
+  --olive-100:   var(--emerald-100);
+  --olive-200:   var(--emerald-200);
+  --olive-300:   var(--emerald-300);
+  --olive-400:   var(--emerald-400);
+  --olive-500:   var(--emerald-500);
+  --olive-600:   var(--emerald-600);
+  --olive-700:   var(--emerald-700);
+  --olive-800:   var(--emerald-800);
 
-  /* burgundy (from very old iterations) → espresso/ink */
-  --burgundy-50:  var(--surface-2);
-  --burgundy-100: var(--border-soft);
-  --burgundy-200: var(--border);
-  --burgundy-300: var(--ink-soft);
-  --burgundy-400: var(--ink-muted);
-  --burgundy-500: var(--ink);
-  --burgundy-600: var(--ink);
-  --burgundy-700: var(--ink);
-  --burgundy-800: var(--black);
-  --burgundy-900: #0B0906;
+  --gold-50:   var(--emerald-50);
+  --gold-100:  var(--emerald-100);
+  --gold-200:  var(--emerald-200);
+  --gold-300:  var(--emerald-300);
+  --gold-400:  var(--emerald-400);
+  --gold-500:  var(--emerald-500);
+  --gold-600:  var(--emerald-600);
+  --gold-700:  var(--emerald-700);
 
-  /* emerald → moss */
-  --emerald-50:  var(--success-bg);
-  --emerald-100: var(--moss-100);
-  --emerald-500: var(--success);
-  --emerald-600: var(--moss-600);
-  --emerald-700: var(--moss-700);
+  /* burgundy → coral (warm secondary, used in profile/onboarding) */
+  --burgundy-50:  var(--coral-50);
+  --burgundy-100: var(--coral-100);
+  --burgundy-200: var(--coral-200);
+  --burgundy-300: var(--coral-300);
+  --burgundy-400: var(--coral-400);
+  --burgundy-500: var(--coral-500);
+  --burgundy-600: var(--coral-600);
+  --burgundy-700: var(--coral-700);
+  --burgundy-800: #9F1239;
+  --burgundy-900: #881337;
 
-  /* Fonts */
+  /* moss → emerald */
+  --moss-50:     var(--emerald-50);
+  --moss-100:    var(--emerald-100);
+  --moss-300:    var(--emerald-300);
+  --moss-500:    var(--emerald-500);
+  --moss-600:    var(--emerald-600);
+  --moss-700:    var(--emerald-700);
+  --moss-800:    var(--emerald-800);
+
+  /* orange → amber */
+  --orange-50:   var(--amber-50);
+  --orange-100:  var(--amber-100);
+  --orange-200:  var(--amber-200);
+  --orange-300:  var(--amber-300);
+  --orange-400:  var(--amber-400);
+  --orange-500:  var(--amber-500);
+  --orange-600:  var(--amber-600);
+  --orange-700:  var(--amber-700);
+
+  --stone:       #71717A;
+  --stone-light: #A1A1AA;
+
+  /* ── Fonts ───────────────────────────────────── */
   --font-sans:    var(--font-sans-brand), "Inter", "Plus Jakarta Sans",
                   system-ui, -apple-system, sans-serif;
   --font-display: var(--font-sans-brand), "Inter", system-ui, sans-serif;
   --font-mono:    var(--font-mono-brand), "JetBrains Mono",
                   var(--font-geist-mono), ui-monospace, monospace;
 
-  --radius: 0.5rem;
+  --radius: 0.625rem;       /* 10px — slightly more rounded for fun */
 }
 
 @theme inline {
@@ -161,37 +194,38 @@
   --color-popover: var(--surface);
   --color-popover-foreground: var(--ink);
 
-  --color-primary: var(--ink);
-  --color-primary-foreground: var(--butter-400);
+  /* Primary now uses emerald instead of ink — brighter, friendlier */
+  --color-primary: var(--emerald-600);
+  --color-primary-foreground: #FFFFFF;
   --color-secondary: var(--surface-2);
   --color-secondary-foreground: var(--ink);
 
   --color-muted: var(--surface-2);
   --color-muted-foreground: var(--ink-muted);
 
-  --color-accent: var(--butter-400);
-  --color-accent-foreground: var(--ink);
+  --color-accent: var(--emerald-500);
+  --color-accent-foreground: #FFFFFF;
 
   --color-destructive: var(--danger);
-  --color-border: var(--border-soft);
+  --color-border: var(--border);
   --color-input: var(--border);
-  --color-ring: var(--butter-500);
+  --color-ring: var(--emerald-500);
 
-  /* Chart palette — ink / butter / moss / rust / stone — premium editorial */
-  --color-chart-1: var(--ink);          /* espresso */
-  --color-chart-2: var(--butter-400);   /* butter mustard */
-  --color-chart-3: var(--moss-700);     /* moss green */
-  --color-chart-4: var(--stone);        /* warm stone */
-  --color-chart-5: var(--danger);       /* rust */
+  /* Chart palette — emerald led, coral/amber/sky/violet for variety */
+  --color-chart-1: var(--emerald-500);
+  --color-chart-2: var(--amber-500);
+  --color-chart-3: var(--sky-500);
+  --color-chart-4: var(--coral-500);
+  --color-chart-5: #8B5CF6;            /* violet — supplementary */
 
   --color-sidebar: var(--black);
-  --color-sidebar-foreground: #CEC5AE;
-  --color-sidebar-primary: var(--butter-400);
+  --color-sidebar-foreground: #C0BFC9;
+  --color-sidebar-primary: var(--emerald-400);
   --color-sidebar-primary-foreground: var(--ink);
   --color-sidebar-accent: var(--black-2);
   --color-sidebar-accent-foreground: var(--on-black);
   --color-sidebar-border: var(--black-line);
-  --color-sidebar-ring: var(--butter-500);
+  --color-sidebar-ring: var(--emerald-500);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -200,15 +234,55 @@
   --radius-2xl: calc(var(--radius) * 2);
 }
 
+/* ============================================
+   DARK MODE — Mercury-inspired premium navy
+   Triggered by .dark class on <html>
+   ============================================ */
 .dark {
-  --bg:         #09090B;
-  --surface:    #18181B;
-  --surface-2:  #27272A;
-  --ink:        #FAFAFA;
-  --ink-muted:  #A1A1AA;
-  --ink-soft:   #71717A;
-  --border:     rgba(255, 255, 255, 0.14);
-  --border-soft:rgba(255, 255, 255, 0.08);
+  /* Surfaces — deep navy, not pure black */
+  --paper:       #0A0A0F;
+  --surface:     #14141A;
+  --surface-2:   #1C1C24;
+  --surface-3:   #27272F;
+
+  /* Text */
+  --ink:         #F5F5F7;
+  --ink-muted:   #A1A1AA;
+  --ink-soft:    #71717A;
+  --border:      #27272F;
+  --border-soft: #1F1F26;
+
+  /* Inverse — for cards that need light bg in dark mode (rare) */
+  --black:       #F5F5F7;
+  --black-soft:  #E4E4E7;
+  --black-2:     #D4D4D8;
+  --black-line:  rgba(0, 0, 0, 0.10);
+  --on-black:    #0A0A0F;
+  --on-black-mut:#52525B;
+
+  /* Brighter accents for better contrast on dark bg */
+  --emerald-400: #34D399;
+  --emerald-500: #10B981;
+  --emerald-600: #059669;
+
+  /* Semantic — slightly brighter for dark mode visibility */
+  --success:     var(--emerald-400);
+  --success-bg:  rgba(16, 185, 129, 0.12);
+  --warning:     var(--amber-400);
+  --warning-bg:  rgba(245, 158, 11, 0.12);
+  --danger:      var(--coral-400);
+  --danger-bg:   rgba(244, 63, 94, 0.12);
+  --info:        var(--sky-300);
+  --info-bg:     rgba(14, 165, 233, 0.12);
+
+  --bg:          var(--paper);
+  --surface-alt: var(--surface-2);
+
+  /* Update theme color variables for dark mode */
+  --color-primary: var(--emerald-500);
+  --color-accent: var(--emerald-400);
+  --color-ring: var(--emerald-400);
+  --color-border: var(--border);
 }
 
 @layer base {
@@ -219,6 +293,10 @@
     font-family: var(--font-sans);
     scroll-behavior: smooth;
     font-feature-settings: "ss01", "cv11";
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
   }
   body {
     background-color: var(--bg);
@@ -227,12 +305,15 @@
   }
   h1, h2, h3, h4 {
     font-family: var(--font-sans);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
     font-weight: 600;
   }
 }
 
-/* Utility classes */
+/* ============================================
+   Utility classes
+   ============================================ */
+
 .caps {
   font-size: 0.6875rem;
   letter-spacing: 0.12em;
@@ -256,21 +337,24 @@
 /* Cards */
 .s-card {
   background-color: var(--surface);
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
 }
 
-/* Hero container — charcoal dark card (Campfire-style dark section).
-   Vars are remapped so var(--ink) et al. read light on dark bg regardless
-   of light/dark page mode. This prevents "dark text on dark card" bugs. */
+.dark .s-card {
+  border-color: var(--border-soft);
+}
+
+/* Hero "dark-card" — always renders dark even in light mode page.
+   In dark mode, slightly different shade so it stands out from page bg. */
 .dark-card {
-  background-color: var(--black);
+  background: linear-gradient(135deg, #0A0A0F 0%, #14141A 100%);
   color: var(--on-black);
-  border-radius: calc(var(--radius-xl));
-  border: 1px solid var(--black-soft);
-  --on-black:      #FAFAFA;
+  border-radius: var(--radius-xl);
+  border: 1px solid #1C1C24;
+  --on-black:      #F5F5F7;
   --on-black-mut:  #A1A1AA;
-  --ink:           #FAFAFA;
+  --ink:           #F5F5F7;
   --ink-muted:     #A1A1AA;
   --ink-soft:      #71717A;
   --border:        rgba(255, 255, 255, 0.14);
@@ -279,7 +363,11 @@
   --black-soft:    rgba(255, 255, 255, 0.06);
   --black-line:    rgba(255, 255, 255, 0.12);
 }
-.dark-card .caps       { color: var(--butter-300); }
+.dark .dark-card {
+  background: linear-gradient(135deg, #14141A 0%, #1C1C24 100%);
+  border-color: var(--border);
+}
+.dark-card .caps       { color: var(--emerald-300); }
 .dark-card .text-white { color: var(--on-black); }
 .dark-card .text-white\/60,
 .dark-card .text-white\/70,
@@ -288,42 +376,53 @@
   color: var(--on-black-mut);
 }
 
-/* True dark card variant — for dashboard hero when we want espresso not butter */
+/* True dark card variant */
 .ink-card {
   background-color: var(--black);
   color: var(--on-black);
-  border-radius: calc(var(--radius-xl));
+  border-radius: var(--radius-xl);
   border: 1px solid var(--black);
-  --on-black:      #FAFAFA;
+  --on-black:      #F5F5F7;
   --on-black-mut:  #A1A1AA;
-  --ink:           #FAFAFA;
+  --ink:           #F5F5F7;
   --ink-muted:     #A1A1AA;
   --ink-soft:      #71717A;
   --border:        rgba(255, 255, 255, 0.14);
   --border-soft:   rgba(255, 255, 255, 0.08);
 }
+.dark .ink-card {
+  background-color: var(--surface);
+  border-color: var(--border);
+}
 .ink-card .caps { color: var(--on-black-mut); }
 
-/* Lime pill stayed as name but now renders as butter */
+/* Accent chip — uses emerald now */
 .chip-lime {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
   border-radius: 9999px;
-  background: var(--butter-400);
-  color: var(--ink);
+  background: var(--emerald-100);
+  color: var(--emerald-800);
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+}
+.dark .chip-lime {
+  background: rgba(16, 185, 129, 0.16);
+  color: var(--emerald-300);
 }
 
 .accent-underline {
   display: inline-block;
   height: 3px;
   width: 2rem;
-  background: var(--butter-400);
+  background: var(--emerald-500);
   border-radius: 2px;
+}
+.dark .accent-underline {
+  background: var(--emerald-400);
 }
 
 .rule {
@@ -344,7 +443,7 @@
 .font-serif,
 .font-display {
   font-family: var(--font-sans) !important;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   font-weight: 600;
 }
 
@@ -352,7 +451,7 @@
 .s-card-elevated,
 .heritage-card {
   background-color: var(--surface);
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: none;
   backdrop-filter: none;
@@ -416,7 +515,7 @@
 .animate-float-delayed { animation: float 10s ease-in-out 2s infinite; }
 .animate-pulse-glow { animation: pulse-glow 6s ease-in-out infinite; }
 
-/* Sidebar nav — thin dark scrollbar (only visible on hover/scroll) */
+/* Sidebar nav — thin scrollbar */
 .sidebar-nav-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
@@ -435,3 +534,10 @@
   background-color: rgba(255, 255, 255, 0.16);
 }
 
+/* Smooth color transition when toggling theme */
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+body, .s-card, .dark-card, .ink-card, .glass-card {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}

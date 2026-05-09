@@ -23,8 +23,9 @@ import {
 import {
   User, Bell, Database, Shield, Sparkles,
   Loader2, Crown, AlertTriangle, ExternalLink, LogOut,
-  Lock, Mail, Trash2, Download, Palette,
+  Lock, Mail, Trash2, Download, Palette, Moon,
 } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme/theme-toggle'
 
 interface Profile {
   id: string
@@ -453,6 +454,13 @@ export default function ProfilePage() {
                   {profile.show_decimals ? `Aktif (${formatCurrency(12500.5)})` : `Nonaktif (${formatCurrency(12500)})`}
                 </button>
               </div>
+            </div>
+            <div>
+              <Label className="flex items-center gap-1.5 mb-2"><Moon className="size-4" />Mode tampilan</Label>
+              <ThemeToggle />
+              <p className="text-xs text-muted-foreground mt-2">
+                Pilih Auto untuk ikutin sistem (sinkron sama dark mode HP/laptop kamu).
+              </p>
             </div>
             <div>
               <Label className="flex items-center gap-1.5 mb-2"><Palette className="size-4" />Warna aksen</Label>
