@@ -1,10 +1,16 @@
 'use client'
 
+/**
+ * Header avatar dropdown — manual implementation (NOT base-ui Menu).
+ *
+ * Why manual: base-ui Menu's render-prop trigger + GroupLabel-without-Group
+ * combo was throwing in production ("This page couldn't load" overlay).
+ * For a 4-item account menu, the simpler hand-rolled approach is more
+ * reliable — useState + click-outside + Escape handler.
+ */
+
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
-  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
-} from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -17,16 +23,12 @@ interface AvatarMenuProps {
   user: User
 }
 
-/**
- * Header avatar dropdown — replaces the inline name+email+avatar layout.
- * Houses Profile, Paket, theme cycle, and Logout.
- *
- * Design intent: minimize visual chrome on the header itself by putting
- * account-related actions behind a single tap target.
- */
 export function AvatarMenu({ user }: AvatarMenuProps) {
   const router = useRouter()
   const { mode, setMode, resolved } = useTheme()
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
   const fullName = (user.user_metadata?.full_name as string) || user.email || 'Pengguna'
   const initials = fullName
     .split(' ')
@@ -35,10 +37,34 @@ export function AvatarMenu({ user }: AvatarMenuProps) {
     .toUpperCase()
     .slice(0, 2)
 
+  // Close on outside click + Escape
+  useEffect(() => {
+    if (!open) return
+    function onPointerDown(e: PointerEvent) {
+      if (!containerRef.current) return
+      if (!containerRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
   async function handleLogout() {
+    setOpen(false)
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  function go(href: string) {
+    setOpen(false)
+    router.push(href)
   }
 
   function cycleTheme() {
@@ -47,13 +73,22 @@ export function AvatarMenu({ user }: AvatarMenuProps) {
   }
 
   const ThemeIcon = mode === 'light' ? Sun : mode === 'dark' ? Moon : Monitor
-  const themeLabel = mode === 'light' ? 'Mode terang' : mode === 'dark' ? 'Mode gelap' : `Auto (${resolved === 'dark' ? 'gelap' : 'terang'})`
+  const themeLabel =
+    mode === 'light'
+      ? 'Mode terang'
+      : mode === 'dark'
+        ? 'Mode gelap'
+        : `Auto (${resolved === 'dark' ? 'gelap' : 'terang'})`
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        className="flex items-center gap-2 rounded-full pl-1 pr-2.5 py-1 transition hover:bg-[var(--surface-2)] cursor-pointer"
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
         aria-label="Menu akun"
+        className="flex items-center gap-2 rounded-full pl-1 pr-2.5 py-1 transition hover:bg-[var(--surface-2)] cursor-pointer"
       >
         <Avatar size="sm">
           <AvatarFallback
@@ -66,46 +101,85 @@ export function AvatarMenu({ user }: AvatarMenuProps) {
             {initials}
           </AvatarFallback>
         </Avatar>
-        <ChevronDown className="size-3.5" style={{ color: 'var(--ink-muted)' }} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold truncate">{fullName}</span>
-            <span className="text-xs font-normal text-muted-foreground truncate">{user.email}</span>
-          </div>
-        </DropdownMenuLabel>
+        <ChevronDown
+          className="size-3.5 transition-transform"
+          style={{
+            color: 'var(--ink-muted)',
+            transform: open ? 'rotate(180deg)' : undefined,
+          }}
+        />
+      </button>
 
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
-          <UserCircle className="size-4 mr-2" />
-          Profil
-        </DropdownMenuItem>
-
-        <DropdownMenuItem onClick={() => router.push('/dashboard/pricing')}>
-          <Crown className="size-4 mr-2" />
-          Paket Langganan
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem onClick={cycleTheme}>
-          <ThemeIcon className="size-4 mr-2" />
-          <span className="flex-1">{themeLabel}</span>
-          <span className="text-[10px] text-muted-foreground">Klik utk ganti</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem
-          onClick={handleLogout}
-          className="text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-950/30"
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full mt-2 w-64 rounded-lg border shadow-lg overflow-hidden z-50"
+          style={{
+            background: 'var(--surface)',
+            borderColor: 'var(--border)',
+            boxShadow: '0 10px 30px -8px rgba(0,0,0,0.18)',
+          }}
         >
-          <LogOut className="size-4 mr-2" />
-          Keluar
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {/* User identity header */}
+          <div className="px-3 py-2.5 border-b" style={{ borderColor: 'var(--border-soft)' }}>
+            <p className="text-sm font-semibold truncate" style={{ color: 'var(--ink)' }}>
+              {fullName}
+            </p>
+            <p className="text-xs truncate" style={{ color: 'var(--ink-soft)' }}>
+              {user.email}
+            </p>
+          </div>
+
+          <div className="py-1">
+            <MenuItem onClick={() => go('/dashboard/profile')} icon={UserCircle}>
+              Profil
+            </MenuItem>
+            <MenuItem onClick={() => go('/dashboard/pricing')} icon={Crown}>
+              Paket Langganan
+            </MenuItem>
+          </div>
+
+          <div className="py-1 border-t" style={{ borderColor: 'var(--border-soft)' }}>
+            <MenuItem onClick={cycleTheme} icon={ThemeIcon}>
+              <span className="flex-1 text-left">{themeLabel}</span>
+              <span className="text-[10px]" style={{ color: 'var(--ink-soft)' }}>
+                Klik utk ganti
+              </span>
+            </MenuItem>
+          </div>
+
+          <div className="py-1 border-t" style={{ borderColor: 'var(--border-soft)' }}>
+            <MenuItem onClick={handleLogout} icon={LogOut} destructive>
+              Keluar
+            </MenuItem>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MenuItem({
+  onClick,
+  icon: Icon,
+  children,
+  destructive = false,
+}: {
+  onClick: () => void
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
+  destructive?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      className="flex w-full items-center gap-2 px-3 py-2 text-sm transition hover:bg-[var(--surface-2)]"
+      style={{ color: destructive ? '#DC2626' : 'var(--ink)' }}
+    >
+      <Icon className="size-4 shrink-0" />
+      {children}
+    </button>
   )
 }
