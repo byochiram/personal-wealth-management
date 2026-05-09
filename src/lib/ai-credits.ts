@@ -1,0 +1,83 @@
+/**
+ * AI Credit Metering — server-side helpers.
+ *
+ * Cost per AI feature is defined here as a single source of truth.
+ * Tuned roughly to actual API cost (×100 markup so 100 credits ≈ $1
+ * worth of upstream usage):
+ *
+ *   - Receipt scan (Vision):     5 credits  (~$0.005-0.01 upstream)
+ *   - NL parse (Haiku text):     1 credit   (~$0.0005 upstream)
+ *   - Insights (Haiku, cached):  2 credits  (~$0.001 upstream, 24h cache)
+ *
+ * Solo free tier gets 10 credits/month → enough for ~2 receipt scans
+ * + 5 quick adds + a few insight refreshes. Anything beyond needs Pro.
+ */
+
+import type { SupabaseClient } from '@supabase/supabase-js'
+
+export const AI_COSTS = {
+  receipt_scan: 5,
+  nl_parse: 1,
+  insights: 2,
+  voice_parse: 1,  // voice → AI parse uses same cost as text parse
+} as const
+
+export type AICostKey = keyof typeof AI_COSTS
+
+export interface CreditCheckResult {
+  ok: boolean
+  status?: number
+  error?: string
+  remaining?: number
+}
+
+/**
+ * Atomic credit consumption. Returns ok=true if charged, otherwise
+ * an error response shape ready to be returned from an API route.
+ *
+ * Steps:
+ *   1. Lazy reset if past renewal date (top up to plan cap)
+ *   2. Atomic consume via SQL function (race-safe)
+ *   3. Return remaining balance for client display
+ */
+export async function consumeAICredits(
+  supabase: SupabaseClient,
+  userId: string,
+  costKey: AICostKey,
+): Promise<CreditCheckResult> {
+  const cost = AI_COSTS[costKey]
+
+  // Step 1: top up if renewal due
+  await supabase.rpc('reset_ai_credits_if_due', { p_user_id: userId })
+
+  // Step 2: atomic consume
+  const { data: charged, error } = await supabase.rpc('consume_ai_credits', {
+    p_user_id: userId,
+    p_amount: cost,
+  })
+
+  if (error) {
+    return {
+      ok: false,
+      status: 500,
+      error: 'Gagal mengecek kredit AI: ' + error.message,
+    }
+  }
+
+  if (!charged) {
+    return {
+      ok: false,
+      status: 402, // Payment Required
+      error: `Kredit AI habis. Butuh ${cost} kredit untuk ${costKey === 'receipt_scan' ? 'scan struk' : costKey === 'insights' ? 'AI insight' : 'AI parse'}. Upgrade ke paket lebih tinggi atau tunggu reset bulanan.`,
+    }
+  }
+
+  // Step 3: read remaining for response
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('ai_credits')
+    .eq('id', userId)
+    .maybeSingle<{ ai_credits: number }>()
+
+  return { ok: true, remaining: profile?.ai_credits ?? 0 }
+}

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Menu, LogOut, ChevronDown, Search, Crown, Sun, Moon, Monitor, Eye, EyeOff } from 'lucide-react'
 import { useTheme } from '@/components/theme/theme-provider'
 import { usePrivacy } from '@/components/privacy/privacy-provider'
+import { AICreditsBadge } from '@/components/layout/ai-credits-badge'
 import { NAV_ITEMS, type NavItem } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -162,6 +163,9 @@ export function Header({ user }: HeaderProps) {
           <span>{t('common.search')}</span>
           <kbd className="text-[10px] ml-3 px-1 rounded font-mono" style={{ background: 'var(--surface-2)', color: 'var(--ink-soft)' }}>⌘K</kbd>
         </button>
+
+        {/* AI Credits badge — current balance + cap, drops down for detail */}
+        <AICreditsBadge />
 
         {/* Privacy toggle — hide all monetary numbers when in public */}
         <button

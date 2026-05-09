@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
+import { consumeAICredits } from '@/lib/ai-credits'
 import {
   EXPENSE_CATEGORIES,
   INCOME_CATEGORIES,
@@ -53,6 +54,12 @@ export async function POST(request: NextRequest) {
       { error: 'ANTHROPIC_API_KEY tidak terkonfigurasi' },
       { status: 500 },
     )
+  }
+
+  // Charge 1 credit before parsing
+  const credit = await consumeAICredits(supabase, user.id, 'nl_parse')
+  if (!credit.ok) {
+    return NextResponse.json({ error: credit.error }, { status: credit.status })
   }
 
   let body: { text?: string }

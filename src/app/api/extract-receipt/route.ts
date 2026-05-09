@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
+import { consumeAICredits } from '@/lib/ai-credits'
 import {
   EXPENSE_CATEGORIES,
   INCOME_CATEGORIES,
@@ -128,6 +129,13 @@ export async function POST(request: NextRequest) {
       { error: 'ANTHROPIC_API_KEY tidak terkonfigurasi di server' },
       { status: 500 },
     )
+  }
+
+  // Charge AI credits BEFORE doing the (expensive) Vision call. If the user
+  // is broke we want to fail fast without burning Anthropic budget.
+  const credit = await consumeAICredits(supabase, user.id, 'receipt_scan')
+  if (!credit.ok) {
+    return NextResponse.json({ error: credit.error }, { status: credit.status })
   }
 
   let formData: FormData

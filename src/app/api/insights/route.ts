@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
+import { consumeAICredits } from '@/lib/ai-credits'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -68,6 +69,12 @@ export async function POST(request: NextRequest) {
       { error: 'ANTHROPIC_API_KEY tidak terkonfigurasi' },
       { status: 500 },
     )
+  }
+
+  // Charge 2 credits before generating insights
+  const credit = await consumeAICredits(supabase, user.id, 'insights')
+  if (!credit.ok) {
+    return NextResponse.json({ error: credit.error }, { status: credit.status })
   }
 
   let input: InsightInput
