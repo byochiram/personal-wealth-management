@@ -30,18 +30,18 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
   title: {
-    default: "klunting — Atur duitmu sendiri",
-    template: "%s · klunting",
+    default: "Klunting — Wealth Management App",
+    template: "%s · Klunting",
   },
   description:
     "Catat pendapatan, pengeluaran, aset, utang, dan investasi — pakai AI biar cepat.",
-  applicationName: "klunting",
+  applicationName: "Klunting",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     // 'black-translucent' makes the iOS status bar overlay the app — feels native
     statusBarStyle: "black-translucent",
-    title: "klunting",
+    title: "Klunting",
   },
   formatDetection: {
     telephone: false,

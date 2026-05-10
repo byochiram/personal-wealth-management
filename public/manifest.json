@@ -1,6 +1,6 @@
 {
-  "name": "klunting",
-  "short_name": "klunting",
+  "name": "Klunting",
+  "short_name": "Klunting",
   "description": "Catat pendapatan, pengeluaran, aset, utang, dan investasi — pakai AI biar cepat.",
   "start_url": "/dashboard",
   "scope": "/",

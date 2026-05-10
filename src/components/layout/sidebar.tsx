@@ -178,19 +178,19 @@ export function Sidebar({ user }: SidebarProps) {
         {/* Brand — minimal wordmark */}
         <div className="px-5 py-5 border-b border-[rgba(255,255,255,0.06)]">
           <p
-            className="text-[10px] uppercase tracking-[0.24em] font-medium"
-            style={{ color: '#71717A' }}
+            className="text-xl font-bold text-white flex items-center gap-2 tracking-tight"
           >
-            Atur duitmu
-          </p>
-          <p
-            className="text-xl font-bold text-white mt-0.5 flex items-center gap-2 tracking-tight"
-          >
-            klunting
+            Klunting
             <span
               className="inline-block h-1.5 w-1.5 rounded-full"
               style={{ background: 'var(--emerald-400)' }}
             />
+          </p>
+          <p
+            className="text-[10px] uppercase tracking-[0.18em] font-medium mt-1"
+            style={{ color: '#71717A' }}
+          >
+            Wealth Management App
           </p>
         </div>
 

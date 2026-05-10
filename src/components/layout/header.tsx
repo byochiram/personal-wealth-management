@@ -231,13 +231,13 @@ export function Header({ user }: HeaderProps) {
                 className="flex h-10 w-10 items-center justify-center rounded-2xl font-bold text-[15px]"
                 style={{ background: 'var(--emerald-400)', color: 'var(--black)' }}
               >
-                k
+                K
               </div>
               <div>
                 <SheetTitle className="text-base font-bold text-white leading-tight tracking-tight">
-                  klunting
+                  Klunting
                 </SheetTitle>
-                <p className="text-[11px] text-white/40">Atur duitmu sendiri</p>
+                <p className="text-[11px] text-white/40">Wealth Management App</p>
               </div>
             </div>
           </SheetHeader>

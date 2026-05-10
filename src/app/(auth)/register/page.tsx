@@ -78,7 +78,7 @@ export default function RegisterPage() {
             className="mt-5 text-[10px] uppercase tracking-[0.24em] font-medium"
             style={{ color: 'rgba(255,255,255,0.45)' }}
           >
-            klunting · atur duitmu sendiri
+            Klunting · Wealth Management App
           </p>
 
           <h1 className="mt-3 text-4xl font-bold leading-tight lg:text-5xl tracking-tight">
