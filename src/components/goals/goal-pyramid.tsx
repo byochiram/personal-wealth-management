@@ -106,7 +106,7 @@ export function GoalPyramid({ goals }: Props) {
                   </span>
                 </div>
                 {items.length === 0 ? (
-                  <p className="text-[11px] italic" style={{ color: 'var(--ink-soft)' }}>
+                  <p className="text-[11px]" style={{ color: 'var(--ink-soft)' }}>
                     Belum ada goal di layer ini.
                   </p>
                 ) : (
@@ -125,7 +125,7 @@ export function GoalPyramid({ goals }: Props) {
                       )
                     })}
                     {items.length > 3 && (
-                      <p className="text-[10px] italic mt-1" style={{ color: 'var(--ink-soft)' }}>
+                      <p className="text-[10px] mt-1" style={{ color: 'var(--ink-soft)' }}>
                         +{items.length - 3} goal lain
                       </p>
                     )}

@@ -193,7 +193,7 @@ export function CryptoSearch({ value, onSelect, placeholder }: Props) {
                     </span>
                   </div>
                   <p className="text-xs truncate mt-0.5" style={{ color: 'var(--ink)' }}>
-                    {c.n ?? <span style={{ color: 'var(--ink-soft)', fontStyle: 'italic' }}>(nama tidak tersedia)</span>}
+                    {c.n ?? <span style={{ color: 'var(--ink-soft)' }}>(nama tidak tersedia)</span>}
                   </p>
                 </div>
               </button>

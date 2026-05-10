@@ -237,7 +237,7 @@ function PensionGapCalculator() {
           </div>
         )}
 
-        <p className="text-[10px] mt-4 italic" style={{ color: 'var(--ink-soft)' }}>
+        <p className="text-[10px] mt-4" style={{ color: 'var(--ink-soft)' }}>
           Estimasi kasar — return JHT diasumsikan 6%/thn, JP capped Rp 4.25jt/bln (2024). Gunakan iAkun
           BPJS TK untuk angka aktual.
         </p>

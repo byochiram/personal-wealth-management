@@ -136,7 +136,7 @@ export default function AssetsOverviewPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="glass-card p-6 lg:col-span-2">
           <p className="caps">Investasi</p>
-          <h3 className="font-display text-xl mt-0.5">Alokasi per Kategori</h3>
+          <h3 className="text-xl font-semibold mt-0.5">Alokasi per Kategori</h3>
           {allocation.length === 0 ? (
             <div className="flex h-[240px] items-center justify-center text-sm" style={{ color: 'var(--ink-soft)' }}>
               Belum ada investasi.
@@ -178,7 +178,7 @@ export default function AssetsOverviewPage() {
 
         <div className="glass-card p-6 lg:col-span-3">
           <p className="caps">Aset Non-Likuid</p>
-          <h3 className="font-display text-xl mt-0.5">Breakdown per Tipe</h3>
+          <h3 className="text-xl font-semibold mt-0.5">Breakdown per Tipe</h3>
           {Object.keys(nonLiquidByCategory).length === 0 ? (
             <div className="flex h-[240px] items-center justify-center text-sm" style={{ color: 'var(--ink-soft)' }}>
               Belum ada aset non-likuid.

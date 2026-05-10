@@ -408,7 +408,7 @@ function KpiCard({ label, value, accent, icon, note }: { label: string; value: s
           {icon}
         </div>
       </div>
-      <p className="font-display text-xl mt-2 tabular font-bold" style={{ color: c.fg }}>{value}</p>
+      <p className="num text-xl mt-2 tabular font-bold" style={{ color: c.fg }}>{value}</p>
       {note && <p className="text-[11px] text-muted-foreground mt-1">{note}</p>}
     </div>
   )

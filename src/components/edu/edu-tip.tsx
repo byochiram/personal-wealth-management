@@ -142,7 +142,7 @@ export function EduTip({ topic, children, side = 'bottom', iconSize = 14 }: Prop
 
           {/* Citation */}
           <p
-            className="text-[10px] italic mt-2.5 pt-2 border-t"
+            className="text-[10px] mt-2.5 pt-2 border-t"
             style={{ color: 'var(--ink-soft)', borderColor: 'var(--border-soft)' }}
           >
             {tip.source}

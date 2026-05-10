@@ -190,7 +190,7 @@ export default function DebtStrategyPage() {
           <div className="glass-card p-5">
             <div className="flex items-center gap-2 mb-1">
               <Flame className="h-4 w-4" style={{ color: 'var(--danger)' }} />
-              <h3 className="font-display text-xl font-bold">Urutan Prioritas</h3>
+              <h3 className="text-xl font-bold">Urutan Prioritas</h3>
             </div>
             <p className="text-xs mb-4" style={{ color: 'var(--ink-soft)' }}>
               Sisa total {formatCurrency(totalRemaining)} · {active.length} utang
@@ -284,7 +284,7 @@ function StrategyCard({
       <div className="relative flex items-start justify-between">
         <div>
           <p className="text-[11px] uppercase tracking-wider opacity-80">{subtitle}</p>
-          <h3 className={`font-display mt-1 text-2xl font-bold ${!active ? '' : ''}`}>{emoji} {title}</h3>
+          <h3 className={`mt-1 text-2xl font-bold tracking-tight ${!active ? '' : ''}`}>{emoji} {title}</h3>
           <p className={`text-sm mt-2 ${active ? 'opacity-85' : ''}`} style={!active ? { color: 'var(--ink-muted)' } : undefined}>
             {desc}
           </p>

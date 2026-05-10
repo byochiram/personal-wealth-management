@@ -941,8 +941,7 @@ export default function TransactionsPage() {
           <span className="ml-2 text-gray-500">Memuat data...</span>
         </div>
       ) : filteredTransactions.length === 0 ? (
-        // Empty state per design handoff §9 — italic display headline +
-        // encouraging Indonesian copy from microcopy library
+        // Empty state — clean centered card with icon + headline + sub
         <div className="s-card flex flex-col items-center text-center py-16 px-8">
           <div
             className="size-16 rounded-2xl flex items-center justify-center mb-4"
@@ -950,17 +949,8 @@ export default function TransactionsPage() {
           >
             <Wallet className="size-7" style={{ color: 'var(--emerald-600)' }} />
           </div>
-          <h3
-            className="font-display mb-2"
-            style={{
-              color: 'var(--ink)',
-              fontStyle: 'italic',
-              fontSize: 28,
-              fontWeight: 400,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            belum ada transaksi
+          <h3 className="text-2xl font-semibold tracking-tight mb-2" style={{ color: 'var(--ink)' }}>
+            Belum ada transaksi
           </h3>
           <p className="text-sm max-w-xs" style={{ color: 'var(--ink-muted)' }}>
             Tambah yang pertama — bisa lewat foto struk, biar AI yang isi.

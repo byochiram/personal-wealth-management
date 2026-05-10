@@ -335,7 +335,7 @@ export default function BudgetingPage() {
   function renderPercentRow() {
     return (
       <tr className="bg-[color:var(--surface-2)]">
-        <td className="sticky left-0 z-10 border border-[color:var(--border-soft)] px-2 py-1 text-xs font-semibold italic bg-inherit whitespace-nowrap">
+        <td className="sticky left-0 z-10 border border-[color:var(--border-soft)] px-2 py-1 text-xs font-semibold bg-inherit whitespace-nowrap">
           % dari Pendapatan
         </td>
         {Array.from({ length: 12 }, (_, i) => {
@@ -346,7 +346,7 @@ export default function BudgetingPage() {
           return (
             <td
               key={month}
-              className="num border border-[color:var(--border-soft)] px-1 py-1 text-right text-[11px] font-semibold italic bg-inherit whitespace-nowrap tabular"
+              className="num border border-[color:var(--border-soft)] px-1 py-1 text-right text-[11px] font-semibold bg-inherit whitespace-nowrap tabular"
             >
               {pct}%
             </td>

@@ -276,7 +276,7 @@ export default function InvestmentOverviewPage() {
           <div className="flex items-start justify-between gap-2 mb-4">
             <div>
               <p className="caps">Alokasi</p>
-              <h3 className="font-display text-xl mt-0.5 flex items-center gap-1.5">
+              <h3 className="text-xl font-semibold mt-0.5 flex items-center gap-1.5">
                 Komposisi Portofolio
                 <EduTip topic="diversification" side="bottom" />
               </h3>
@@ -542,7 +542,7 @@ function MiniStat({
           {icon}
         </div>
       </div>
-      <p className="font-display text-xl mt-2 tabular font-bold" style={{ color: accent ?? 'var(--ink)' }}>
+      <p className="num text-xl mt-2 tabular font-bold" style={{ color: accent ?? 'var(--ink)' }}>
         {value}
       </p>
     </div>

@@ -333,7 +333,7 @@ export function CashFlowForecast({
               </div>
             ))}
             {eventDays.length > 4 && (
-              <span className="text-[10px] italic" style={{ color: 'var(--ink-soft)' }}>
+              <span className="text-[10px]" style={{ color: 'var(--ink-soft)' }}>
                 +{eventDays.length - 4} event lain
               </span>
             )}
