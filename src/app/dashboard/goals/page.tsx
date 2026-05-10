@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/select'
 import { Plus, Pencil, Trash2, Loader2, TrendingUp } from 'lucide-react'
 import { EduTip } from '@/components/edu/edu-tip'
+import { GoalPyramid, GoalLayerBadge } from '@/components/goals/goal-pyramid'
+import { GoalProbabilityMeter } from '@/components/goals/goal-probability-meter'
 
 const GOAL_CATEGORIES: Record<string, string> = {
   property: 'Properti',
@@ -146,6 +148,10 @@ export default function GoalsPage() {
           </p>
         </div>
       ) : (
+        <>
+          {/* BPT pyramid view — group goals by risk/horizon layer */}
+          <GoalPyramid goals={goals.filter((g) => g.is_active)} />
+
         <div className="grid gap-3 sm:grid-cols-2">
           {goals.map((g) => {
             const pct = g.target_amount > 0 ? (g.current_amount / g.target_amount) * 100 : 0
@@ -159,8 +165,11 @@ export default function GoalsPage() {
                 className="group rounded-xl p-5 bg-white border border-[var(--border-soft)] hover:border-[var(--ink)] transition-colors"
               >
                 <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-semibold" style={{ color: 'var(--ink)' }}>{g.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold" style={{ color: 'var(--ink)' }}>{g.name}</p>
+                      <GoalLayerBadge category={g.category} />
+                    </div>
                     <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink-muted)' }}>
                       {GOAL_CATEGORIES[g.category] ?? g.category}
                       {g.deadline && ` · deadline ${new Date(g.deadline).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })}`}
@@ -211,6 +220,16 @@ export default function GoalsPage() {
                   </div>
                 </div>
 
+                {/* Goal probability meter — Monte Carlo of hitting target by deadline */}
+                {g.deadline && g.target_amount > 0 && !done && (
+                  <GoalProbabilityMeter
+                    current={g.current_amount}
+                    target={g.target_amount}
+                    deadline={g.deadline}
+                    category={g.category}
+                  />
+                )}
+
                 {g.notes && (
                   <p className="mt-3 pt-3 border-t text-[11px]" style={{ color: 'var(--ink-soft)', borderColor: 'var(--border-soft)' }}>
                     {g.notes}
@@ -220,6 +239,7 @@ export default function GoalsPage() {
             )
           })}
         </div>
+        </>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
