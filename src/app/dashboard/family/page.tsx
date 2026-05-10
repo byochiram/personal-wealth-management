@@ -224,12 +224,21 @@ export default function FamilyPage() {
     return (
       <div className="space-y-6">
         <div className="dark-card p-6 sm:p-7">
-          <p className="caps">Keluarga</p>
-          <div className="mt-2 flex items-end gap-4">
-            <h2 className="text-white text-3xl sm:text-4xl font-semibold tracking-tight">Atur Keuangan Bersama</h2>
-            <span className="accent-underline mb-2" />
-          </div>
-          <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>{today}</p>
+          <p className="caps" style={{ color: 'var(--emerald-300)' }}>Keluarga</p>
+          <h2
+            className="font-display mt-3"
+            style={{
+              color: 'var(--on-black)',
+              fontStyle: 'italic',
+              fontSize: 'clamp(36px, 6vw, 56px)',
+              letterSpacing: '-0.03em',
+              fontWeight: 400,
+              lineHeight: 1,
+            }}
+          >
+            Atur Keuangan Bersama
+          </h2>
+          <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>{today}</p>
         </div>
 
         <div className="rounded-2xl border-2 border-dashed border-burgundy-300 bg-gradient-to-br from-burgundy-50/40 to-amber-50/40 p-8 sm:p-10 text-center"
@@ -294,11 +303,23 @@ export default function FamilyPage() {
   return (
     <div className="space-y-6">
       <div className="dark-card p-6 sm:p-7">
-        <p className="caps">Keluarga</p>
-        <div className="mt-2 flex items-end justify-between gap-4 flex-wrap">
+        <p className="caps" style={{ color: 'var(--emerald-300)' }}>Keluarga</p>
+        <div className="mt-3 flex items-end justify-between gap-4 flex-wrap">
           <div>
-            <h2 className="text-white text-3xl sm:text-4xl font-semibold tracking-tight">{household.name}</h2>
-            <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>
+            <h2
+              className="font-display"
+              style={{
+                color: 'var(--on-black)',
+                fontStyle: 'italic',
+                fontSize: 'clamp(36px, 5vw, 48px)',
+                letterSpacing: '-0.025em',
+                fontWeight: 400,
+                lineHeight: 1,
+              }}
+            >
+              {household.name}
+            </h2>
+            <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
               {members.length} dari {household.max_seats} anggota · dibuat {formatDate(new Date(household.created_at))}
             </p>
           </div>

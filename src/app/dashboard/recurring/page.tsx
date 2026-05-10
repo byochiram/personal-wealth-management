@@ -184,28 +184,28 @@ export default function RecurringPage() {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
+      {/* Hero — italic display Net/bln as the headline number */}
       <div className="dark-card p-6 sm:p-8">
-        <p className="caps">Transaksi Berulang</p>
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div>
-            <p className="caps" style={{ fontSize: '0.625rem' }}>Masuk/bln</p>
-            <p className="num tabular text-xl sm:text-2xl font-semibold" style={{ color: 'var(--ink)' }}>
-              {formatCurrency(totals.monthlyIn)}
-            </p>
-          </div>
-          <div>
-            <p className="caps" style={{ fontSize: '0.625rem' }}>Keluar/bln</p>
-            <p className="num tabular text-xl sm:text-2xl font-semibold" style={{ color: 'var(--ink)' }}>
-              {formatCurrency(totals.monthlyOut)}
-            </p>
-          </div>
-          <div>
-            <p className="caps" style={{ fontSize: '0.625rem' }}>Net/bln</p>
-            <p className="num tabular text-xl sm:text-2xl font-semibold" style={{ color: 'var(--ink)' }}>
-              {formatCurrency(totals.monthlyNet)}
-            </p>
-          </div>
+        <p className="caps" style={{ color: 'var(--emerald-300)' }}>Transaksi Berulang · Net/bln</p>
+        <p
+          className="font-display tabular mt-3 leading-none"
+          style={{
+            color: totals.monthlyNet >= 0 ? 'var(--on-black)' : 'var(--coral-400)',
+            fontStyle: 'italic',
+            fontSize: 'clamp(40px, 7vw, 64px)',
+            letterSpacing: '-0.035em',
+            fontWeight: 400,
+          }}
+        >
+          {formatCurrency(totals.monthlyNet)}
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs">
+          <span style={{ color: 'var(--on-black-mut)' }}>
+            Masuk <span className="num font-semibold ml-1" style={{ color: 'var(--emerald-300)' }}>+{formatCurrency(totals.monthlyIn)}</span>
+          </span>
+          <span style={{ color: 'var(--on-black-mut)' }}>
+            Keluar <span className="num font-semibold ml-1" style={{ color: 'var(--coral-400)' }}>−{formatCurrency(totals.monthlyOut)}</span>
+          </span>
         </div>
         <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
           {totals.active} recurring aktif — otomatis generate transaksi sesuai jadwal.

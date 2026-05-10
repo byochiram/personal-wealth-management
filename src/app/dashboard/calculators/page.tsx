@@ -14,12 +14,22 @@ export default function CalculatorsPage() {
   return (
     <div className="space-y-6">
       <div className="dark-card p-6 sm:p-7">
-        <p className="caps">Alat Hitung</p>
-        <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight mt-2" style={{ color: 'var(--ink)' }}>
+        <p className="caps" style={{ color: 'var(--emerald-300)' }}>Alat Hitung</p>
+        <h2
+          className="font-display mt-3"
+          style={{
+            color: 'var(--on-black)',
+            fontStyle: 'italic',
+            fontSize: 'clamp(40px, 6vw, 56px)',
+            letterSpacing: '-0.03em',
+            fontWeight: 400,
+            lineHeight: 1,
+          }}
+        >
           Calculators
         </h2>
-        <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>
-          Zakat, pajak penghasilan, dan simulasi cicilan KPR/KKB.
+        <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
+          Zakat, pajak penghasilan, simulasi cicilan KPR/KKB, FIRE, dana pendidikan, DCA, & Pension Gap.
         </p>
       </div>
 

@@ -172,13 +172,23 @@ export default function MonthlyReportPage() {
       <div className="space-y-6">
         {/* Header — print-friendly */}
         <div className="dark-card p-6 sm:p-7 print-avoid-break">
-          <p className="caps">Laporan Bulanan</p>
-          <div className="mt-2 flex items-end justify-between gap-4 flex-wrap">
+          <p className="caps" style={{ color: 'var(--emerald-300)' }}>Laporan Bulanan</p>
+          <div className="mt-3 flex items-end justify-between gap-4 flex-wrap">
             <div>
-              <h2 className="text-white text-3xl sm:text-4xl font-semibold tracking-tight">
+              <h2
+                className="font-display"
+                style={{
+                  color: 'var(--on-black)',
+                  fontStyle: 'italic',
+                  fontSize: 'clamp(36px, 6vw, 56px)',
+                  letterSpacing: '-0.025em',
+                  fontWeight: 400,
+                  lineHeight: 1,
+                }}
+              >
                 {periodLabel}
               </h2>
-              <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>
+              <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
                 {recap.tx_count} transaksi · disiapkan untuk {user?.name ?? 'Anda'}
               </p>
               <p className="text-xs mt-1 hidden print:block" style={{ color: 'var(--on-black-mut)' }}>

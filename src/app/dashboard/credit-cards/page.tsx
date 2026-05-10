@@ -181,22 +181,38 @@ export default function CreditCardsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
+      {/* Hero — italic display for the "moment of personality" per typography */}
       <div className="dark-card p-6 sm:p-8">
-        <p className="caps">Kartu Kredit</p>
+        <p className="caps" style={{ color: 'var(--emerald-300)' }}>Kartu Kredit</p>
         <div className="mt-3 flex flex-wrap items-end gap-4">
-          <p className="num tabular text-4xl sm:text-5xl lg:text-6xl font-semibold" style={{ color: 'var(--ink)' }}>
+          <p
+            className="font-display tabular leading-none"
+            style={{
+              color: 'var(--on-black)',
+              fontStyle: 'italic',
+              fontSize: 'clamp(48px, 8vw, 72px)',
+              letterSpacing: '-0.035em',
+              fontWeight: 400,
+            }}
+          >
             {formatCurrency(totals.outstanding)}
           </p>
           <span
-            className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold"
-            style={{ background: 'var(--black)', color: 'var(--lime-400)' }}
+            className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide mb-2"
+            style={{
+              background: totals.utilization < 30 ? 'rgba(16,185,129,0.18)'
+                : totals.utilization < 70 ? 'rgba(245,158,11,0.18)'
+                : 'rgba(244,63,94,0.18)',
+              color: totals.utilization < 30 ? 'var(--emerald-300)'
+                : totals.utilization < 70 ? 'var(--amber-300)'
+                : 'var(--coral-400)',
+            }}
           >
             {totals.utilization.toFixed(0)}% utilisasi
           </span>
         </div>
-        <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>
-          {totals.count} kartu aktif · limit total <span className="num">{formatCurrency(totals.limit)}</span>
+        <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
+          {totals.count} kartu aktif · limit total <span className="num font-semibold" style={{ color: 'var(--on-black)' }}>{formatCurrency(totals.limit)}</span>
         </p>
       </div>
 

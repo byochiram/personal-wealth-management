@@ -92,8 +92,17 @@ export default function AssetsOverviewPage() {
   return (
     <div className="space-y-6">
       <div className="dark-card p-6 sm:p-8">
-        <p className="caps">Total Kekayaan Tercatat</p>
-        <p className="num tabular mt-4 text-white text-4xl sm:text-5xl lg:text-6xl font-semibold">
+        <p className="caps" style={{ color: 'var(--emerald-300)' }}>Total Kekayaan Tercatat</p>
+        <p
+          className="font-display tabular mt-4 leading-none"
+          style={{
+            color: 'var(--on-black)',
+            fontStyle: 'italic',
+            fontSize: 'clamp(48px, 8vw, 72px)',
+            letterSpacing: '-0.035em',
+            fontWeight: 400,
+          }}
+        >
           {formatCurrency(totals.total)}
         </p>
         <div className="mt-7 grid grid-cols-1 sm:grid-cols-3 gap-3">

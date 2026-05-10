@@ -63,23 +63,21 @@ export default function SubscriptionsPage() {
   return (
     <div className="space-y-6">
       <div className="dark-card p-6 sm:p-7">
-        <p className="caps">Audit Subscription</p>
-        <div className="mt-3 grid grid-cols-2 gap-4">
-          <div>
-            <p className="caps" style={{ fontSize: '0.625rem' }}>Total / bulan</p>
-            <p className="num tabular text-3xl sm:text-4xl font-semibold" style={{ color: 'var(--ink)' }}>
-              {formatCurrency(totals.monthEquivalent)}
-            </p>
-          </div>
-          <div>
-            <p className="caps" style={{ fontSize: '0.625rem' }}>Total / tahun</p>
-            <p className="num tabular text-3xl sm:text-4xl font-semibold" style={{ color: 'var(--ink)' }}>
-              {formatCurrency(totals.yearEquivalent)}
-            </p>
-          </div>
-        </div>
+        <p className="caps" style={{ color: 'var(--emerald-300)' }}>Audit Subscription · per bulan</p>
+        <p
+          className="font-display tabular mt-3 leading-none"
+          style={{
+            color: 'var(--on-black)',
+            fontStyle: 'italic',
+            fontSize: 'clamp(40px, 7vw, 64px)',
+            letterSpacing: '-0.035em',
+            fontWeight: 400,
+          }}
+        >
+          {formatCurrency(totals.monthEquivalent)}
+        </p>
         <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
-          {totals.count} subscription aktif — review yang mana yang masih kepakai.
+          ≈ <span className="num font-semibold" style={{ color: 'var(--on-black)' }}>{formatCurrency(totals.yearEquivalent)}</span>/thn · {totals.count} subscription aktif — review mana yang masih kepakai.
         </p>
       </div>
 

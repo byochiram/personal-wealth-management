@@ -415,14 +415,21 @@ export default function BudgetingPage() {
       <div className="dark-card p-6 sm:p-7">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="caps">Perencanaan</p>
-            <div className="mt-2 flex items-end gap-4">
-              <h2 className="text-white text-3xl sm:text-4xl font-semibold tracking-tight">
-                Anggaran Tahunan
-              </h2>
-              <span className="accent-underline mb-2" />
-            </div>
-            <p className="text-sm mt-2 flex items-center gap-1.5" style={{ color: 'var(--on-black-mut)' }}>
+            <p className="caps" style={{ color: 'var(--emerald-300)' }}>Perencanaan · {year}</p>
+            <h2
+              className="font-display mt-3"
+              style={{
+                color: 'var(--on-black)',
+                fontStyle: 'italic',
+                fontSize: 'clamp(36px, 6vw, 56px)',
+                letterSpacing: '-0.03em',
+                fontWeight: 400,
+                lineHeight: 1,
+              }}
+            >
+              Anggaran Tahunan
+            </h2>
+            <p className="text-sm mt-3 flex items-center gap-1.5" style={{ color: 'var(--on-black-mut)' }}>
               Distribusi pendapatan, pengeluaran, tabungan, & investasi sepanjang tahun.
               <EduTip topic="budget-method" side="bottom" />
             </p>

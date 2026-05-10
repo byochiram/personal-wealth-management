@@ -109,11 +109,20 @@ export default function NonLiquidAssetsPage() {
   return (
     <div className="space-y-6">
       <div className="dark-card p-6 sm:p-7">
-        <p className="caps">Aset Non-Likuid</p>
-        <p className="num tabular mt-3 text-4xl sm:text-5xl font-semibold" style={{ color: 'var(--ink)' }}>
+        <p className="caps" style={{ color: 'var(--emerald-300)' }}>Aset Non-Likuid</p>
+        <p
+          className="font-display tabular mt-3 leading-none"
+          style={{
+            color: 'var(--on-black)',
+            fontStyle: 'italic',
+            fontSize: 'clamp(40px, 7vw, 64px)',
+            letterSpacing: '-0.035em',
+            fontWeight: 400,
+          }}
+        >
           {formatCurrency(total)}
         </p>
-        <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>
+        <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
           {items.length} aset · nilai fluktuatif
         </p>
         <div className="mt-5 flex flex-wrap gap-2">

@@ -164,26 +164,35 @@ export default function InvestmentOverviewPage() {
   return (
     <div className="space-y-6">
       <div className="dark-card p-6 sm:p-8">
-        <p className="caps">Portofolio Investasi</p>
+        <p className="caps" style={{ color: 'var(--emerald-300)' }}>Portofolio Investasi</p>
         <div className="mt-3 flex flex-wrap items-end gap-4">
-          <p className="num tabular text-4xl sm:text-5xl lg:text-6xl font-semibold" style={{ color: 'var(--ink)' }}>
+          <p
+            className="font-display tabular leading-none"
+            style={{
+              color: 'var(--on-black)',
+              fontStyle: 'italic',
+              fontSize: 'clamp(48px, 8vw, 72px)',
+              letterSpacing: '-0.035em',
+              fontWeight: 400,
+            }}
+          >
             {formatCurrency(totals.market)}
           </p>
           <span
-            className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold"
+            className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide mb-2"
             style={{
-              background: 'var(--black)',
-              color: up ? 'var(--lime-400)' : '#F87171',
+              background: up ? 'rgba(16,185,129,0.18)' : 'rgba(244,63,94,0.18)',
+              color: up ? 'var(--emerald-300)' : 'var(--coral-400)',
             }}
           >
-            {up ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+            {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
             {up ? '+' : ''}{totals.plPct.toFixed(2)}%
           </span>
         </div>
-        <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>
-          Modal <span className="num">{formatCurrency(totals.invested)}</span>
+        <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
+          Modal <span className="num font-semibold" style={{ color: 'var(--on-black)' }}>{formatCurrency(totals.invested)}</span>
           {' · '}
-          P/L <span className="num">{formatCurrency(totals.pl)}</span>
+          P/L <span className="num font-semibold" style={{ color: up ? 'var(--emerald-300)' : 'var(--coral-400)' }}>{formatCurrency(totals.pl)}</span>
         </p>
       </div>
 
