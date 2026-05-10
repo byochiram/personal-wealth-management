@@ -9,6 +9,8 @@ import { fetchLiquidEntries, sumLiquid } from '@/lib/liquid'
 import { useT } from '@/lib/i18n/context'
 import { GettingStarted } from '@/components/dashboard/getting-started'
 import { AIInsightsCard } from '@/components/dashboard/ai-insights'
+import { FinancialHealthCard } from '@/components/dashboard/financial-health-card'
+import { computeFinancialHealth } from '@/lib/financial-health'
 import { MoneyFlowSankey, type FlowKind } from '@/components/dashboard/money-flow-sankey'
 import { StockLogo } from '@/components/investment/stock-logo'
 import { CryptoLogo } from '@/components/investment/crypto-logo'
@@ -213,6 +215,68 @@ export default function DashboardPage() {
     }
   }, [monthTransactions])
 
+  // ---- Financial Health Score ----
+  // Uses 90-day rolling avg from yearTransactions (more stable than current
+  // month — the latter can be partial / atypical). Falls back to current
+  // month if year data is sparse.
+  const fhsResult = useMemo(() => {
+    // Compute 90-day window avg from yearTransactions
+    const ninetyDaysAgo = new Date()
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
+    const cutoff = ninetyDaysAgo.toISOString().slice(0, 10)
+    const recent = yearTransactions.filter((t) => t.date >= cutoff)
+    const recentIncome = recent.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+    const recentExpense = recent.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+    const recentSaved = recent
+      .filter((t) => t.type === 'saving' || t.type === 'investment')
+      .reduce((s, t) => s + t.amount, 0)
+
+    // If we don't have ≥30 days of data, use current month directly to avoid
+    // dividing by 3 on a single month and getting fake-low monthly averages.
+    const hasEnoughHistory = recent.length >= 5
+    const monthlyIncome = hasEnoughHistory ? recentIncome / 3 : totals.income
+    const monthlyExpense = hasEnoughHistory ? recentExpense / 3 : totals.expense
+    const monthlySaved = hasEnoughHistory ? recentSaved / 3 : (totals.saving + totals.investment)
+
+    // Debt aggregates — credit cards + active debts
+    const ccBalance = creditCards.reduce((s, c) => s + (c.current_balance || 0), 0)
+    const ccMinPayments = creditCards.reduce(
+      (s, c) => s + Math.max(((c.current_balance || 0) * 0.05), 0),  // assume ~5% min payment
+      0,
+    )
+    const debtRemaining = activeDebts.reduce((s, d) => s + (d.remaining || 0), 0)
+    const debtMonthly = activeDebts.reduce((s, d) => s + (d.monthly_payment || 0), 0)
+    // Overdue heuristic: any credit card > 90% utilization
+    const hasOverdueDebt = creditCards.some((c) => {
+      if (!c.credit_limit || c.credit_limit <= 0) return false
+      return (c.current_balance || 0) / c.credit_limit > 0.9
+    })
+
+    // Insurance count from contracts (active = not archived)
+    const insuranceCount = contracts.filter((c) => c.category === 'insurance').length
+
+    // Investment value
+    const investmentValue = investments.reduce((s, i) => s + (i.total_value || 0), 0)
+
+    return computeFinancialHealth({
+      monthlyIncome,
+      monthlyExpense,
+      monthlySaved,
+      liquidBalance: liquidTotal,
+      investmentValue,
+      totalDebt: ccBalance + debtRemaining,
+      monthlyDebtPayments: ccMinPayments + debtMonthly,
+      hasOverdueDebt,
+      insuranceCount,
+      activeGoals: activeGoals.map((g) => ({
+        current: g.current_amount,
+        target: g.target_amount,
+        deadline: g.deadline,
+      })),
+      // userAge: not tracked yet — calculator falls back to mid-career default
+    })
+  }, [yearTransactions, totals, creditCards, activeDebts, contracts, investments, liquidTotal, activeGoals])
+
   // ---- Money Flow Sankey data ----
   // Aggregate by category for each kind. We cap to top 8 per side so the
   // diagram stays legible — anything beyond gets bucketed into "Lainnya".
@@ -371,16 +435,10 @@ export default function DashboardPage() {
         onMonthChange={setSelectedMonth}
       />
 
-      {/* Financial Health — promoted to hero #2 */}
-      <HealthScorePanel
-        monthTransactions={monthTransactions}
-        yearTransactions={yearTransactions}
-        savingRate={totals.savingRate}
-        liquidTotal={liquidTotal}
-        debtTotal={debtTotal}
-        efCurrent={emergencyFundCurrent}
-        efTarget={emergencyFundTarget}
-      />
+      {/* Financial Health Score — FinHealth Network methodology, 7 indicators
+          covering Spend / Save / Borrow / Plan. Replaces the legacy 5-pillar
+          HealthScorePanel with a more rigorous, diagnostic version. */}
+      <FinancialHealthCard result={fhsResult} />
 
       {/* Onboarding mission card — auto-hides when user completes setup */}
       <GettingStarted />
