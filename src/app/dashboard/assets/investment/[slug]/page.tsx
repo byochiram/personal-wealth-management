@@ -31,6 +31,7 @@ import { StockLogPanel } from '@/components/investment/stock-log-panel'
 import { DividendsPanel } from '@/components/investment/dividends-panel'
 import { EduTip } from '@/components/edu/edu-tip'
 import { CalmModeToggle } from '@/components/investment/calm-mode-toggle'
+import { getCategoryFormConfig } from '@/lib/investment-forms'
 
 interface FormState {
   id: string | null
@@ -55,7 +56,7 @@ export default function InvestmentCategoryPage() {
 
   const slug = params.slug
   const subcat = INVESTMENT_SUBCATS.find((s) => s.slug === slug)
-  const category = INVESTMENT_SLUG_TO_CATEGORY[slug] ?? 'stock'
+  const category: Investment['category'] = (INVESTMENT_SLUG_TO_CATEGORY[slug] ?? 'stock') as Investment['category']
 
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -631,89 +632,210 @@ export default function InvestmentCategoryPage() {
                   </div>
                 </div>
               </>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-3">
+            ) : (() => {
+              // Per-category form using INVESTMENT_FORM_CONFIGS — each
+              // asset class (mutual_fund, gold, bond, sbn, time_deposit,
+              // forex, p2p, pension, business) has unique field semantics.
+              const cfg = getCategoryFormConfig(category)
+              if (!cfg) return null
+              return (
+                <>
+                  {cfg.topHint && (
+                    <p
+                      className="text-xs leading-relaxed rounded-lg p-2.5"
+                      style={{
+                        color: 'var(--ink-muted)',
+                        background: 'var(--surface-2)',
+                      }}
+                    >
+                      💡 {cfg.topHint}
+                    </p>
+                  )}
+                  <div className={cfg.showTicker ? 'grid grid-cols-2 gap-3' : 'grid gap-3'}>
+                    <div className="grid gap-1.5">
+                      <Label>{cfg.name.label}</Label>
+                      <Input
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                        placeholder={cfg.name.placeholder}
+                      />
+                      {cfg.name.help && (
+                        <p className="text-[10px]" style={{ color: 'var(--ink-soft)' }}>{cfg.name.help}</p>
+                      )}
+                    </div>
+                    {cfg.showTicker && cfg.ticker && (
+                      <div className="grid gap-1.5">
+                        <Label>{cfg.ticker.label}</Label>
+                        <Input
+                          value={form.ticker}
+                          onChange={(e) => setForm({ ...form, ticker: e.target.value })}
+                          placeholder={cfg.ticker.placeholder}
+                        />
+                        {cfg.ticker.help && (
+                          <p className="text-[10px]" style={{ color: 'var(--ink-soft)' }}>{cfg.ticker.help}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )
+            })()}
+
+            {/* Platform / Sekuritas — per-category dropdown with curated
+                Indonesian platforms (APERD, banks, OJK-licensed P2P, etc.) */}
+            {(() => {
+              const cfg = getCategoryFormConfig(category)
+              const platformLabel = cfg?.platform.label ?? 'Platform / Sekuritas'
+              const platformHelp = cfg?.platform.help
+              const platformPlaceholder = cfg?.platform.placeholder ?? 'Bibit, Pintu, ...'
+              const platformOptions = cfg?.platform.options
+              return (
+                <div className="grid gap-1.5">
+                  <Label>{platformLabel}</Label>
+                  {category === 'stock' ? (
+                    <Select
+                      value={form.platform || ''}
+                      onValueChange={(v) => setForm({ ...form, platform: v ?? '' })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih sekuritas">
+                          {(v) => {
+                            const broker = IDX_BROKERS.find((b) => b.short === v || b.name === v)
+                            if (!broker) return v || 'Pilih sekuritas'
+                            return broker.code ? `${broker.short} (${broker.code})` : broker.short
+                          }}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="min-w-[280px]">
+                        {IDX_BROKERS.map((b) => (
+                          <SelectItem key={b.code || b.short} value={b.short}>
+                            <div className="flex flex-col py-0.5 gap-0.5 min-w-0">
+                              <span className="flex items-center gap-1.5 min-w-0">
+                                {b.code && (
+                                  <span
+                                    className="font-mono text-[9px] px-1 py-0.5 rounded shrink-0"
+                                    style={{ background: 'var(--surface-2)', color: 'var(--ink-muted)' }}
+                                  >
+                                    {b.code}
+                                  </span>
+                                )}
+                                <span className="truncate text-sm">{b.short}</span>
+                              </span>
+                              {b.buyRate > 0 && (
+                                <span className="text-[10px] tabular" style={{ color: 'var(--ink-soft)' }}>
+                                  Beli {(b.buyRate * 100).toFixed(2)}% · Jual {(b.sellRate * 100).toFixed(2)}%
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : platformOptions ? (
+                    /* Per-category curated dropdown (mutual_fund, gold,
+                       bond, sbn, time_deposit, p2p, pension) */
+                    <Select
+                      value={form.platform || ''}
+                      onValueChange={(v) => setForm({ ...form, platform: v ?? '' })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={platformPlaceholder}>
+                          {(v) => v || platformPlaceholder}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="min-w-[260px]">
+                        {platformOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            <div className="flex flex-col py-0.5 gap-0.5 min-w-0">
+                              <span className="text-sm truncate">{opt.label}</span>
+                              {opt.sub && (
+                                <span className="text-[10px]" style={{ color: 'var(--ink-soft)' }}>
+                                  {opt.sub}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      value={form.platform}
+                      onChange={(e) => setForm({ ...form, platform: e.target.value })}
+                      placeholder={platformPlaceholder}
+                    />
+                  )}
+                  {platformHelp && (
+                    <p className="text-[10px]" style={{ color: 'var(--ink-soft)' }}>{platformHelp}</p>
+                  )}
+                </div>
+              )
+            })()}
+
+            {/* Qty / Cost / Price — labels + placeholders per category config */}
+            {(() => {
+              const cfg = getCategoryFormConfig(category)
+              const qtyCfg = cfg?.quantity ?? { label: 'Qty', placeholder: '0' }
+              const costCfg = cfg?.avgCost ?? { label: 'Avg Cost', placeholder: '0' }
+              const priceCfg = cfg?.currentPrice ?? { label: 'Harga Saat Ini', placeholder: '0' }
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="grid gap-1.5">
-                    <Label>Nama</Label>
-                    <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                    <Label>{qtyCfg.label}</Label>
+                    <Input
+                      type="number"
+                      step={qtyCfg.step ?? 'any'}
+                      value={form.quantity || ''}
+                      onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) || 0 })}
+                      placeholder={qtyCfg.placeholder}
+                    />
+                    {qtyCfg.help && (
+                      <p className="text-[10px]" style={{ color: 'var(--ink-soft)' }}>{qtyCfg.help}</p>
+                    )}
                   </div>
                   <div className="grid gap-1.5">
-                    <Label>Ticker (opsional)</Label>
-                    <Input value={form.ticker} onChange={(e) => setForm({ ...form, ticker: e.target.value })} placeholder="simbol" />
+                    <Label>{costCfg.label}</Label>
+                    <NumberInput
+                      value={form.avg_cost}
+                      onChange={(n) => setForm({ ...form, avg_cost: n })}
+                      placeholder={costCfg.placeholder ?? '0'}
+                    />
+                    {costCfg.help && (
+                      <p className="text-[10px]" style={{ color: 'var(--ink-soft)' }}>{costCfg.help}</p>
+                    )}
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label>{priceCfg.label}</Label>
+                    <NumberInput
+                      value={form.current_price}
+                      onChange={(n) => setForm({ ...form, current_price: n })}
+                      placeholder={priceCfg.placeholder ?? '0'}
+                    />
+                    {priceCfg.help && (
+                      <p className="text-[10px]" style={{ color: 'var(--ink-soft)' }}>{priceCfg.help}</p>
+                    )}
                   </div>
                 </div>
-              </>
-            )}
+              )
+            })()}
 
-            {/* Platform / Sekuritas: dropdown for stocks (with fee preview),
-                free text for everything else */}
-            <div className="grid gap-1.5">
-              <Label>Platform / Sekuritas</Label>
-              {category === 'stock' ? (
-                <Select
-                  value={form.platform || ''}
-                  onValueChange={(v) => setForm({ ...form, platform: v ?? '' })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih sekuritas">
-                      {(v) => {
-                        const broker = IDX_BROKERS.find((b) => b.short === v || b.name === v)
-                        if (!broker) return v || 'Pilih sekuritas'
-                        return broker.code ? `${broker.short} (${broker.code})` : broker.short
-                      }}
-                    </SelectValue>
-                  </SelectTrigger>
-                  {/* Wider min-width so name + fee don't clip; stacked fee
-                      (small text under name) so it never gets truncated even
-                      on narrow viewports. */}
-                  <SelectContent className="min-w-[280px]">
-                    {IDX_BROKERS.map((b) => (
-                      <SelectItem key={b.code || b.short} value={b.short}>
-                        <div className="flex flex-col py-0.5 gap-0.5 min-w-0">
-                          <span className="flex items-center gap-1.5 min-w-0">
-                            {b.code && (
-                              <span
-                                className="font-mono text-[9px] px-1 py-0.5 rounded shrink-0"
-                                style={{ background: 'var(--surface-2)', color: 'var(--ink-muted)' }}
-                              >
-                                {b.code}
-                              </span>
-                            )}
-                            <span className="truncate text-sm">{b.short}</span>
-                          </span>
-                          {b.buyRate > 0 && (
-                            <span className="text-[10px] tabular" style={{ color: 'var(--ink-soft)' }}>
-                              Beli {(b.buyRate * 100).toFixed(2)}% · Jual {(b.sellRate * 100).toFixed(2)}%
-                            </span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })} placeholder="Bibit, Pintu, ..." />
-              )}
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="grid gap-1.5">
-                <Label>Qty</Label>
-                <Input type="number" step="any" value={form.quantity || ''} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) || 0 })} />
-              </div>
-              <div className="grid gap-1.5">
-                <Label>Avg Cost</Label>
-                <NumberInput value={form.avg_cost} onChange={(n) => setForm({ ...form, avg_cost: n })} placeholder="0" />
-              </div>
-              <div className="grid gap-1.5">
-                <Label>Harga Saat Ini</Label>
-                <NumberInput value={form.current_price} onChange={(n) => setForm({ ...form, current_price: n })} placeholder="0" />
-              </div>
-            </div>
-            <div className="grid gap-1.5">
-              <Label>Catatan</Label>
-              <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-            </div>
+            {/* Notes — category-specific helper text */}
+            {(() => {
+              const cfg = getCategoryFormConfig(category)
+              return (
+                <div className="grid gap-1.5">
+                  <Label>Catatan</Label>
+                  <Input
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    placeholder={cfg?.notesHelp ?? 'Catatan tambahan'}
+                  />
+                  {cfg?.notesHelp && (
+                    <p className="text-[10px]" style={{ color: 'var(--ink-soft)' }}>{cfg.notesHelp}</p>
+                  )}
+                </div>
+              )
+            })()}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Batal</Button>
