@@ -113,7 +113,7 @@ export function CurrencyRates() {
           <Loader2 className="size-4 animate-spin" style={{ color: 'var(--ink-soft)' }} />
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
           {PAIRS.map((pair) => {
             const q = quotes[pair.ticker]
             const change = q?.changePct ?? null
@@ -126,33 +126,38 @@ export function CurrencyRates() {
             return (
               <div
                 key={pair.ticker}
-                className="rounded-lg border p-2.5"
+                className="rounded-xl border p-3"
                 style={{ background: 'var(--surface-2)', borderColor: 'var(--border-soft)' }}
               >
-                <div className="flex items-center justify-between gap-1">
-                  <div className="flex items-center gap-1.5 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {/* Flag bumped from 20px → 32px per user feedback —
+                        feels more "country card" less microbadge */}
                     <Image
                       src={`/flag-logos/${pair.iso}.svg`}
                       alt={`Bendera ${pair.name}`}
-                      width={20}
-                      height={20}
-                      className="shrink-0 rounded-full ring-1 ring-black/5"
+                      width={32}
+                      height={32}
+                      className="shrink-0 rounded-full ring-1 ring-black/10 shadow-sm"
                       unoptimized
                     />
-                    <span className="text-[11px] font-semibold" style={{ color: 'var(--ink)' }}>
+                    <span className="text-sm font-bold" style={{ color: 'var(--ink)' }}>
                       {pair.code}
                     </span>
                   </div>
                   {change !== null && (
                     <span
-                      className="text-[10px] num tabular font-medium shrink-0"
-                      style={{ color: changeColor }}
+                      className="text-[10px] num tabular font-semibold shrink-0 px-1.5 py-0.5 rounded"
+                      style={{
+                        color: changeColor,
+                        background: change >= 0 ? 'rgba(5,150,105,0.10)' : 'rgba(220,38,38,0.10)',
+                      }}
                     >
                       {change >= 0 ? '+' : ''}{change.toFixed(2)}%
                     </span>
                   )}
                 </div>
-                <p className="text-[13px] num tabular font-semibold mt-1" style={{ color: 'var(--ink)' }}>
+                <p className="num tabular text-base font-bold mt-2" style={{ color: 'var(--ink)' }}>
                   {q ? `Rp ${formatRate(q.price)}` : '—'}
                 </p>
               </div>

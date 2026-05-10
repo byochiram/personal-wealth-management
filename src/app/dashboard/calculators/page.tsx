@@ -19,7 +19,7 @@ export default function CalculatorsPage() {
           className="text-3xl sm:text-4xl font-semibold tracking-tight mt-2"
           style={{ color: 'var(--on-black)' }}
         >
-          Calculators
+          Kalkulator
         </h2>
         <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
           Zakat, pajak penghasilan, simulasi cicilan KPR/KKB, FIRE, dana pendidikan, DCA, & Pension Gap.
