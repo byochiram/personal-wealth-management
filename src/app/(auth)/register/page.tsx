@@ -1,17 +1,17 @@
 'use client'
 
+/**
+ * Register page — same minimalist treatment as login.
+ * Logo → nama → tagline → form (nama + email + password) → link masuk.
+ */
+
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { useT } from '@/lib/i18n/context'
-import { LanguageToggle } from '@/components/layout/language-toggle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { User, Mail, Lock, Sparkles } from 'lucide-react'
 
 export default function RegisterPage() {
-  const t = useT()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -31,124 +31,66 @@ export default function RegisterPage() {
         password,
         options: { data: { full_name: fullName } },
       })
-      if (error) { setError(error.message); return }
+      if (error) {
+        setError(error.message)
+        return
+      }
       setSuccess(true)
     } catch {
-      setError(t('auth.error_generic'))
+      setError('Ada masalah. Coba lagi sebentar.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
-      {/* Brand panel — matches login page emerald palette */}
-      <div
-        className="relative flex w-full flex-col items-center justify-center overflow-hidden px-8 py-16 lg:w-[55%] lg:py-0"
-        style={{
-          background:
-            'linear-gradient(135deg, #0A0A0F 0%, #14141A 50%, #0F1F1A 100%)',
-        }}
-      >
-        <div
-          className="absolute left-[10%] top-[18%] h-72 w-72 rounded-full blur-3xl"
-          style={{ backgroundColor: 'rgba(16, 185, 129, 0.22)' }}
-          aria-hidden="true"
-        />
-        <div
-          className="absolute bottom-[12%] right-[8%] h-80 w-80 rounded-full blur-3xl"
-          style={{ backgroundColor: 'rgba(99, 102, 241, 0.18)' }}
-          aria-hidden="true"
-        />
-
-        <div className="relative z-10 max-w-md text-center text-white">
-          <div
-            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl text-3xl font-bold shadow-2xl"
-            style={{
-              background: 'linear-gradient(135deg, #10B981, #059669)',
-              color: '#FFFFFF',
-              letterSpacing: '-0.05em',
-              boxShadow: '0 12px 32px -8px rgba(16, 185, 129, 0.45)',
-            }}
-          >
-            P
-          </div>
-
-          <p
-            className="mt-5 text-[10px] uppercase tracking-[0.24em] font-medium"
-            style={{ color: 'rgba(255,255,255,0.45)' }}
-          >
-            Klunting · Wealth Management App
-          </p>
-
-          <h1 className="mt-3 text-4xl font-bold leading-tight lg:text-5xl tracking-tight">
-            Mulai perjalanan{' '}
-            <span
-              className="bg-clip-text text-transparent"
+    <div
+      className="flex min-h-screen items-center justify-center px-4 py-12"
+      style={{ background: 'var(--paper)' }}
+    >
+      <div className="w-full max-w-sm">
+        {/* Brand */}
+        <div className="text-center">
+          <Link href="/" className="inline-block">
+            <div
+              className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl text-2xl font-extrabold text-white"
               style={{
-                backgroundImage:
-                  'linear-gradient(90deg, #34D399 0%, #6EE7B7 50%, #A5F3FC 100%)',
+                background: 'linear-gradient(135deg, var(--emerald-500), var(--emerald-700))',
+                letterSpacing: '-0.04em',
+                boxShadow: '0 10px 28px -10px rgba(16,185,129,0.50)',
               }}
             >
-              finansialmu
-            </span>
-          </h1>
-          <p
-            className="mt-5 text-sm lg:text-base leading-relaxed"
-            style={{ color: 'rgba(255,255,255,0.70)' }}
-          >
-            Daftar gratis. Mulai catat transaksi, monitor investasi & utang,
-            dan capai tujuan finansial dengan dibantu AI.
-          </p>
-          <div className="mt-8 flex justify-center gap-2 flex-wrap">
-            {[
-              { label: 'AI Receipt Scanner', tint: 'rgba(16,185,129,0.18)', fg: '#6EE7B7' },
-              { label: 'Live Stock Quote', tint: 'rgba(14,165,233,0.18)', fg: '#7DD3FC' },
-              { label: 'Smart Insights', tint: 'rgba(245,158,11,0.18)', fg: '#FCD34D' },
-            ].map((chip) => (
-              <span
-                key={chip.label}
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium border"
-                style={{
-                  background: chip.tint,
-                  color: chip.fg,
-                  borderColor: 'rgba(255,255,255,0.10)',
-                }}
-              >
-                <Sparkles className="size-3" />
-                {chip.label}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div
-        className="flex w-full items-center justify-center px-6 py-12 lg:w-[45%] lg:px-12"
-        style={{ backgroundColor: 'var(--surface)' }}
-      >
-        <div className="w-full max-w-sm">
-          <div className="mb-8 flex items-start justify-between">
-            <div>
-              <p className="caps">{t('auth.register_page')}</p>
-              <h2 className="text-2xl font-semibold mt-1" style={{ color: 'var(--ink)' }}>
-                {t('auth.create_account')}
-              </h2>
-              <p className="mt-1 text-sm" style={{ color: 'var(--ink-muted)' }}>
-                {t('auth.register_description')}
-              </p>
+              K
             </div>
-            <LanguageToggle />
-          </div>
+          </Link>
+          <h1
+            className="mt-4 text-2xl font-bold tracking-tight"
+            style={{ color: 'var(--ink)', letterSpacing: '-0.02em' }}
+          >
+            Klunting.
+          </h1>
+          <p className="mt-1 text-sm" style={{ color: 'var(--ink-muted)' }}>
+            Bikin akun gratis. 2 menit selesai.
+          </p>
+        </div>
 
-          <form onSubmit={handleRegister} className="flex flex-col gap-4">
+        {/* Form */}
+        <div
+          className="mt-8 rounded-2xl border p-6"
+          style={{
+            background: 'var(--surface)',
+            borderColor: 'var(--border-soft)',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+          }}
+        >
+          <form onSubmit={handleRegister} className="flex flex-col gap-3.5">
             {error && (
               <div
-                className="flex items-center gap-2 rounded-lg border p-3 text-sm"
+                className="rounded-lg border p-3 text-sm"
                 style={{
-                  backgroundColor: 'var(--danger-bg)',
-                  borderColor: '#FECDD3',
-                  color: 'var(--danger)',
+                  background: 'rgba(239, 68, 68, 0.06)',
+                  borderColor: 'rgba(239, 68, 68, 0.30)',
+                  color: '#991B1B',
                 }}
               >
                 {error}
@@ -156,86 +98,83 @@ export default function RegisterPage() {
             )}
             {success && (
               <div
-                className="flex items-center gap-2 rounded-lg border p-3 text-sm"
+                className="rounded-lg border p-3 text-sm"
                 style={{
-                  backgroundColor: 'var(--success-bg)',
-                  borderColor: '#A7F3D0',
-                  color: 'var(--emerald-700)',
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  borderColor: 'rgba(16, 185, 129, 0.30)',
+                  color: 'var(--emerald-800)',
                 }}
               >
-                {t('auth.success_register')}
+                Cek email kamu, udah aku kirim link konfirmasi.
               </div>
             )}
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="fullName">{t('auth.full_name')}</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--ink-soft)' }} />
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="Nama Lengkap"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  className="h-11 pl-10"
-                />
-              </div>
-            </div>
+            <Input
+              type="text"
+              placeholder="Nama lengkap"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              className="h-11"
+              autoComplete="name"
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">{t('auth.email')}</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--ink-soft)' }} />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="nama@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-11 pl-10"
-                />
-              </div>
-            </div>
+            <Input
+              type="email"
+              placeholder="Alamat email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="h-11"
+              autoComplete="email"
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password">{t('auth.password')}</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: 'var(--ink-soft)' }} />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Minimal 6 karakter"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="h-11 pl-10"
-                />
-              </div>
-            </div>
+            <Input
+              type="password"
+              placeholder="Password (minimal 6 karakter)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="h-11"
+              autoComplete="new-password"
+            />
 
             <Button
               type="submit"
               disabled={loading || success}
-              className="mt-2 h-11 w-full text-sm font-medium"
+              className="mt-2 h-11 w-full text-sm font-semibold"
               style={{
-                background: 'linear-gradient(135deg, #10B981, #059669)',
+                background: 'linear-gradient(135deg, var(--emerald-500), var(--emerald-700))',
                 color: '#FFFFFF',
               }}
             >
-              {loading ? t('auth.processing') : t('auth.register_button')}
+              {loading ? 'Memproses…' : 'Daftar'}
             </Button>
 
-            <p className="text-center text-sm" style={{ color: 'var(--ink-muted)' }}>
-              {t('auth.have_account')}{' '}
-              <Link href="/login" className="font-semibold hover:underline" style={{ color: 'var(--emerald-600, #059669)' }}>
-                {t('auth.login_link')}
-              </Link>
+            <p
+              className="text-center text-[11px] leading-relaxed mt-1"
+              style={{ color: 'var(--ink-soft)' }}
+            >
+              Dengan daftar, kamu setuju dengan{' '}
+              <Link href="/terms" className="underline">Syarat & Ketentuan</Link>
+              {' '}dan{' '}
+              <Link href="/privacy" className="underline">Kebijakan Privasi</Link>.
             </p>
           </form>
         </div>
+
+        {/* Login link */}
+        <p className="mt-6 text-center text-sm" style={{ color: 'var(--ink-muted)' }}>
+          Udah punya akun?{' '}
+          <Link
+            href="/login"
+            className="font-semibold hover:underline"
+            style={{ color: 'var(--ink)' }}
+          >
+            Masuk
+          </Link>
+        </p>
       </div>
     </div>
   )

@@ -1,31 +1,27 @@
 /**
  * Klunting — Landing page (root /).
  *
- * Reference: design-references/screens/landing-refine.jsx
- * Direction: soft minimalism × emerald, witty Indonesian microcopy.
+ * Copy direction: senior copywriter, conversion-focused.
+ * - Hook: question yang nyentil (creates curiosity + reveals pain)
+ * - Hero sub: spesifik benefits + remove friction
+ * - Stats strip: visual proof (numbers > words)
+ * - Cara kerja: lower the barrier (3 steps, jelas)
+ * - Features: outcome-focused (bukan "ada fitur X" tapi "X bikin kamu bisa Y")
+ * - Persona quotes: vivid, dari mulut user
+ * - CTA strip: urgency tanpa manipulasi
  *
- * Server component. If user is already authenticated we redirect them
- * straight to /dashboard; otherwise we render the marketing page.
- *
- * Structure (top → bottom):
- *   1. Nav (logo + nav links + Masuk / Coba gratis CTAs)
- *   2. Hero (eyebrow chip + h1 + sub + 2 CTAs + benefits + dark hero card)
- *   3. Trusted-by row (Indonesian platforms)
- *   4. Feature grid (3 cards)
- *   5. CTA strip
- *   6. Footer
+ * Server component. Authed → /dashboard, anon → render landing.
  */
 
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Sparkles, ArrowRight, Camera, Wallet, TrendingUp, Brain, Shield, Zap } from 'lucide-react'
+import {
+  ArrowRight, Camera, Wallet, TrendingUp, Brain, Shield, Sparkles,
+  Check,
+} from 'lucide-react'
 
 export default async function LandingPage() {
-  // If logged in, skip the landing page. Wrap in try/catch because
-  // supabase.auth.getUser() can throw on anonymous requests when there
-  // are no auth cookies (the AuthSessionMissingError → "forbidden" page).
-  // Anonymous = render landing.
   let isAuthed = false
   try {
     const supabase = await createClient()
@@ -54,13 +50,12 @@ export default async function LandingPage() {
           >
             K
           </div>
-          <div className="font-bold text-base tracking-tight">
-            Klunting
-          </div>
+          <div className="font-bold text-base tracking-tight">Klunting</div>
         </div>
         <nav className="hidden md:flex gap-7 text-sm" style={{ color: 'var(--ink-muted)' }}>
-          <a href="#fitur" className="hover:text-[var(--ink)] transition-colors">Fitur</a>
           <a href="#cara-kerja" className="hover:text-[var(--ink)] transition-colors">Cara kerja</a>
+          <a href="#fitur" className="hover:text-[var(--ink)] transition-colors">Fitur</a>
+          <a href="#untuk-siapa" className="hover:text-[var(--ink)] transition-colors">Untuk siapa</a>
           <Link href="/dashboard/pricing" className="hover:text-[var(--ink)] transition-colors">Harga</Link>
         </nav>
         <div className="flex gap-2 items-center">
@@ -76,7 +71,7 @@ export default async function LandingPage() {
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-[10px] text-sm font-semibold transition hover:opacity-90"
             style={{ background: 'var(--ink)', color: 'var(--surface)' }}
           >
-            Coba gratis
+            Mulai gratis
             <ArrowRight className="size-3.5" />
           </Link>
         </div>
@@ -84,7 +79,6 @@ export default async function LandingPage() {
 
       {/* ─── HERO ──────────────────────────────────────────────── */}
       <section className="relative overflow-hidden px-6 sm:px-12 py-16 sm:py-24">
-        {/* Ambient blobs */}
         <div
           className="absolute -top-10 -right-16 size-[480px] rounded-full opacity-50 pointer-events-none"
           style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.18), transparent 60%)' }}
@@ -95,14 +89,14 @@ export default async function LandingPage() {
         />
 
         <div className="relative grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
-          {/* LEFT — copy + CTA */}
+          {/* LEFT — copy */}
           <div>
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold mb-6"
               style={{ background: 'var(--emerald-100)', color: 'var(--emerald-800)' }}
             >
               <span className="size-1.5 rounded-full" style={{ background: 'var(--emerald-500)' }} />
-              Sekarang dengan AI Receipt Scanner
+              Buat kamu yang punya 3+ app keuangan
             </span>
             <h1
               className="font-bold tracking-tight"
@@ -112,17 +106,16 @@ export default async function LandingPage() {
                 letterSpacing: '-0.04em',
               }}
             >
-              Uangmu, jelas.<br />
-              <span style={{ color: 'var(--emerald-700)' }}>
-                Tanpa drama.
-              </span>
+              Berapa kekayaanmu,<br />
+              <span style={{ color: 'var(--emerald-700)' }}>sebenernya?</span>
             </h1>
             <p
-              className="mt-6 text-lg leading-relaxed max-w-lg"
+              className="mt-6 text-lg leading-relaxed max-w-xl"
               style={{ color: 'var(--ink-muted)' }}
             >
-              Catat transaksi pakai bahasa natural, scan struk dari kamera, track aset & utang
-              dalam satu tempat. Plus AI yang ngingetin kamu kalau bakal kehabisan duit akhir bulan.
+              Saldo BCA, GoPay, reksa dana Bibit, saham Stockbit, emas Pegadaian, cicilan KPR.
+              Kebanyakan orang punya 5+ app keuangan dan gak tau total asetnya.
+              Klunting jumlahin semuanya jadi satu net worth, update tiap hari.
             </p>
             <div className="mt-8 flex flex-wrap gap-3 items-center">
               <Link
@@ -134,25 +127,37 @@ export default async function LandingPage() {
                   boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
                 }}
               >
-                Mulai gratis
+                Mulai gratis (2 menit setup)
                 <ArrowRight className="size-4" />
               </Link>
-              <Link
-                href="/login"
+              <a
+                href="#cara-kerja"
                 className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-medium border transition hover:bg-[var(--surface-2)]"
                 style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--ink)' }}
               >
-                Masuk ke akun
-              </Link>
+                Liat cara kerjanya
+              </a>
             </div>
-            <div className="mt-7 flex flex-wrap gap-x-6 gap-y-1.5 text-[13px]" style={{ color: 'var(--ink-muted)' }}>
-              <span>✓ Gratis selamanya</span>
-              <span>✓ Tanpa kartu kredit</span>
-              <span>✓ Data terenkripsi</span>
+            <div
+              className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-[13px]"
+              style={{ color: 'var(--ink-muted)' }}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <Check className="size-3.5" style={{ color: 'var(--emerald-600)' }} />
+                Gratis selamanya
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Check className="size-3.5" style={{ color: 'var(--emerald-600)' }} />
+                Tanpa kartu kredit
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Check className="size-3.5" style={{ color: 'var(--emerald-600)' }} />
+                Data terenkripsi
+              </span>
             </div>
           </div>
 
-          {/* RIGHT — dark hero card mockup */}
+          {/* RIGHT — dark net-worth card mockup */}
           <div className="relative">
             <div className="dark-card p-7 relative" style={{ boxShadow: '0 24px 60px -16px rgba(0,0,0,0.30)' }}>
               <div className="flex items-start justify-between gap-3 mb-5">
@@ -161,7 +166,7 @@ export default async function LandingPage() {
                     className="text-[10px] uppercase font-semibold"
                     style={{ color: 'rgba(255,255,255,0.55)', letterSpacing: '0.16em' }}
                   >
-                    Net Worth
+                    Net Worth · Hari ini
                   </p>
                   <p
                     className="num tabular font-bold mt-2 leading-none"
@@ -183,7 +188,6 @@ export default async function LandingPage() {
                 </div>
               </div>
 
-              {/* Sparkline */}
               <svg viewBox="0 0 320 80" className="w-full" style={{ height: 80 }}>
                 <defs>
                   <linearGradient id="hg-landing" x1="0" x2="0" y1="0" y2="1">
@@ -217,7 +221,7 @@ export default async function LandingPage() {
               </div>
             </div>
 
-            {/* Floating notif: hemat */}
+            {/* Floating notif: insight */}
             <div
               className="hidden sm:flex absolute -bottom-6 -left-6 bg-white rounded-2xl px-4 py-3 gap-3 items-center max-w-[280px]"
               style={{ boxShadow: '0 12px 32px -8px rgba(0,0,0,0.22)' }}
@@ -226,19 +230,19 @@ export default async function LandingPage() {
                 className="size-9 rounded-xl flex items-center justify-center text-lg shrink-0"
                 style={{ background: 'var(--emerald-100)' }}
               >
-                🎉
+                ☕
               </div>
               <div>
                 <p className="text-[13px] font-semibold leading-tight" style={{ color: 'var(--ink)' }}>
-                  Hemat Rp 480k bulan ini!
+                  Pengeluaran kopi turun 60%
                 </p>
                 <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink-muted)' }}>
-                  Pengeluaran kopi turun 60%
+                  Hemat Rp 480k bulan ini
                 </p>
               </div>
             </div>
 
-            {/* Floating notif: struk */}
+            {/* Floating notif: receipt scan */}
             <div
               className="hidden sm:flex absolute -top-4 -right-4 bg-white rounded-xl px-3 py-2.5 gap-2.5 items-center border"
               style={{ borderColor: 'var(--border-soft)', boxShadow: '0 8px 24px -8px rgba(0,0,0,0.15)' }}
@@ -251,7 +255,7 @@ export default async function LandingPage() {
               </div>
               <div>
                 <p className="text-[10px] font-medium" style={{ color: 'var(--ink-muted)' }}>
-                  Struk dari Indomaret
+                  Indomaret · 3 detik
                 </p>
                 <p className="num text-[12px] font-semibold mt-0.5" style={{ color: 'var(--ink)' }}>
                   Rp 47.500 · 4 item
@@ -268,7 +272,7 @@ export default async function LandingPage() {
           className="text-center text-[11px] uppercase font-semibold mb-6"
           style={{ color: 'var(--ink-soft)', letterSpacing: '0.18em' }}
         >
-          Track investasi dari banyak platform
+          Tarik aset dari platform yang kamu pakai
         </p>
         <div
           className="flex justify-center flex-wrap gap-x-8 sm:gap-x-12 gap-y-3 font-bold text-base opacity-60"
@@ -284,19 +288,139 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* ─── STATS STRIP ───────────────────────────────────────── */}
+      <section className="px-6 sm:px-12 pb-12">
+        <div className="max-w-5xl mx-auto grid grid-cols-3 gap-4 sm:gap-8">
+          {[
+            {
+              num: '2 menit',
+              label: 'Setup awal',
+              hint: 'Daftar → connect → liat',
+            },
+            {
+              num: '7+',
+              label: 'Platform investasi',
+              hint: 'Bibit, Stockbit, IPOT, dll',
+            },
+            {
+              num: 'Rp 0',
+              label: 'Selamanya',
+              hint: 'Solo plan tanpa batas waktu',
+            },
+          ].map((s) => (
+            <div key={s.label} className="text-center">
+              <p
+                className="font-bold tracking-tight"
+                style={{
+                  color: 'var(--ink)',
+                  fontSize: 'clamp(28px, 4vw, 44px)',
+                  letterSpacing: '-0.025em',
+                  lineHeight: 1,
+                }}
+              >
+                {s.num}
+              </p>
+              <p
+                className="mt-2 text-sm font-semibold"
+                style={{ color: 'var(--ink)' }}
+              >
+                {s.label}
+              </p>
+              <p className="mt-1 text-xs" style={{ color: 'var(--ink-muted)' }}>
+                {s.hint}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── HOW IT WORKS ──────────────────────────────────────── */}
+      <section
+        id="cara-kerja"
+        className="px-6 sm:px-12 py-16 sm:py-24"
+        style={{ background: 'var(--surface)' }}
+      >
+        <div className="max-w-3xl mb-12">
+          <span className="caps">Cara kerja</span>
+          <h2
+            className="font-bold mt-3 tracking-tight"
+            style={{ fontSize: 'clamp(28px, 4vw, 44px)', letterSpacing: '-0.03em', lineHeight: 1.1 }}
+          >
+            Dari nol ke <span style={{ color: 'var(--emerald-700)' }}>net worth utuh</span> dalam satu sore.
+          </h2>
+          <p className="mt-4 text-lg" style={{ color: 'var(--ink-muted)' }}>
+            Gak perlu tutorial 30 menit atau setup ratusan kategori manual.
+            Tiga langkah, kamu udah liat angka real-time.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {[
+            {
+              num: '01',
+              title: 'Daftar pakai email',
+              body: 'Email + password. Klunting auto-set 100 kategori transaksi, akun Cash, dan Solo plan gratis.',
+              time: '30 detik',
+            },
+            {
+              num: '02',
+              title: 'Tambahin asetmu',
+              body: 'Saldo bank, e-wallet, portfolio investasi, utang. Manual atau import. Sekali aja, sisanya auto-update.',
+              time: '5 menit',
+            },
+            {
+              num: '03',
+              title: 'Liat insight pertamamu',
+              body: 'Net worth real-time. Pengeluaran terbesar bulan ini. Forecast saldo akhir bulan. Semua langsung kelihatan.',
+              time: 'Langsung',
+            },
+          ].map((step) => (
+            <div
+              key={step.num}
+              className="rounded-2xl p-6 border"
+              style={{ background: 'var(--paper)', borderColor: 'var(--border)' }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <span
+                  className="num text-3xl font-bold"
+                  style={{ color: 'var(--emerald-700)', letterSpacing: '-0.02em' }}
+                >
+                  {step.num}
+                </span>
+                <span
+                  className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase"
+                  style={{ background: 'var(--surface-2)', color: 'var(--ink-muted)', letterSpacing: '0.08em' }}
+                >
+                  {step.time}
+                </span>
+              </div>
+              <h3
+                className="text-lg font-bold tracking-tight mb-2"
+                style={{ color: 'var(--ink)', letterSpacing: '-0.01em' }}
+              >
+                {step.title}
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
+                {step.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ─── FEATURES ──────────────────────────────────────────── */}
-      <section id="fitur" className="px-6 sm:px-12 py-16 sm:py-24" style={{ background: 'var(--surface)' }}>
+      <section id="fitur" className="px-6 sm:px-12 py-16 sm:py-24">
         <div className="max-w-3xl mb-12">
           <span className="caps">Fitur</span>
           <h2
             className="font-bold mt-3 tracking-tight"
             style={{ fontSize: 'clamp(28px, 4vw, 44px)', letterSpacing: '-0.03em', lineHeight: 1.1 }}
           >
-            Semua yang kamu butuhin buat ngerti uangmu sendiri.
+            Klunting hitung <span style={{ color: 'var(--emerald-700)' }}>kekayaanmu utuh.</span>
           </h2>
           <p className="mt-4 text-lg" style={{ color: 'var(--ink-muted)' }}>
-            Bukan cuma tracker — Klunting kasih kamu konteks, insight, dan rekomendasi yang
-            bener-bener actionable.
+            Kamu kerja keras naikin gaji, naikin investasi, naikin aset.
+            Klunting bantu kamu liat hasil kerja itu utuh, jelas, dan real-time.
           </p>
         </div>
 
@@ -304,33 +428,33 @@ export default async function LandingPage() {
           {[
             {
               icon: Camera, color: 'var(--emerald-500)', bg: 'var(--emerald-100)',
-              title: 'Scan Struk → Auto-fill',
-              body: 'Foto struk Indomaret/Alfamart, AI ekstrak merchant, tanggal, total, kategori dalam 3 detik.',
+              title: 'Foto struk, beres dalam 3 detik.',
+              body: 'Foto struk Indomaret, Alfamart, atau restoran. AI baca total, item, dan kategori. Kamu hemat 5 menit per transaksi.',
             },
             {
               icon: Brain, color: 'var(--sky-500)', bg: 'var(--sky-100)',
-              title: 'Quick Add via Bahasa Natural',
-              body: 'Ketik "indomaret 47rb" atau "gaji 8jt" — AI parse, kategorize, simpan. Voice juga support.',
+              title: 'Catat secepat ngetik chat.',
+              body: 'Ketik "kopi 35rb" atau "gaji 8jt". Klunting baca, kategorize, dan simpan. Tanpa form, tanpa dropdown.',
             },
             {
               icon: TrendingUp, color: 'var(--amber-500)', bg: 'var(--amber-100)',
-              title: 'Track Investasi Multi-Platform',
-              body: 'Saham IDX (live IDX harga), reksa dana, crypto (Binance), emas, SBN, P2P — satu dashboard.',
+              title: 'Asetmu nyebar? Klunting satuin.',
+              body: 'Klunting tarik harga aset dari Bibit, Stockbit, IPOT, Pluang, Pintu, Pegadaian, dan BCA. Liat satu net worth dengan return tiap aset di satu layar.',
             },
             {
               icon: Wallet, color: 'var(--coral-500)', bg: 'var(--coral-100)',
-              title: 'Anggaran 12 Bulan',
-              body: 'Plan pemasukan, pengeluaran, tabungan & investasi sepanjang tahun. Mode 50/30/20 atau ZBB.',
+              title: 'Anggaran 12 bulan ke depan.',
+              body: 'Plan pemasukan, pengeluaran, tabungan, dan investasi sampai akhir tahun. Pilih mode 50/30/20 atau zero-based. Klunting alert kamu pas mulai over.',
             },
             {
               icon: Sparkles, color: '#8B5CF6', bg: '#EDE9FE',
-              title: 'AI Insights Personal',
-              body: 'Insight per bulan: pattern pengeluaran, anomali, forecast saldo, rekomendasi spesifik.',
+              title: 'AI yang baca pola kamu.',
+              body: 'Tiap awal bulan kamu dapet insight kayak: "Pengeluaran kopi naik 60%." "Forecast saldo akhir bulan tipis Rp 200k." Semua dari data kamu sendiri.',
             },
             {
               icon: Shield, color: 'var(--emerald-700)', bg: 'var(--emerald-100)',
-              title: 'Mode Privasi & Kalem',
-              body: 'Blur angka di publik (1 klik). Mode kalem buat investor yang takut liat saham merah.',
+              title: 'Mode kalem buat hari merah.',
+              body: 'Pas pasar koreksi -8%, klik calm mode. Klunting samarin angka tapi positioning kamu tetep keliatan. Lihat yang penting, tanpa panik.',
             },
           ].map((f) => (
             <div
@@ -344,7 +468,10 @@ export default async function LandingPage() {
               >
                 <f.icon className="size-5" style={{ color: f.color }} />
               </div>
-              <h3 className="text-lg font-bold tracking-tight mb-2" style={{ color: 'var(--ink)' }}>
+              <h3
+                className="text-lg font-bold tracking-tight mb-2"
+                style={{ color: 'var(--ink)', letterSpacing: '-0.01em' }}
+              >
                 {f.title}
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
@@ -355,10 +482,143 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ─── CTA STRIP ──────────────────────────────────────────── */}
+      {/* ─── UNTUK SIAPA ───────────────────────────────────────── */}
+      <section
+        id="untuk-siapa"
+        className="px-6 sm:px-12 py-16 sm:py-24"
+        style={{ background: 'var(--surface)' }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="max-w-3xl mb-12">
+            <span className="caps">Untuk siapa</span>
+            <h2
+              className="font-bold mt-3 tracking-tight"
+              style={{ fontSize: 'clamp(28px, 4vw, 44px)', letterSpacing: '-0.03em', lineHeight: 1.1 }}
+            >
+              Buat kamu yang capek <span style={{ color: 'var(--ink-muted)' }}>nge-track manual.</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[
+              {
+                tag: 'Profesional muda',
+                pain: '"Gaji 8jt, tabungan stuck. Bingung di mana yang harus dipotong."',
+                fix: 'Klunting kasih breakdown jelas: 35% di GoFood, 12% transport, 8% subscription. Kamu tau pasti yang biggest leak. Mulai potong dari situ.',
+              },
+              {
+                tag: 'Investor pemula',
+                pain: '"Reksa dana di Bibit, saham di Stockbit, emas di Pegadaian. Total return-ku berapa?"',
+                fix: 'Connect semua dalam 5 menit. Liat satu net worth, satu IRR, satu alokasi aset. Nggak perlu spreadsheet bulanan lagi.',
+              },
+              {
+                tag: 'Pasangan / keluarga',
+                pain: '"Pengeluaran rumah tangga campur. Bingung siapa belanja apa."',
+                fix: 'Wallet bersama, transaksi keliatan dua-duanya, anggaran kompak. Plan Family bisa sampai 4 anggota — pasangan, anak, atau orang tua.',
+              },
+            ].map((p) => (
+              <div
+                key={p.tag}
+                className="rounded-2xl p-6 border"
+                style={{ background: 'var(--paper)', borderColor: 'var(--border)' }}
+              >
+                <span
+                  className="inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold mb-4"
+                  style={{ background: 'var(--surface-2)', color: 'var(--ink)' }}
+                >
+                  {p.tag}
+                </span>
+                <p
+                  className="text-base font-semibold leading-snug mb-3"
+                  style={{ color: 'var(--ink)' }}
+                >
+                  {p.pain}
+                </p>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
+                  {p.fix}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── COMPARISON / WHY KLUNTING ─────────────────────────── */}
       <section className="px-6 sm:px-12 py-16 sm:py-24">
+        <div className="max-w-5xl mx-auto">
+          <div className="max-w-2xl mb-10">
+            <span className="caps">Kenapa Klunting</span>
+            <h2
+              className="font-bold mt-3 tracking-tight"
+              style={{ fontSize: 'clamp(28px, 4vw, 40px)', letterSpacing: '-0.03em', lineHeight: 1.1 }}
+            >
+              Excel kamu udah cape. <span style={{ color: 'var(--ink-muted)' }}>Pindah ke yang otomatis.</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div
+              className="rounded-2xl p-6 border"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
+            >
+              <p
+                className="text-[11px] uppercase font-semibold mb-4"
+                style={{ color: 'var(--ink-muted)', letterSpacing: '0.14em' }}
+              >
+                Sebelum Klunting
+              </p>
+              <ul className="space-y-2.5 text-sm" style={{ color: 'var(--ink-muted)' }}>
+                <li>· Buka 5 app buat ngitung total aset</li>
+                <li>· Excel keuangan yang gak ke-update 2 minggu</li>
+                <li>· Akhir bulan: "Lho, kok saldo segini doang?"</li>
+                <li>· Goal nabung mandek 6 bulan</li>
+                <li>· Bingung mau invest dari mana mulai</li>
+              </ul>
+            </div>
+            <div
+              className="rounded-2xl p-6 border"
+              style={{
+                background: 'linear-gradient(135deg, var(--emerald-50, #ECFDF5), var(--surface))',
+                borderColor: 'var(--emerald-200, #A7F3D0)',
+              }}
+            >
+              <p
+                className="text-[11px] uppercase font-semibold mb-4"
+                style={{ color: 'var(--emerald-700)', letterSpacing: '0.14em' }}
+              >
+                Sesudah Klunting
+              </p>
+              <ul className="space-y-2.5 text-sm" style={{ color: 'var(--ink)' }}>
+                <li className="flex gap-2">
+                  <Check className="size-4 shrink-0 mt-0.5" style={{ color: 'var(--emerald-600)' }} />
+                  Klunting jumlahin semua asetmu di satu dashboard
+                </li>
+                <li className="flex gap-2">
+                  <Check className="size-4 shrink-0 mt-0.5" style={{ color: 'var(--emerald-600)' }} />
+                  Kamu catat transaksi 3 detik via foto struk atau ketik chat
+                </li>
+                <li className="flex gap-2">
+                  <Check className="size-4 shrink-0 mt-0.5" style={{ color: 'var(--emerald-600)' }} />
+                  AI alert pas pengeluaranmu mulai bocor
+                </li>
+                <li className="flex gap-2">
+                  <Check className="size-4 shrink-0 mt-0.5" style={{ color: 'var(--emerald-600)' }} />
+                  Goal nabung yang progressnya keliatan per bulan
+                </li>
+                <li className="flex gap-2">
+                  <Check className="size-4 shrink-0 mt-0.5" style={{ color: 'var(--emerald-600)' }} />
+                  Insight personal dari data kamu, contoh "kopi naik 60%"
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── CTA STRIP ──────────────────────────────────────────── */}
+      <section className="px-6 sm:px-12 pb-20 sm:pb-28">
         <div
-          className="max-w-5xl mx-auto rounded-3xl p-10 sm:p-16 relative overflow-hidden"
+          className="max-w-5xl mx-auto rounded-3xl p-10 sm:p-14 relative overflow-hidden"
           style={{
             background: 'linear-gradient(135deg, var(--emerald-600), var(--emerald-800))',
             boxShadow: '0 24px 48px -16px rgba(16,185,129,0.40)',
@@ -369,9 +629,8 @@ export default async function LandingPage() {
             style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.20), transparent 60%)' }}
           />
           <div className="relative text-center">
-            <Zap className="size-12 mx-auto text-white fill-white opacity-90" />
             <h2
-              className="font-bold mt-5 tracking-tight"
+              className="font-bold tracking-tight"
               style={{
                 color: '#FFFFFF',
                 fontSize: 'clamp(28px, 4vw, 40px)',
@@ -379,26 +638,45 @@ export default async function LandingPage() {
                 lineHeight: 1.15,
               }}
             >
-              Mulai atur uangmu hari ini.
+              Pengeluaran kamu hari ini<br />bakal ke mana?
             </h2>
             <p
-              className="mt-3 text-base sm:text-lg max-w-xl mx-auto"
-              style={{ color: 'rgba(255,255,255,0.85)' }}
+              className="mt-4 text-base sm:text-lg max-w-xl mx-auto"
+              style={{ color: 'rgba(255,255,255,0.88)' }}
             >
-              Gratis selamanya. Setup 2 menit. Nggak perlu kartu kredit.
+              Pake ingatan, kamu lupa. Pake Excel, kamu lupa update.
+              Pake Klunting, otomatis ke-record. Mulai gratis sekarang.
             </p>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold mt-7 transition hover:opacity-90"
-              style={{
-                background: '#FFFFFF',
-                color: 'var(--emerald-700)',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
-              }}
+            <div className="mt-8 flex flex-wrap gap-3 justify-center items-center">
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold transition hover:opacity-90"
+                style={{
+                  background: '#FFFFFF',
+                  color: 'var(--emerald-700)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                }}
+              >
+                Daftar gratis (2 menit setup)
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                href="/dashboard/pricing"
+                className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl text-base font-medium transition hover:bg-white/10"
+                style={{
+                  color: '#FFFFFF',
+                  border: '1px solid rgba(255,255,255,0.30)',
+                }}
+              >
+                Lihat semua plan
+              </Link>
+            </div>
+            <p
+              className="mt-6 text-[12px]"
+              style={{ color: 'rgba(255,255,255,0.65)' }}
             >
-              Daftar gratis
-              <ArrowRight className="size-4" />
-            </Link>
+              Solo plan gratis selamanya · Upgrade ke Pro Rp 79k/bulan kapan saja
+            </p>
           </div>
         </div>
       </section>
@@ -412,9 +690,7 @@ export default async function LandingPage() {
           <div className="flex items-center gap-2.5">
             <div
               className="size-7 rounded-[8px] flex items-center justify-center font-extrabold text-sm text-white"
-              style={{
-                background: 'linear-gradient(135deg, var(--emerald-500), var(--emerald-700))',
-              }}
+              style={{ background: 'linear-gradient(135deg, var(--emerald-500), var(--emerald-700))' }}
             >
               K
             </div>
