@@ -671,15 +671,25 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="dark-card p-6 sm:p-7">
-        <p className="caps">Log Transaksi</p>
-        <div className="mt-2 flex items-end gap-4">
-          <h2 className="text-white text-3xl sm:text-4xl font-semibold tracking-tight">
-            Semua Aktivitas Finansial
-          </h2>
-          <span className="accent-underline mb-2" />
+      {/* Header per design handoff §1 — eyebrow + h1 + utility actions */}
+      <div className="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <span
+            className="text-[11px] uppercase tracking-[0.14em] font-semibold"
+            style={{ color: 'var(--ink-muted)' }}
+          >
+            {today}
+          </span>
+          <h1
+            className="text-3xl sm:text-4xl font-semibold tracking-tight mt-1"
+            style={{ color: 'var(--ink)' }}
+          >
+            Transaksi
+          </h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--ink-muted)' }}>
+            Semua aktivitas finansial — pemasukan, pengeluaran, tabungan, investasi.
+          </p>
         </div>
-        <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>{today}</p>
       </div>
 
       {!loading && accounts.length === 0 && creditCards.length === 0 && (
@@ -931,8 +941,30 @@ export default function TransactionsPage() {
           <span className="ml-2 text-gray-500">Memuat data...</span>
         </div>
       ) : filteredTransactions.length === 0 ? (
-        <div className="rounded-xl border bg-white p-10 text-center" style={{ borderColor: 'var(--border)' }}>
-          <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>Tidak ada transaksi ditemukan.</p>
+        // Empty state per design handoff §9 — italic display headline +
+        // encouraging Indonesian copy from microcopy library
+        <div className="s-card flex flex-col items-center text-center py-16 px-8">
+          <div
+            className="size-16 rounded-2xl flex items-center justify-center mb-4"
+            style={{ background: 'var(--emerald-50)' }}
+          >
+            <Wallet className="size-7" style={{ color: 'var(--emerald-600)' }} />
+          </div>
+          <h3
+            className="font-display mb-2"
+            style={{
+              color: 'var(--ink)',
+              fontStyle: 'italic',
+              fontSize: 28,
+              fontWeight: 400,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            belum ada transaksi
+          </h3>
+          <p className="text-sm max-w-xs" style={{ color: 'var(--ink-muted)' }}>
+            Tambah yang pertama — bisa lewat foto struk, biar AI yang isi.
+          </p>
         </div>
       ) : (
         <>

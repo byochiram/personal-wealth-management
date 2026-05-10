@@ -249,18 +249,38 @@ export default function AccountsPage() {
   return (
     <div className="space-y-6">
       <div className="dark-card p-6 sm:p-7">
-        <p className="caps">Akun & Saldo</p>
-        <div className="mt-2 flex items-end gap-4">
-          <h2 className="text-white text-3xl sm:text-4xl font-semibold tracking-tight">
+        <p className="caps" style={{ color: 'var(--emerald-300)' }}>Akun & Saldo</p>
+        {!loading && accounts.length > 0 ? (
+          <>
+            <p
+              className="font-display tabular mt-3 leading-none"
+              style={{
+                color: 'var(--on-black)',
+                fontStyle: 'italic',
+                fontSize: 'clamp(40px, 6vw, 56px)',
+                letterSpacing: '-0.03em',
+                fontWeight: 400,
+              }}
+            >
+              {formatCurrency(totalBalance)}
+            </p>
+            <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
+              Total saldo gabungan dari {accounts.length} akun · {today}
+            </p>
+          </>
+        ) : (
+          <h2
+            className="font-display mt-3"
+            style={{
+              color: 'var(--on-black)',
+              fontStyle: 'italic',
+              fontSize: 40,
+              letterSpacing: '-0.02em',
+              fontWeight: 400,
+            }}
+          >
             Kelola Akun
           </h2>
-          <span className="accent-underline mb-2" />
-        </div>
-        <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>{today}</p>
-        {!loading && accounts.length > 0 && (
-          <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
-            Total saldo gabungan: <span className="font-semibold text-white">{formatCurrency(totalBalance)}</span>
-          </p>
         )}
       </div>
 

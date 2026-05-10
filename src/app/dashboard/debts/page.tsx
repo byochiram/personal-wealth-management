@@ -139,12 +139,21 @@ export default function DebtsOverviewPage() {
   return (
     <div className="space-y-6">
       <div className="dark-card p-6 sm:p-8">
-        <p className="caps">Utang Aktif</p>
-        <p className="num tabular mt-3 text-4xl sm:text-5xl lg:text-6xl font-semibold" style={{ color: 'var(--ink)' }}>
+        <p className="caps" style={{ color: 'var(--emerald-300)' }}>Utang Aktif</p>
+        <p
+          className="font-display tabular mt-3 leading-none"
+          style={{
+            color: 'var(--on-black)',
+            fontStyle: 'italic',
+            fontSize: 'clamp(48px, 8vw, 72px)',
+            letterSpacing: '-0.035em',
+            fontWeight: 400,
+          }}
+        >
           {formatCurrency(totalRemaining)}
         </p>
-        <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>
-          {active.length} utang aktif · cicilan <span className="num">{formatCurrency(totalMonthly)}</span>/bln
+        <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
+          {active.length} utang aktif · cicilan <span className="num font-semibold" style={{ color: 'var(--on-black)' }}>{formatCurrency(totalMonthly)}</span>/bln
         </p>
         {totalPrincipal > 0 && (
           <div className="mt-5 max-w-md">

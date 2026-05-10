@@ -116,14 +116,23 @@ export default function GoalsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
+      {/* Hero — italic display per typography-system.md "numbers are heroes" */}
       <div className="dark-card p-6 sm:p-8">
-        <p className="caps">Tujuan Keuangan</p>
-        <p className="num tabular mt-3 text-4xl sm:text-5xl lg:text-6xl font-semibold" style={{ color: 'var(--ink)' }}>
+        <p className="caps" style={{ color: 'var(--emerald-300)' }}>Tujuan Keuangan</p>
+        <p
+          className="font-display tabular mt-3 leading-none"
+          style={{
+            color: 'var(--on-black)',
+            fontStyle: 'italic',
+            fontSize: 'clamp(48px, 8vw, 72px)',
+            letterSpacing: '-0.035em',
+            fontWeight: 400,
+          }}
+        >
           {formatCurrency(totals.current)}
         </p>
-        <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>
-          dari target <span className="num">{formatCurrency(totals.target)}</span>
+        <p className="text-sm mt-3" style={{ color: 'var(--on-black-mut)' }}>
+          dari target <span className="num font-semibold" style={{ color: 'var(--on-black)' }}>{formatCurrency(totals.target)}</span>
           {' · '}{totals.pct.toFixed(1)}% tercapai · {goals.length} goal
         </p>
       </div>
@@ -141,10 +150,28 @@ export default function GoalsPage() {
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin" /></div>
       ) : goals.length === 0 ? (
-        <div className="s-card p-12 text-center">
-          <p className="font-semibold">Belum ada goal</p>
-          <p className="text-sm mt-1" style={{ color: 'var(--ink-muted)' }}>
-            Set target pertama Anda — misalnya &ldquo;DP Rumah&rdquo; atau &ldquo;Liburan Bali&rdquo;.
+        // Empty state per design handoff §9 — italic display + microcopy
+        <div className="s-card flex flex-col items-center text-center py-16 px-8">
+          <div
+            className="size-16 rounded-2xl flex items-center justify-center mb-4"
+            style={{ background: 'var(--emerald-50)' }}
+          >
+            <TrendingUp className="size-7" style={{ color: 'var(--emerald-600)' }} />
+          </div>
+          <h3
+            className="font-display mb-2"
+            style={{
+              color: 'var(--ink)',
+              fontStyle: 'italic',
+              fontSize: 28,
+              fontWeight: 400,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            belum ada tujuan
+          </h3>
+          <p className="text-sm max-w-xs" style={{ color: 'var(--ink-muted)' }}>
+            Liburan? Beli rumah? Apapun, kita bantu sampai kesana.
           </p>
         </div>
       ) : (

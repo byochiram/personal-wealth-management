@@ -184,18 +184,28 @@ export default function NetWorthPage() {
 
   return (
     <div className="space-y-6">
+      {/* Hero — italic display "moment of personality" per typography-system.md.
+          Net Worth is THE signature number; deserves the serif treatment. */}
       <div className="dark-card p-6 sm:p-10">
-        <p className="caps text-center">Kekayaan Bersih · {today}</p>
+        <p className="caps text-center" style={{ color: 'var(--emerald-300)' }}>
+          Total Kekayaan · {today}
+        </p>
         <p
-          className="num tabular text-center mt-5 text-5xl sm:text-6xl lg:text-7xl font-semibold"
-          style={{ color: isPositive ? 'var(--ink)' : 'var(--danger)' }}
+          className="font-display tabular text-center mt-4 leading-none"
+          style={{
+            color: isPositive ? 'var(--on-black)' : 'var(--coral-400)',
+            fontStyle: 'italic',
+            fontSize: 'clamp(56px, 10vw, 96px)',
+            letterSpacing: '-0.04em',
+            fontWeight: 400,
+          }}
         >
           {formatCurrency(netWorth)}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-8">
           <div className="text-center">
-            <p className="caps">Aset</p>
-            <p className="num mt-1.5 text-lg font-semibold" style={{ color: 'var(--ink)' }}>
+            <p className="caps" style={{ color: 'var(--on-black-mut)' }}>Total Aset</p>
+            <p className="num mt-1.5 text-lg font-semibold" style={{ color: 'var(--on-black)' }}>
               {formatCurrency(totalAssets)}
             </p>
           </div>
@@ -204,9 +214,9 @@ export default function NetWorthPage() {
             style={{ background: 'rgba(255,255,255,0.2)' }}
           />
           <div className="text-center">
-            <p className="caps">Utang</p>
-            <p className="num mt-1.5 text-lg font-semibold" style={{ color: 'var(--ink)' }}>
-              {formatCurrency(totalDebt)}
+            <p className="caps" style={{ color: 'var(--on-black-mut)' }}>Total Utang</p>
+            <p className="num mt-1.5 text-lg font-semibold" style={{ color: 'var(--coral-400)' }}>
+              −{formatCurrency(totalDebt)}
             </p>
           </div>
         </div>
