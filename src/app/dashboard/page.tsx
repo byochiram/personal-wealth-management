@@ -2137,25 +2137,51 @@ function RecentTransactions({ transactions }: { transactions: Transaction[] }) {
     [transactions],
   )
 
-  const TYPE_EMOJI: Record<string, string> = {
-    expense: '🔴', income: '🟢', saving: '🟡', investment: '🔵',
+  // Per dashboard-refine.jsx — icon-circle tinted bg per category cluster.
+  // Emoji + tint chosen contextually (food, transport, salary, etc).
+  // Falls back to type-based default if category doesn't match.
+  function categoryStyle(category: string, type: string): { emoji: string; tint: string } {
+    const cat = (category || '').toLowerCase()
+    if (cat.includes('makan') || cat.includes('food') || cat.includes('kopi')) return { emoji: '☕', tint: 'var(--amber-100)' }
+    if (cat.includes('belanja') || cat.includes('shop')) return { emoji: '🛒', tint: 'var(--sky-100)' }
+    if (cat.includes('transport') || cat.includes('bensin') || cat.includes('grab') || cat.includes('gojek')) return { emoji: '⛽', tint: 'var(--coral-100)' }
+    if (cat.includes('langganan') || cat.includes('netflix') || cat.includes('spotify') || cat.includes('subscript')) return { emoji: '📺', tint: 'var(--vi-100, #EDE9FE)' }
+    if (cat.includes('tagihan') || cat.includes('listrik') || cat.includes('air')) return { emoji: '💡', tint: 'var(--amber-100)' }
+    if (cat.includes('gaji') || cat.includes('bonus') || cat.includes('thr')) return { emoji: '💰', tint: 'var(--emerald-100)' }
+    if (cat.includes('investasi') || cat.includes('saham')) return { emoji: '📈', tint: 'var(--sky-100)' }
+    if (cat.includes('tabung') || cat.includes('saving')) return { emoji: '🏦', tint: 'var(--emerald-100)' }
+    if (cat.includes('kesehatan') || cat.includes('rumah sakit')) return { emoji: '🏥', tint: 'var(--coral-100)' }
+    if (cat.includes('hiburan') || cat.includes('game')) return { emoji: '🎮', tint: 'var(--vi-100, #EDE9FE)' }
+    // Type-based fallback
+    if (type === 'income') return { emoji: '💰', tint: 'var(--emerald-100)' }
+    if (type === 'expense') return { emoji: '💸', tint: 'var(--coral-100)' }
+    if (type === 'saving') return { emoji: '🏦', tint: 'var(--amber-100)' }
+    if (type === 'investment') return { emoji: '📈', tint: 'var(--sky-100)' }
+    return { emoji: '•', tint: 'var(--surface-2)' }
+  }
+
+  function relativeTime(dateStr: string): string {
+    const d = new Date(dateStr)
+    const now = new Date()
+    const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000)
+    if (diffDays === 0) return 'Hari ini'
+    if (diffDays === 1) return 'Kemarin'
+    if (diffDays < 7) return `${diffDays} hari lalu`
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
   }
 
   return (
     <div className="s-card p-5">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <p className="caps">Transaksi Terbaru</p>
-          <h3 className="text-base font-semibold mt-0.5" style={{ color: 'var(--ink)' }}>
-            5 Transaksi Terakhir
-          </h3>
-        </div>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold" style={{ color: 'var(--ink)' }}>
+          Transaksi terkini
+        </h3>
         <a
           href="/dashboard/transactions"
-          className="text-xs font-medium hover:underline inline-flex items-center gap-1"
+          className="text-xs font-semibold hover:underline inline-flex items-center gap-1"
           style={{ color: 'var(--emerald-700)' }}
         >
-          Lihat semua <ArrowRight className="size-3" />
+          Semua transaksi <ArrowRight className="size-3" />
         </a>
       </div>
       {recent.length === 0 ? (
@@ -2163,27 +2189,45 @@ function RecentTransactions({ transactions }: { transactions: Transaction[] }) {
           Belum ada transaksi bulan ini.
         </p>
       ) : (
-        <ul className="divide-y" style={{ borderColor: 'var(--border-soft)' }}>
-          {recent.map((tx) => (
-            <li key={tx.id} className="flex items-center gap-3 py-2.5">
-              <span className="text-base shrink-0">{TYPE_EMOJI[tx.type] ?? '⚪'}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>
-                  {tx.description || tx.category}
-                </p>
-                <p className="text-[11px] truncate" style={{ color: 'var(--ink-soft)' }}>
-                  {tx.category} · {new Date(tx.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                </p>
-              </div>
-              <p
-                className="text-sm font-semibold tabular-nums shrink-0"
-                style={{ color: tx.type === 'income' ? 'var(--emerald-600)' : tx.type === 'expense' ? 'var(--coral-600)' : 'var(--amber-600)' }}
+        <div className="space-y-1">
+          {recent.map((tx, i) => {
+            const cat = categoryStyle(tx.category, tx.type)
+            const pos = tx.type === 'income'
+            return (
+              <div
+                key={tx.id}
+                className="flex items-center gap-3 py-2.5"
+                style={{ borderBottom: i < recent.length - 1 ? '1px solid var(--border-soft)' : 'none' }}
               >
-                {tx.type === 'income' ? '+' : tx.type === 'expense' ? '−' : ''}{formatCurrency(tx.amount)}
-              </p>
-            </li>
-          ))}
-        </ul>
+                <div
+                  className="size-9 rounded-[10px] flex items-center justify-center text-base shrink-0"
+                  style={{ background: cat.tint }}
+                >
+                  {cat.emoji}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13.5px] font-medium truncate" style={{ color: 'var(--ink)' }}>
+                    {tx.description || tx.category}
+                  </p>
+                  <p className="text-[11.5px] truncate" style={{ color: 'var(--ink-soft)' }}>
+                    {tx.category}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p
+                    className="num text-[13.5px] font-semibold leading-tight"
+                    style={{ color: pos ? 'var(--emerald-700)' : 'var(--ink)' }}
+                  >
+                    {pos ? '+' : tx.type === 'expense' ? '−' : ''}{formatCurrency(tx.amount)}
+                  </p>
+                  <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>
+                    {relativeTime(tx.date)}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       )}
     </div>
   )
@@ -2217,47 +2261,78 @@ function GoalsWidget({ goals }: {
     )
   }
 
+  // Per dashboard-refine.jsx — emoji per goal name + tier-colored progress
+  // bars (emerald → amber → coral cycling). ETA shown as small text on right.
+  function goalEmoji(name: string): string {
+    const n = name.toLowerCase()
+    if (n.includes('rumah') || n.includes('dp') || n.includes('kpr')) return '🏡'
+    if (n.includes('liburan') || n.includes('travel') || n.includes('honeymoon')) return '✈️'
+    if (n.includes('pensiun') || n.includes('retire')) return '🌴'
+    if (n.includes('mobil') || n.includes('motor') || n.includes('kendaraan')) return '🚗'
+    if (n.includes('pendidikan') || n.includes('sekolah') || n.includes('kuliah')) return '🎓'
+    if (n.includes('umroh') || n.includes('haji')) return '🕌'
+    if (n.includes('darurat') || n.includes('emergency')) return '🛡️'
+    if (n.includes('bisnis') || n.includes('usaha')) return '💼'
+    if (n.includes('gadget') || n.includes('hp') || n.includes('iphone')) return '📱'
+    if (n.includes('nikah') || n.includes('wedding')) return '💒'
+    return '🎯'
+  }
+  const goalColors = ['var(--emerald-500)', 'var(--amber-500)', 'var(--coral-500)']
+  function etaLabel(deadline: string | null): string | null {
+    if (!deadline) return null
+    const d = new Date(deadline)
+    return d.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
+  }
+
   return (
     <div className="s-card p-5">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <p className="caps">Tujuan Keuangan</p>
-          <h3 className="text-base font-semibold mt-0.5" style={{ color: 'var(--ink)' }}>
-            {goals.length} Goal Aktif
-          </h3>
-        </div>
-        <a href="/dashboard/goals" className="text-xs font-medium hover:underline inline-flex items-center gap-1" style={{ color: 'var(--emerald-700)' }}>
-          Semua <ArrowRight className="size-3" />
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold" style={{ color: 'var(--ink)' }}>
+          Goals aktif
+        </h3>
+        <a href="/dashboard/goals" className="text-xs font-semibold hover:underline inline-flex items-center gap-1" style={{ color: 'var(--emerald-700)' }}>
+          Lihat semua <ArrowRight className="size-3" />
         </a>
       </div>
-      <div className="space-y-3">
-        {goals.map((g) => {
+      <div className="space-y-4">
+        {goals.slice(0, 3).map((g, i) => {
           const pct = g.target_amount > 0 ? Math.min(100, (g.current_amount / g.target_amount) * 100) : 0
-          const done = pct >= 100
+          const color = goalColors[i % goalColors.length]
+          const eta = etaLabel(g.deadline)
           return (
             <div key={g.id}>
-              <div className="flex items-baseline justify-between gap-2 text-xs mb-1">
-                <span className="font-medium truncate" style={{ color: 'var(--ink)' }}>{g.name}</span>
-                <span className="num tabular shrink-0" style={{ color: done ? 'var(--emerald-700)' : 'var(--ink-muted)' }}>
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <span className="text-sm font-medium truncate flex items-center gap-1.5" style={{ color: 'var(--ink)' }}>
+                  <span>{goalEmoji(g.name)}</span>
+                  {g.name}
+                </span>
+                <span className="num text-xs shrink-0" style={{ color: 'var(--ink-muted)' }}>
                   {pct.toFixed(0)}%
                 </span>
               </div>
-              <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: 'var(--surface-2)' }}>
+              <div className="h-2 w-full rounded-full overflow-hidden mb-1" style={{ background: 'var(--surface-2)' }}>
                 <div
-                  className="h-full rounded-full transition-all"
-                  style={{
-                    width: `${pct}%`,
-                    background: done ? 'var(--emerald-500)' : 'var(--emerald-400)',
-                  }}
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${pct}%`, background: color }}
                 />
               </div>
-              <p className="text-[10px] mt-1" style={{ color: 'var(--ink-soft)' }}>
-                {formatCurrency(g.current_amount)} / {formatCurrency(g.target_amount)}
-              </p>
+              <div className="flex items-center justify-between text-[11px]" style={{ color: 'var(--ink-soft)' }}>
+                <span className="num">
+                  {formatCompactCurrency(g.current_amount)} / {formatCompactCurrency(g.target_amount)}
+                </span>
+                {eta && <span>est. {eta}</span>}
+              </div>
             </div>
           )
         })}
       </div>
+      <a
+        href="/dashboard/goals"
+        className="mt-4 w-full inline-flex items-center justify-center py-2 rounded-lg border-dashed text-xs font-medium transition hover:bg-[var(--surface-2)]"
+        style={{ borderWidth: 1, borderColor: 'var(--border)', color: 'var(--ink-muted)' }}
+      >
+        + Tambah goal baru
+      </a>
     </div>
   )
 }
