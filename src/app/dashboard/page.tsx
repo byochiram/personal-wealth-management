@@ -10,6 +10,7 @@ import { useT } from '@/lib/i18n/context'
 import { GettingStarted } from '@/components/dashboard/getting-started'
 import { AIInsightsCard } from '@/components/dashboard/ai-insights'
 import { FinancialHealthCard } from '@/components/dashboard/financial-health-card'
+import { CashFlowForecast } from '@/components/dashboard/cashflow-forecast'
 import { computeFinancialHealth } from '@/lib/financial-health'
 import { MoneyFlowSankey, type FlowKind } from '@/components/dashboard/money-flow-sankey'
 import { StockLogo } from '@/components/investment/stock-logo'
@@ -439,6 +440,14 @@ export default function DashboardPage() {
           covering Spend / Save / Borrow / Plan. Replaces the legacy 5-pillar
           HealthScorePanel with a more rigorous, diagnostic version. */}
       <FinancialHealthCard result={fhsResult} />
+
+      {/* Cash-flow forecast — projects 30-day balance based on recurring +
+          contracts. Surfaces "saldo tipis sebelum gajian" risk early. */}
+      <CashFlowForecast
+        liquidBalance={liquidTotal}
+        recurringItems={recurringItems}
+        contracts={contracts}
+      />
 
       {/* Onboarding mission card — auto-hides when user completes setup */}
       <GettingStarted />
