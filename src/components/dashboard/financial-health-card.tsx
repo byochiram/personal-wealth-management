@@ -1,24 +1,19 @@
 'use client'
 
 /**
- * Financial Health Score card — headline diagnostic for the dashboard.
+ * Financial Health Score card — applies PWM Redesign v2 design language:
+ *   - Soft minimalism: s-card wrapper, soft shadow, generous whitespace
+ *   - Typography hierarchy: caps eyebrow + Instrument Serif italic hero
+ *     number + JetBrains Mono for indicator scores
+ *   - Chip patterns from design handoff (emerald/amber/coral tints)
+ *   - Three logical zones: Score (left), Breakdown (middle), Cash Coverage
+ *     (right) — equal-height columns
  *
- * 3-column layout, equal-height columns (no wasted whitespace):
- *   1. BIG score + tier + verdict (left, dominant)
- *   2. Flat 7-indicator bars list (middle)
- *   3. BIG burn rate / runway panel (right, dominant)
- *
- * Tips per indicator hidden by default — surface via native browser
- * tooltip on hover.
- *
- * Design tenets:
- *   - Both side columns are HEROES (score + cash coverage) — make them
- *     visually punchy with big numbers
- *   - Middle column is the diagnostic detail — clean flat list
- *   - All 3 columns stretch to same height → no awkward whitespace
+ * Reference: design handoff 03-component-patterns.md (KPIStat, Chip,
+ * Card patterns) + dashboard-refine.jsx visual style.
  */
 
-import { Activity, Sparkles } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import type { FHSResult, FHSIndicator } from '@/lib/financial-health'
 import { formatCurrency } from '@/lib/utils'
 import { EduTip } from '@/components/edu/edu-tip'
@@ -31,128 +26,166 @@ interface Props {
   monthlyExpense: number
 }
 
+// Chip color recipes per tier — mirrors the reference handoff palette
+function tierChipStyle(color: string): React.CSSProperties {
+  return {
+    background: `${color}1F`,  // ~12% opacity tint
+    color,
+  }
+}
+
 export function FinancialHealthCard({ result, liquidBalance, monthlyExpense }: Props) {
   const { score, tier, tierMeta, breakdown } = result
-
-  // Score arc — 0-100 → 0-360deg conic gradient
   const arcAngle = (score / 100) * 360
 
   // Burn rate
   const burnMonths = monthlyExpense > 0 ? liquidBalance / monthlyExpense : 0
-  const burnColor = burnMonths >= 6 ? '#10B981'
-    : burnMonths >= 3 ? '#F59E0B'
-    : burnMonths >= 1 ? '#EA580C'
-    : '#DC2626'
+  const burnColor = burnMonths >= 6 ? 'var(--emerald-600)'
+    : burnMonths >= 3 ? 'var(--amber-600)'
+    : burnMonths >= 1 ? 'var(--coral-600)'
+    : 'var(--coral-700)'
+  const burnTint = burnMonths >= 6 ? 'var(--emerald-50)'
+    : burnMonths >= 3 ? 'var(--amber-50)'
+    : 'var(--coral-50)'
   const burnVerdict = burnMonths >= 6 ? 'Sangat aman'
     : burnMonths >= 3 ? 'Cukup aman'
     : burnMonths >= 1 ? 'Tipis'
     : 'Risiko tinggi'
 
   return (
-    <div
-      className="rounded-2xl border p-5"
-      style={{
-        background: 'var(--surface)',
-        borderColor: 'var(--border)',
-        boxShadow: '0 4px 12px -4px rgba(0,0,0,0.06)',
-      }}
-    >
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* ─── Col 1: BIG Score (dominant) ──────────────────────── */}
+    <div className="s-card p-6 sm:p-7">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+        {/* ─── Col 1: Hero score (BIG italic number) ─────────────── */}
         <div className="lg:col-span-4 flex flex-col">
-          <div className="flex items-center gap-1.5 mb-3">
+          <div className="flex items-center gap-1.5 mb-4">
             <p className="caps">Skor Kesehatan Finansial</p>
             <EduTip topic="financial-health" side="bottom" />
           </div>
 
-          {/* Score + tier+verdict side by side, fills column vertically */}
-          <div className="flex items-center gap-4 flex-1">
+          <div className="flex items-center gap-5 flex-1">
+            {/* Score ring with conic-gradient arc */}
             <div className="relative shrink-0">
               <div
-                className="size-36 rounded-full flex items-center justify-center"
+                className="size-32 sm:size-36 rounded-full flex items-center justify-center"
                 style={{
                   background: `conic-gradient(${tierMeta.color} ${arcAngle}deg, var(--surface-2) 0deg)`,
                 }}
               >
                 <div
-                  className="size-[82%] rounded-full flex flex-col items-center justify-center"
+                  className="size-[80%] rounded-full flex flex-col items-center justify-center"
                   style={{ background: 'var(--surface)' }}
                 >
-                  <p
-                    className="num tabular font-bold leading-none"
-                    style={{ color: tierMeta.color, fontSize: 60 }}
+                  {/* Italic display = "moment of personality" per handoff.
+                      Numbers as heroes — see typography-system.md */}
+                  <span
+                    className="font-display tabular leading-none"
+                    style={{
+                      color: tierMeta.color,
+                      fontSize: 64,
+                      fontStyle: 'italic',
+                      letterSpacing: '-0.04em',
+                    }}
                   >
                     {score}
-                  </p>
-                  <p className="text-[10px] uppercase tracking-wider mt-1" style={{ color: 'var(--ink-soft)' }}>
+                  </span>
+                  <span
+                    className="text-[10px] uppercase tracking-wider mt-1 font-semibold"
+                    style={{ color: 'var(--ink-soft)' }}
+                  >
                     /100
-                  </p>
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-2">
+              <div className="flex items-center gap-1.5 flex-wrap mb-2.5">
+                {/* Chip pattern from 03-component-patterns.md § Chip */}
                 <span
-                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide"
-                  style={{
-                    background: `${tierMeta.color}1A`,
-                    color: tierMeta.color,
-                  }}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.06em]"
+                  style={tierChipStyle(tierMeta.color)}
                 >
-                  <Activity className="size-3" />
                   {tierMeta.label}
                 </span>
                 {tier === 'thriving' && (
-                  <Sparkles className="size-4" style={{ color: tierMeta.color }} />
+                  <Sparkles className="size-3.5" style={{ color: tierMeta.color }} />
                 )}
               </div>
-              <p className="text-[13px] leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
+              <p
+                className="text-[13px] leading-[1.5]"
+                style={{ color: 'var(--ink-muted)' }}
+              >
                 {tierMeta.description}
               </p>
             </div>
           </div>
         </div>
 
-        {/* ─── Col 2: Flat 7-indicator bars ──────────────────────── */}
-        <div className="lg:col-span-5 lg:border-l lg:border-r lg:px-5 flex flex-col" style={{ borderColor: 'var(--border-soft)' }}>
-          <p className="caps mb-3">Breakdown</p>
-          <div className="space-y-2 flex-1">
+        {/* ─── Col 2: 7-indicator breakdown (flat list, consistent rhythm) ── */}
+        <div
+          className="lg:col-span-5 lg:border-l lg:border-r lg:px-6 flex flex-col"
+          style={{ borderColor: 'var(--border-soft)' }}
+        >
+          <p className="caps mb-4">Breakdown</p>
+          <div className="space-y-2.5 flex-1">
             {breakdown.map((ind) => (
               <IndicatorBar key={ind.key} indicator={ind} />
             ))}
           </div>
         </div>
 
-        {/* ─── Col 3: BIG Cash Coverage (dominant, fills column) ──── */}
+        {/* ─── Col 3: Cash Coverage (BIG hero, fills column) ───────── */}
         <div className="lg:col-span-3 flex flex-col">
-          <p className="caps mb-3">Cash Coverage</p>
+          <p className="caps mb-4">Cash Coverage</p>
           <div
             className="rounded-xl p-4 flex-1 flex flex-col"
             style={{
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border-soft)',
+              background: burnTint,
+              border: `1px solid ${burnColor}33`,
             }}
           >
-            <p className="num tabular font-bold leading-none" style={{ fontSize: 48, color: burnColor }}>
-              {burnMonths > 99 ? '99+' : burnMonths.toFixed(1)}
-              <span className="text-base font-normal ml-1.5" style={{ color: 'var(--ink-muted)' }}>
+            {/* Italic display number for personality */}
+            <div className="flex items-baseline gap-1.5">
+              <span
+                className="font-display tabular leading-none"
+                style={{
+                  color: burnColor,
+                  fontSize: 56,
+                  fontStyle: 'italic',
+                  letterSpacing: '-0.03em',
+                }}
+              >
+                {burnMonths > 99 ? '99+' : burnMonths.toFixed(1)}
+              </span>
+              <span
+                className="text-sm font-medium"
+                style={{ color: burnColor }}
+              >
                 bulan
               </span>
-            </p>
-            <p className="text-xs mt-2 font-semibold uppercase tracking-wide" style={{ color: burnColor }}>
+            </div>
+
+            <p
+              className="text-[11px] mt-2 font-semibold uppercase tracking-[0.08em]"
+              style={{ color: burnColor }}
+            >
               {burnVerdict}
             </p>
-            <p className="text-[11px] mt-2 leading-relaxed" style={{ color: 'var(--ink-muted)' }}>
+
+            <p
+              className="text-[11.5px] mt-2 leading-relaxed"
+              style={{ color: 'var(--ink-muted)' }}
+            >
               Tanpa pemasukan baru, liquid cash bisa cover{' '}
               <span className="num font-semibold" style={{ color: 'var(--ink)' }}>
                 {burnMonths > 99 ? '> 99' : burnMonths.toFixed(1)}
               </span> bulan pengeluaran.
             </p>
-            {/* Push detail rows to the bottom of the panel */}
+
+            {/* Push detail rows to bottom of panel */}
             <div
-              className="mt-auto pt-3 border-t space-y-1"
-              style={{ borderColor: 'var(--border-soft)' }}
+              className="mt-auto pt-3 border-t space-y-1.5"
+              style={{ borderColor: `${burnColor}20` }}
             >
               <div className="flex items-center justify-between text-[11px]">
                 <span style={{ color: 'var(--ink-muted)' }}>Liquid cash</span>
@@ -175,16 +208,16 @@ export function FinancialHealthCard({ result, liquidBalance, monthlyExpense }: P
 }
 
 /**
- * Compact indicator: label + score on one line, thin bar below.
+ * Compact one-line indicator: label + score on top, thin bar below.
  * Hover for full explainer + tip via native browser tooltip.
  */
 function IndicatorBar({ indicator }: { indicator: FHSIndicator }) {
   const isNa = indicator.status === 'na'
   const barColor = (() => {
     if (isNa) return 'var(--ink-soft)'
-    if (indicator.score >= 75) return '#10B981'
-    if (indicator.score >= 50) return '#F59E0B'
-    return '#DC2626'
+    if (indicator.score >= 75) return 'var(--emerald-500)'
+    if (indicator.score >= 50) return 'var(--amber-500)'
+    return 'var(--coral-500)'
   })()
   const pct = isNa ? 0 : Math.min(100, Math.max(0, indicator.score))
 
@@ -194,18 +227,21 @@ function IndicatorBar({ indicator }: { indicator: FHSIndicator }) {
 
   return (
     <div title={tooltip} className="cursor-help">
-      <div className="flex items-center justify-between text-[11px] mb-1">
+      <div className="flex items-center justify-between text-[12px] mb-1">
         <span style={{ color: 'var(--ink)' }}>
           {indicator.label}
         </span>
         <span
-          className="num tabular font-semibold shrink-0"
+          className="num text-[11px] font-semibold shrink-0"
           style={{ color: isNa ? 'var(--ink-soft)' : barColor }}
         >
           {isNa ? 'N/A' : indicator.score}
         </span>
       </div>
-      <div className="h-1 w-full rounded-full overflow-hidden" style={{ background: 'var(--surface-2)' }}>
+      <div
+        className="h-1 w-full rounded-full overflow-hidden"
+        style={{ background: 'var(--surface-2)' }}
+      >
         <div
           className="h-full rounded-full transition-all duration-700"
           style={{ width: `${pct}%`, background: barColor }}

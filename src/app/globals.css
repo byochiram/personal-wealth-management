@@ -177,7 +177,10 @@
   /* ── Fonts ───────────────────────────────────── */
   --font-sans:    var(--font-sans-brand), "Inter", "Plus Jakarta Sans",
                   system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-sans-brand), "Inter", system-ui, sans-serif;
+  /* Display = Instrument Serif (italic) — for moments of personality:
+     hero numbers, milestone modals, empty states. Per design handoff. */
+  --font-display: var(--font-display-brand), "Instrument Serif",
+                  "Fraunces", Georgia, serif;
   --font-mono:    var(--font-mono-brand), "JetBrains Mono",
                   var(--font-geist-mono), ui-monospace, monospace;
 
@@ -335,6 +338,17 @@
   font-family: var(--font-mono);
   letter-spacing: -0.01em;
   font-weight: 500;
+}
+
+/* Display utility — Instrument Serif italic for "personality moments".
+   Per design handoff: net-worth hero, empty-state headlines, milestones.
+   Use sparingly — italic only, never roman. */
+.font-display,
+.display-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.02em;
 }
 
 /* Cards */

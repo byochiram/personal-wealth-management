@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { ServiceWorkerRegister } from "@/components/layout/service-worker-register";
 import "./globals.css";
@@ -14,6 +14,17 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono-brand",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+// Instrument Serif — used sparingly for "moments of personality" per
+// design handoff. Italic only. Examples: net-worth hero number,
+// landing headline, milestone modals. Never for body or buttons.
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-display-brand",
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -80,7 +91,7 @@ export default function RootLayout({
     <html
       lang="id"
       data-scroll-behavior="smooth"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
