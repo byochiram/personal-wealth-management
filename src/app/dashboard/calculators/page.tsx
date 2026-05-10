@@ -27,6 +27,7 @@ export default function CalculatorsPage() {
         <TabsList className="flex-wrap">
           <TabsTrigger value="zakat">Zakat</TabsTrigger>
           <TabsTrigger value="tax">Pajak (PPh 21)</TabsTrigger>
+          <TabsTrigger value="pension">Pension Gap</TabsTrigger>
           <TabsTrigger value="loan">KPR / Cicilan</TabsTrigger>
           <TabsTrigger value="fire">FIRE / Pensiun</TabsTrigger>
           <TabsTrigger value="kids">Dana Pendidikan</TabsTrigger>
@@ -34,11 +35,210 @@ export default function CalculatorsPage() {
         </TabsList>
         <TabsContent value="zakat"><ZakatCalculator /></TabsContent>
         <TabsContent value="tax"><TaxCalculator /></TabsContent>
+        <TabsContent value="pension"><PensionGapCalculator /></TabsContent>
         <TabsContent value="loan"><LoanCalculator /></TabsContent>
         <TabsContent value="fire"><FireCalculator /></TabsContent>
         <TabsContent value="kids"><KidsEducationCalculator /></TabsContent>
         <TabsContent value="dca"><DCASimulator /></TabsContent>
       </Tabs>
+    </div>
+  )
+}
+
+// ─── Pension Gap (BPJS JHT + JP + DPLK) ──────────
+//
+// Fitur unik untuk Indonesia: gabungkan estimasi 3 pilar pensiun (BPJS
+// Ketenagakerjaan JHT, JP, dan DPLK sukarela) lalu tunjukin gap vs target
+// replacement ratio (70-80% dari gaji terakhir).
+//
+// Asumsi penting:
+//   - JHT: kontribusi 5.7% upah, return ~6%/thn (BPJS TK average)
+//   - JP: benefit bulanan ~1% × gaji × tahun kontribusi (min Rp 354k, max Rp 4.25jt per 2024)
+//   - DPLK: deductible 5% gross income, max Rp 2.4jt/thn (PMK 168/2023)
+//   - Target replacement ratio default 75%
+//
+// Aturan & angka harus diparameterkan — bisa berubah tiap revisi UU/PMK.
+function PensionGapCalculator() {
+  const [currentAge, setCurrentAge] = useState(30)
+  const [retireAge, setRetireAge] = useState(56)  // BPJS JHT eligibility usia 56
+  const [monthlySalary, setMonthlySalary] = useState(15_000_000)
+  const [yearsContributed, setYearsContributed] = useState(5)  // sudah kerja berapa tahun
+  const [currentJhtBalance, setCurrentJhtBalance] = useState(0)
+  const [currentDplkBalance, setCurrentDplkBalance] = useState(0)
+  const [dplkMonthly, setDplkMonthly] = useState(0)
+  const [replacementTarget, setReplacementTarget] = useState(75)  // % target pensiun
+
+  const result = useMemo(() => {
+    const yearsToRetire = Math.max(0, retireAge - currentAge)
+    const totalYearsAtRetire = yearsContributed + yearsToRetire
+    const monthsToRetire = yearsToRetire * 12
+
+    // ── JHT estimate (lump sum at retirement) ──
+    // Kontribusi: 5.7% upah/bln. Return: 6%/thn. Future value of:
+    //   (a) current balance compounding
+    //   (b) future contributions stream (annuity)
+    const monthlyJhtContrib = monthlySalary * 0.057
+    const monthlyReturn = 0.06 / 12
+    const fvCurrent = currentJhtBalance * Math.pow(1 + monthlyReturn, monthsToRetire)
+    const fvContrib = monthsToRetire > 0
+      ? monthlyJhtContrib * (Math.pow(1 + monthlyReturn, monthsToRetire) - 1) / monthlyReturn
+      : 0
+    const jhtAtRetire = fvCurrent + fvContrib
+
+    // ── JP estimate (monthly pension benefit) ──
+    // Formula: 1% × gaji × tahun kontribusi. Capped.
+    const jpMonthlyRaw = 0.01 * monthlySalary * totalYearsAtRetire
+    const jpMonthly = Math.min(Math.max(jpMonthlyRaw, 354_310), 4_250_000)
+
+    // ── DPLK estimate ──
+    const fvDplkCurrent = currentDplkBalance * Math.pow(1 + monthlyReturn, monthsToRetire)
+    const fvDplkContrib = (monthsToRetire > 0 && dplkMonthly > 0)
+      ? dplkMonthly * (Math.pow(1 + monthlyReturn, monthsToRetire) - 1) / monthlyReturn
+      : 0
+    const dplkAtRetire = fvDplkCurrent + fvDplkContrib
+
+    // Convert lump sums (JHT + DPLK) to monthly income via 4% safe withdrawal rule
+    const totalLumpSum = jhtAtRetire + dplkAtRetire
+    const monthlyFromLumpSum = (totalLumpSum * 0.04) / 12
+
+    // Total estimated monthly retirement income
+    const monthlyIncomeAtRetire = monthlyFromLumpSum + jpMonthly
+
+    // Target = % dari gaji terakhir (asumsi gaji sama, tidak naik)
+    const targetMonthly = (monthlySalary * replacementTarget) / 100
+    const replacementActual = monthlySalary > 0 ? (monthlyIncomeAtRetire / monthlySalary) * 100 : 0
+    const gap = Math.max(0, targetMonthly - monthlyIncomeAtRetire)
+
+    // ── Suggested DPLK top-up to close gap ──
+    // Find PMT that future-values to (gap × 12 / 0.04) = gap×300 over the period
+    const requiredLumpSum = gap > 0 ? gap * 300 : 0  // 4% rule reverse
+    const additionalLumpNeeded = Math.max(0, requiredLumpSum - dplkAtRetire - jhtAtRetire +
+      jhtAtRetire)  // already counted; this is just gap-converted
+    const suggestedDplkExtra = monthsToRetire > 0 && additionalLumpNeeded > 0
+      ? Math.ceil((additionalLumpNeeded * monthlyReturn) / (Math.pow(1 + monthlyReturn, monthsToRetire) - 1))
+      : 0
+
+    // ── Tax saving from DPLK contribution ──
+    // Deductible: min(5% × gross annual, Rp 2.4jt/year). PMK 168/2023.
+    const annualDplk = dplkMonthly * 12
+    const annualGross = monthlySalary * 12
+    const deductibleCap = Math.min(annualGross * 0.05, 2_400_000)
+    const deductibleAmount = Math.min(annualDplk, deductibleCap)
+    // Assume PPh 21 marginal rate ~15-25% (mid-income); use 15% as illustration
+    const taxSaving = deductibleAmount * 0.15
+
+    return {
+      yearsToRetire, totalYearsAtRetire,
+      jhtAtRetire, jpMonthly, dplkAtRetire,
+      monthlyFromLumpSum, monthlyIncomeAtRetire,
+      targetMonthly, replacementActual, gap,
+      suggestedDplkExtra, taxSaving,
+      deductibleAmount, deductibleCap,
+    }
+  }, [currentAge, retireAge, monthlySalary, yearsContributed, currentJhtBalance,
+      currentDplkBalance, dplkMonthly, replacementTarget])
+
+  const onTrack = result.replacementActual >= replacementTarget
+  const status = onTrack ? 'Sehat'
+    : result.replacementActual >= replacementTarget * 0.7 ? 'Caution'
+    : 'At Risk'
+  const statusColor = onTrack ? '#10B981'
+    : result.replacementActual >= replacementTarget * 0.7 ? '#F59E0B'
+    : '#DC2626'
+
+  return (
+    <div className="pt-4 grid gap-6 lg:grid-cols-2">
+      <div className="s-card p-6">
+        <h3 className="font-semibold">Parameter Pensiun</h3>
+        <p className="text-xs mt-1" style={{ color: 'var(--ink-muted)' }}>
+          Estimasi 3 pilar: BPJS JHT (5.7% upah) + Jaminan Pensiun + DPLK sukarela.
+        </p>
+        <div className="mt-4 space-y-3">
+          <Row label="Umur Sekarang" v={currentAge} onChange={setCurrentAge} unit="thn" />
+          <Row label="Target Umur Pensiun" v={retireAge} onChange={setRetireAge} unit="thn" />
+          <Row label="Gaji Bulanan (kotor)" v={monthlySalary} onChange={setMonthlySalary} />
+          <Row label="Sudah Kerja" v={yearsContributed} onChange={setYearsContributed} unit="thn" />
+          <Row label="Saldo JHT Sekarang" v={currentJhtBalance} onChange={setCurrentJhtBalance} />
+          <Row label="Saldo DPLK Sekarang" v={currentDplkBalance} onChange={setCurrentDplkBalance} />
+          <Row label="DPLK Sukarela / bln" v={dplkMonthly} onChange={setDplkMonthly} />
+          <Row label="Target Replacement Ratio" v={replacementTarget} onChange={setReplacementTarget} unit="%" />
+        </div>
+      </div>
+
+      <div className="s-card p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="font-semibold">Replacement Ratio Pensiun</h3>
+            <p className="text-xs mt-1" style={{ color: 'var(--ink-muted)' }}>
+              % gaji terakhir yang bisa kamu replace di pensiun.
+            </p>
+          </div>
+          <span
+            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
+            style={{ background: `${statusColor}1A`, color: statusColor }}
+          >
+            {status}
+          </span>
+        </div>
+
+        <div className="mt-5 text-center p-4 rounded-lg" style={{ background: 'var(--surface-2)' }}>
+          <p className="num text-5xl font-bold leading-none" style={{ color: statusColor }}>
+            {result.replacementActual.toFixed(0)}%
+          </p>
+          <p className="text-xs mt-2" style={{ color: 'var(--ink-soft)' }}>
+            dari target {replacementTarget}%
+          </p>
+        </div>
+
+        <div className="mt-5 space-y-2">
+          <ResultRow label="JHT (lump sum @ pensiun)" v={result.jhtAtRetire} />
+          <ResultRow label="DPLK (lump sum @ pensiun)" v={result.dplkAtRetire} />
+          <ResultRow label="Income dari lump sum (4% rule/bln)" v={result.monthlyFromLumpSum} />
+          <ResultRow label="JP (benefit bulanan)" v={result.jpMonthly} />
+          <ResultRow
+            label="Total Income / bln @ pensiun"
+            v={result.monthlyIncomeAtRetire}
+            accent="var(--ink)"
+            big
+          />
+          <ResultRow label="Target / bln" v={result.targetMonthly} />
+          {result.gap > 0 && (
+            <ResultRow label="GAP / bln" v={result.gap} accent="#DC2626" />
+          )}
+        </div>
+
+        {result.gap > 0 && result.suggestedDplkExtra > 0 && (
+          <div
+            className="mt-5 pt-4 border-t rounded-lg p-4"
+            style={{
+              borderColor: 'var(--border-soft)',
+              background: 'rgba(16,185,129,0.06)',
+            }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#059669' }}>
+              💡 Rekomendasi
+            </p>
+            <p className="text-sm mt-2" style={{ color: 'var(--ink)' }}>
+              Top-up DPLK{' '}
+              <span className="num font-bold">
+                +{formatCurrency(result.suggestedDplkExtra)}/bln
+              </span>{' '}
+              untuk menutup gap.
+            </p>
+            {result.taxSaving > 0 && (
+              <p className="text-xs mt-2" style={{ color: 'var(--ink-muted)' }}>
+                Bonus: kontribusi DPLK Rp {formatCurrency(result.deductibleAmount)}/thn deductible →
+                hemat pajak ±{formatCurrency(result.taxSaving)}/thn (PMK 168/2023, asumsi PPh marginal 15%).
+              </p>
+            )}
+          </div>
+        )}
+
+        <p className="text-[10px] mt-4 italic" style={{ color: 'var(--ink-soft)' }}>
+          Estimasi kasar — return JHT diasumsikan 6%/thn, JP capped Rp 4.25jt/bln (2024). Gunakan iAkun
+          BPJS TK untuk angka aktual.
+        </p>
+      </div>
     </div>
   )
 }
@@ -527,10 +727,10 @@ function LoanCalculator() {
   )
 }
 
-function Row({ label, v, onChange }: { label: string; v: number; onChange: (n: number) => void }) {
+function Row({ label, v, onChange, unit }: { label: string; v: number; onChange: (n: number) => void; unit?: string }) {
   return (
     <div className="grid gap-1.5">
-      <Label>{label}</Label>
+      <Label>{unit ? `${label} (${unit})` : label}</Label>
       <NumberInput value={v} onChange={onChange} placeholder="0" />
     </div>
   )

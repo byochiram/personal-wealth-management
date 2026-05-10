@@ -112,6 +112,14 @@ export const EDU_TIPS: Record<string, EduContent> = {
     source: 'CFPB Cash Flow Budget Tool (2021)',
   },
 
+  // ── Wealth Pyramid (HFN) ────────────────────────────────────────
+  'wealth-pyramid': {
+    title: 'Hierarchy of Financial Needs',
+    body: 'Adaptasi Maslow untuk personal finance. 5 tier: Foundation (cashflow stabil) → Safety (dana darurat + asuransi) → Accumulation (goal aktif + investasi rutin) → Growth (investasi 3× annual income + dana pensiun) → Legacy (FI + estate planning). Idealnya kuatkan dasar dulu sebelum naik.',
+    applied: 'Tier yg belum tercapai dikunci visual — fokus dulu ke yg paling rendah belum kelar. Lebih baik 5/5 di tier 1-3 daripada loncat ke tier 4 dengan dasar rapuh.',
+    source: 'Mission Asset Fund HFN; adaptasi Maslow (1943) untuk financial planning',
+  },
+
   // ── DTI / DSR ───────────────────────────────────────────────────
   'dti-ratio': {
     title: 'DTI / Debt Service Ratio',

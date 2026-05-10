@@ -11,6 +11,7 @@ import { GettingStarted } from '@/components/dashboard/getting-started'
 import { AIInsightsCard } from '@/components/dashboard/ai-insights'
 import { FinancialHealthCard } from '@/components/dashboard/financial-health-card'
 import { CashFlowForecast } from '@/components/dashboard/cashflow-forecast'
+import { WealthPyramid } from '@/components/dashboard/wealth-pyramid'
 import { computeFinancialHealth } from '@/lib/financial-health'
 import { MoneyFlowSankey, type FlowKind } from '@/components/dashboard/money-flow-sankey'
 import { StockLogo } from '@/components/investment/stock-logo'
@@ -443,11 +444,25 @@ export default function DashboardPage() {
 
       {/* Cash-flow forecast — projects 30-day balance based on recurring +
           contracts. Surfaces "saldo tipis sebelum gajian" risk early. */}
-      <CashFlowForecast
-        liquidBalance={liquidTotal}
-        recurringItems={recurringItems}
-        contracts={contracts}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CashFlowForecast
+          liquidBalance={liquidTotal}
+          recurringItems={recurringItems}
+          contracts={contracts}
+        />
+        <WealthPyramid
+          input={{
+            monthlyNet: totals.income - totals.expense,
+            liquidMonths: totals.expense > 0 ? liquidTotal / totals.expense : 0,
+            hasInsurance: contracts.some((c) => c.category === 'insurance' && !c.is_archived),
+            investmentValue: investments.reduce((s, i) => s + (i.total_value || 0), 0),
+            annualIncome: totals.income * 12,
+            hasGoals: activeGoals.length > 0,
+            hasRetirementPlan: activeGoals.some((g) => g.name.toLowerCase().includes('pensiun'))
+              || investments.some((i) => i.category === 'pension'),
+          }}
+        />
+      </div>
 
       {/* Onboarding mission card — auto-hides when user completes setup */}
       <GettingStarted />
