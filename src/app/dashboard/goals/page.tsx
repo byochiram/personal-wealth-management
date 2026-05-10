@@ -15,6 +15,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { Plus, Pencil, Trash2, Loader2, TrendingUp } from 'lucide-react'
+import { EduTip } from '@/components/edu/edu-tip'
 
 const GOAL_CATEGORIES: Record<string, string> = {
   property: 'Properti',
@@ -126,8 +127,9 @@ export default function GoalsPage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-sm" style={{ color: 'var(--ink-muted)' }}>
+        <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--ink-muted)' }}>
           Set target, pantau progres, dan lihat berapa per bulan yang perlu ditabung.
+          <EduTip topic="mental-accounting" side="bottom" />
         </p>
         <Button onClick={() => { setForm(EMPTY); setDialogOpen(true) }}>
           <Plus className="h-4 w-4" /> Tambah Goal

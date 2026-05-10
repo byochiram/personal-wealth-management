@@ -9,6 +9,7 @@ import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Snowflake, TrendingDown, Target, Loader2, Zap, Flame, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { EduTip } from '@/components/edu/edu-tip'
 
 export default function DebtStrategyPage() {
   const supabase = createClient()
@@ -42,8 +43,9 @@ export default function DebtStrategyPage() {
     <div className="space-y-6">
       <div className="dark-card p-6 sm:p-7">
         <p className="caps">Strategi Pelunasan</p>
-        <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight mt-2" style={{ color: 'var(--ink)' }}>
+        <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight mt-2 flex items-center gap-2" style={{ color: 'var(--ink)' }}>
           Atur Prioritas Utang
+          <EduTip topic="debt-strategy" side="bottom" iconSize={18} />
         </h2>
         <p className="text-sm mt-2 max-w-xl" style={{ color: 'var(--on-black-mut)' }}>
           Pilih Snowball (saldo terkecil dulu) atau Avalanche (bunga tertinggi dulu). Tambahkan pembayaran

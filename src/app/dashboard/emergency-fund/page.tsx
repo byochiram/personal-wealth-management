@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/select'
 import { Progress } from '@/components/ui/progress'
 import { Pencil, Trash2, Plus, Loader2, Shield } from 'lucide-react'
+import { EduTip } from '@/components/edu/edu-tip'
 
 type JobStability = 'stabil' | 'cukup_stabil' | 'tidak_stabil'
 
@@ -223,8 +224,9 @@ export default function EmergencyFundPage() {
             <p className="caps">Proteksi Finansial</p>
             <div className="mt-2 flex items-end gap-3">
               <Shield className="h-7 w-7" style={{ color: 'var(--lime-400)' }} />
-              <h2 className="text-white text-3xl sm:text-4xl font-semibold tracking-tight">
+              <h2 className="text-white text-3xl sm:text-4xl font-semibold tracking-tight flex items-center gap-2">
                 Dana Darurat
+                <EduTip topic="emergency-fund" side="bottom" iconSize={18} />
               </h2>
             </div>
             <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>{today}</p>

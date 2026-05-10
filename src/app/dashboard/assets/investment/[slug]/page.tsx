@@ -29,6 +29,7 @@ import { NumberInput } from '@/components/ui/number-input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { StockLogPanel } from '@/components/investment/stock-log-panel'
 import { DividendsPanel } from '@/components/investment/dividends-panel'
+import { EduTip } from '@/components/edu/edu-tip'
 
 interface FormState {
   id: string | null
@@ -245,7 +246,12 @@ export default function InvestmentCategoryPage() {
   return (
     <div className="space-y-6">
       <div className="dark-card p-6 sm:p-8">
-        <p className="caps">{subcat.label}</p>
+        <p className="caps flex items-center gap-1.5">
+          {subcat.label}
+          {(category === 'stock' || category === 'crypto' || category === 'mutual_fund') && (
+            <EduTip topic="dca" side="bottom" />
+          )}
+        </p>
         <div className="mt-3 flex flex-wrap items-end gap-4">
           <p className="num tabular text-4xl sm:text-5xl lg:text-6xl font-semibold" style={{ color: 'var(--ink)' }}>
             {formatCurrency(totals.market)}
@@ -263,10 +269,13 @@ export default function InvestmentCategoryPage() {
             </span>
           )}
         </div>
-        <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>
-          {items.length} posisi · Modal <span className="num">{formatCurrency(totals.invested)}</span>
+        <p className="text-sm mt-2 inline-flex items-center gap-1.5 flex-wrap" style={{ color: 'var(--on-black-mut)' }}>
+          <span>{items.length} posisi · Modal <span className="num">{formatCurrency(totals.invested)}</span>
           {' · '}
-          P/L <span className="num">{formatCurrency(totals.pl)}</span>
+          P/L <span className="num">{formatCurrency(totals.pl)}</span></span>
+          {(category === 'stock' || category === 'crypto' || category === 'mutual_fund') && totals.invested > 0 && (
+            <EduTip topic="loss-aversion" side="bottom" />
+          )}
         </p>
       </div>
 

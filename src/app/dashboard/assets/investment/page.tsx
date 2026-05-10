@@ -12,6 +12,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { CurrencyRates } from '@/components/investment/currency-rates'
 import { InstitutionLogo } from '@/components/accounts/institution-logo'
 import { usePrivacy } from '@/components/privacy/privacy-provider'
+import { EduTip } from '@/components/edu/edu-tip'
 
 const CAT_LABELS: Record<string, string> = {
   stock: 'Saham', mutual_fund: 'Reksa Dana', crypto: 'Crypto',
@@ -268,7 +269,10 @@ export default function InvestmentOverviewPage() {
           <div className="flex items-start justify-between gap-2 mb-4">
             <div>
               <p className="caps">Alokasi</p>
-              <h3 className="font-display text-xl mt-0.5">Komposisi Portofolio</h3>
+              <h3 className="font-display text-xl mt-0.5 flex items-center gap-1.5">
+                Komposisi Portofolio
+                <EduTip topic="diversification" side="bottom" />
+              </h3>
             </div>
             {totals.market > 0 && (
               <span

@@ -10,6 +10,7 @@ import {
   INVESTMENT_CATEGORIES,
 } from '@/lib/constants'
 import { usePrivacy } from '@/components/privacy/privacy-provider'
+import { EduTip } from '@/components/edu/edu-tip'
 import type { Budget } from '@/types'
 
 import { Button } from '@/components/ui/button'
@@ -421,8 +422,9 @@ export default function BudgetingPage() {
               </h2>
               <span className="accent-underline mb-2" />
             </div>
-            <p className="text-sm mt-2" style={{ color: 'var(--on-black-mut)' }}>
+            <p className="text-sm mt-2 flex items-center gap-1.5" style={{ color: 'var(--on-black-mut)' }}>
               Distribusi pendapatan, pengeluaran, tabungan, & investasi sepanjang tahun.
+              <EduTip topic="budget-method" side="bottom" />
             </p>
           </div>
           <div className="flex gap-2">
