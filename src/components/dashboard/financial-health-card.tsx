@@ -36,7 +36,7 @@ function tierChipStyle(color: string): React.CSSProperties {
 
 export function FinancialHealthCard({ result, liquidBalance, monthlyExpense }: Props) {
   const { score, tier, tierMeta, breakdown } = result
-  const arcAngle = (score / 100) * 360
+  // arcAngle no longer needed — SVG ring uses strokeDasharray instead.
 
   // Burn rate
   const burnMonths = monthlyExpense > 0 ? liquidBalance / monthlyExpense : 0
@@ -63,43 +63,51 @@ export function FinancialHealthCard({ result, liquidBalance, monthlyExpense }: P
           </div>
 
           <div className="flex flex-col items-center justify-center flex-1">
-            {/* BIG centered score ring — much larger than before per
-                user feedback "angka center diperbesar agar ke highlight" */}
+            {/* SVG ring with thin stroke — Apple Health activity ring style.
+                Thin elegant ring + heavy sans-bold number = proportional
+                weights, no clash. */}
             <div className="relative shrink-0">
-              <div
-                className="size-44 sm:size-48 rounded-full flex items-center justify-center"
-                style={{
-                  background: `conic-gradient(${tierMeta.color} ${arcAngle}deg, var(--surface-2) 0deg)`,
-                }}
+              <svg
+                width={192} height={192} viewBox="0 0 192 192"
+                className="size-44 sm:size-48 -rotate-90"
               >
-                <div
-                  className="size-[84%] rounded-full flex flex-col items-center justify-center"
-                  style={{ background: 'var(--surface)' }}
+                {/* Track (inactive portion) */}
+                <circle
+                  cx={96} cy={96} r={84}
+                  fill="none"
+                  stroke="var(--surface-2)"
+                  strokeWidth={10}
+                />
+                {/* Active arc */}
+                <circle
+                  cx={96} cy={96} r={84}
+                  fill="none"
+                  stroke={tierMeta.color}
+                  strokeWidth={10}
+                  strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 84}
+                  strokeDashoffset={2 * Math.PI * 84 * (1 - score / 100)}
+                  style={{ transition: 'stroke-dashoffset 1s ease-out' }}
+                />
+              </svg>
+              {/* Centered number overlay */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span
+                  className="leading-none tabular-nums font-bold"
+                  style={{
+                    fontSize: 64,
+                    letterSpacing: '-0.04em',
+                    color: tierMeta.color,
+                  }}
                 >
-                  {/* Instrument Serif (NORMAL, not italic) — warmer than
-                      Inter sans, less rigid than mono. Same display-serif
-                      feel as Mercury / Wealthfront hero numbers without
-                      the italic. */}
-                  <span
-                    className="leading-none tabular-nums"
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontStyle: 'normal',
-                      fontWeight: 400,
-                      fontSize: 92,
-                      letterSpacing: '-0.04em',
-                      color: tierMeta.color,
-                    }}
-                  >
-                    {score}
-                  </span>
-                  <span
-                    className="text-[11px] mt-1 font-medium opacity-50"
-                    style={{ color: tierMeta.color }}
-                  >
-                    dari 100
-                  </span>
-                </div>
+                  {score}
+                </span>
+                <span
+                  className="text-[11px] mt-1.5 font-medium opacity-50"
+                  style={{ color: tierMeta.color }}
+                >
+                  dari 100
+                </span>
               </div>
             </div>
 
