@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Debt } from '@/types'
+import { DTICard } from '@/components/debt/dti-card'
+import { CompoundDebtWarning } from '@/components/debt/compound-debt-warning'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NumberInput } from '@/components/ui/number-input'
@@ -61,6 +63,7 @@ export default function DebtsOverviewPage() {
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
   const [debts, setDebts] = useState<Debt[]>([])
+  const [monthlyIncome, setMonthlyIncome] = useState(0)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [form, setForm] = useState<typeof emptyForm>(emptyForm)
   const [saving, setSaving] = useState(false)
@@ -71,8 +74,23 @@ export default function DebtsOverviewPage() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { data } = await supabase.from('debts').select('*').eq('user_id', user.id).order('remaining', { ascending: false })
-    setDebts((data ?? []) as Debt[])
+    // Fetch debts + 90-day income avg in parallel for DTI calculation
+    const ninetyDaysAgo = new Date()
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
+    const cutoff = ninetyDaysAgo.toISOString().slice(0, 10)
+    const [debtsRes, txRes] = await Promise.all([
+      supabase.from('debts').select('*').eq('user_id', user.id).order('remaining', { ascending: false }),
+      supabase.from('transactions')
+        .select('amount, type')
+        .eq('user_id', user.id)
+        .eq('type', 'income')
+        .gte('date', cutoff),
+    ])
+    setDebts((debtsRes.data ?? []) as Debt[])
+    // 90-day avg → monthly income proxy
+    const incomeRows = (txRes.data ?? []) as { amount: number }[]
+    const totalIncome = incomeRows.reduce((s, t) => s + (t.amount || 0), 0)
+    setMonthlyIncome(incomeRows.length > 0 ? totalIncome / 3 : 0)
     setLoading(false)
   }
 
@@ -110,6 +128,11 @@ export default function DebtsOverviewPage() {
   const totalPrincipal = active.reduce((s, d) => s + d.principal, 0)
   const totalMonthly = active.reduce((s, d) => s + d.monthly_payment, 0)
   const paidPct = totalPrincipal > 0 ? ((totalPrincipal - totalRemaining) / totalPrincipal) * 100 : 0
+  // Find highest-rate debt for compound warning — that's the one most worth
+  // illustrating. Filter to debts with reasonable balance + non-zero rate.
+  const worstDebt = active
+    .filter((d) => d.remaining >= 100_000 && d.interest_rate >= 5)
+    .sort((a, b) => b.interest_rate - a.interest_rate)[0]
   const byCategory: Record<string, number> = {}
   for (const d of active) byCategory[d.category] = (byCategory[d.category] || 0) + d.remaining
 
@@ -135,6 +158,22 @@ export default function DebtsOverviewPage() {
           </div>
         )}
       </div>
+
+      {/* DTI/DSR + Compound warning — diagnostic widgets */}
+      {(monthlyIncome > 0 || worstDebt) && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {monthlyIncome > 0 && (
+            <DTICard monthlyIncome={monthlyIncome} monthlyDebtPayment={totalMonthly} />
+          )}
+          {worstDebt && (
+            <CompoundDebtWarning
+              balance={worstDebt.remaining}
+              annualRate={worstDebt.interest_rate}
+              label={worstDebt.name}
+            />
+          )}
+        </div>
+      )}
 
       {/* Quick nav */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

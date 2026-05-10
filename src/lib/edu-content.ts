@@ -112,6 +112,14 @@ export const EDU_TIPS: Record<string, EduContent> = {
     source: 'CFPB Cash Flow Budget Tool (2021)',
   },
 
+  // ── DTI / DSR ───────────────────────────────────────────────────
+  'dti-ratio': {
+    title: 'DTI / Debt Service Ratio',
+    body: 'Total cicilan utang per bulan dibagi income kotor. Aturan klasik 28/36: cicilan rumah ≤28%, total semua cicilan ≤36%. OJK menyebut zona aman 30-35% take-home pay. Lewat 50%, hidup jadi sangat rapuh — sedikit shock bisa bikin gagal bayar.',
+    applied: 'Marker di bar nunjukin posisi kamu vs zona aman/warning. Hijau = sehat, merah = risiko tinggi.',
+    source: 'CFPB 28/36 rule; OJK guideline DSR konsumer',
+  },
+
   // ── Financial Health Score ──────────────────────────────────────
   'financial-health': {
     title: 'Skor Kesehatan Finansial',
