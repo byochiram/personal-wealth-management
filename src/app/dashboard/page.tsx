@@ -1902,7 +1902,7 @@ function NetWorthHero({
           <div className="min-w-0">
             <p className="caps" style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.5)' }}>Net Worth</p>
             <p
-              className="num tabular mt-2 leading-none font-bold"
+              className="num tabular mt-2 leading-none font-bold whitespace-nowrap"
               style={{
                 color: 'var(--on-black)',
                 fontSize: 'clamp(36px, 5.5vw, 52px)',
