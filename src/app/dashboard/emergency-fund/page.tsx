@@ -397,9 +397,9 @@ export default function EmergencyFundPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Akun</TableHead>
-                    <TableHead className="text-right">Jumlah (Rp)</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
+                    <TableHead className="whitespace-nowrap">Akun</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Jumlah (Rp)</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -413,7 +413,7 @@ export default function EmergencyFundPage() {
                     locations.map((loc) => (
                       <TableRow key={loc.id}>
                         <TableCell>{loc.account_name}</TableCell>
-                        <TableCell className="text-right font-medium">
+                        <TableCell className="text-right font-medium whitespace-nowrap">
                           {formatCurrency(loc.amount)}
                         </TableCell>
                         <TableCell className="text-right">

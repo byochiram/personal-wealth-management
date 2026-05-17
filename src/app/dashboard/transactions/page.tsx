@@ -963,19 +963,19 @@ export default function TransactionsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead>Akun</TableHead>
-                  <TableHead>Tipe</TableHead>
-                  <TableHead>Kategori</TableHead>
+                  <TableHead className="whitespace-nowrap">Tanggal</TableHead>
+                  <TableHead className="whitespace-nowrap">Akun</TableHead>
+                  <TableHead className="whitespace-nowrap">Tipe</TableHead>
+                  <TableHead className="whitespace-nowrap">Kategori</TableHead>
                   <TableHead>Deskripsi</TableHead>
-                  <TableHead className="text-right">Jumlah</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Jumlah</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredTransactions.map((tx) => (
                   <TableRow key={tx.id}>
-                    <TableCell>{formatDate(tx.date)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatDate(tx.date)}</TableCell>
                     <TableCell>{getAccountName(tx.account_id)}</TableCell>
                     <TableCell>
                       <Badge className={TYPE_BADGE_COLORS[tx.type]}>
@@ -985,7 +985,7 @@ export default function TransactionsPage() {
                     <TableCell>{tx.category}</TableCell>
                     <TableCell>{tx.description}</TableCell>
                     <TableCell
-                      className={`text-right font-medium ${
+                      className={`text-right font-medium whitespace-nowrap ${
                         tx.type === 'income'
                           ? 'text-emerald-600'
                           : tx.type === 'expense'
@@ -1367,7 +1367,7 @@ export default function TransactionsPage() {
                 Preview {importRows.length} baris. Uncheck yang nggak mau di-import.
               </p>
               <div className="text-xs">
-                <div className="grid grid-cols-12 gap-1 px-2 py-1 font-semibold border-b" style={{ borderColor: 'var(--border-soft)', color: 'var(--ink-muted)' }}>
+                <div className="grid grid-cols-6 sm:grid-cols-12 gap-1 px-2 py-1 font-semibold border-b" style={{ borderColor: 'var(--border-soft)', color: 'var(--ink-muted)' }}>
                   <div className="col-span-1">✓</div>
                   <div className="col-span-2">Tanggal</div>
                   <div className="col-span-4">Deskripsi</div>
@@ -1376,7 +1376,7 @@ export default function TransactionsPage() {
                   <div className="col-span-1 text-right">Jumlah</div>
                 </div>
                 {importRows.map((r, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-1 px-2 py-1.5 border-b items-center" style={{ borderColor: 'var(--border-soft)' }}>
+                  <div key={i} className="grid grid-cols-6 sm:grid-cols-12 gap-1 px-2 py-1.5 border-b items-center" style={{ borderColor: 'var(--border-soft)' }}>
                     <div className="col-span-1">
                       <input
                         type="checkbox"

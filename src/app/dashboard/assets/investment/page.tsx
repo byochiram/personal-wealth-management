@@ -380,7 +380,7 @@ export default function InvestmentOverviewPage() {
 
               {/* Top holding callouts: best & worst performer */}
               {(bestPerformer || worstPerformer) && (
-                <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-2" style={{ borderColor: 'var(--border-soft)' }}>
+                <div className="mt-4 pt-4 border-t grid grid-cols-1 sm:grid-cols-2 gap-2" style={{ borderColor: 'var(--border-soft)' }}>
                   {bestPerformer && (
                     <div
                       className="rounded-lg p-2.5 border"

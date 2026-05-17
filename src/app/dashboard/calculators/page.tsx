@@ -281,7 +281,7 @@ function FireCalculator() {
           4% rule: butuh 25× pengeluaran tahunan untuk financial independence.
         </p>
         <div className="mt-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Umur Sekarang</Label>
               <Input type="number" min={18} max={80} value={currentAge || ''} onChange={(e) => setCurrentAge(Number(e.target.value) || 0)} />
@@ -346,7 +346,7 @@ function KidsEducationCalculator() {
       <div className="s-card p-6">
         <h3 className="font-semibold">Parameter</h3>
         <div className="mt-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Umur Anak Sekarang</Label>
               <Input type="number" min={0} max={25} value={childAge || ''} onChange={(e) => setChildAge(Number(e.target.value) || 0)} />
@@ -357,7 +357,7 @@ function KidsEducationCalculator() {
             </div>
           </div>
           <Row label="Biaya kuliah (nilai hari ini)" v={currentCost} onChange={setCurrentCost} />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Inflasi pendidikan %/tahun</Label>
               <Input type="number" step="any" value={inflation || ''} onChange={(e) => setInflation(Number(e.target.value) || 0)} />
@@ -422,7 +422,7 @@ function DCASimulator() {
         </p>
         <div className="mt-4 space-y-3">
           <Row label="DCA / bulan" v={monthly} onChange={setMonthly} />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Durasi (tahun)</Label>
               <Input type="number" min={1} max={50} value={years || ''} onChange={(e) => setYears(Number(e.target.value) || 0)} />

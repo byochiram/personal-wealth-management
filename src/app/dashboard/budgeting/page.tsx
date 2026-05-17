@@ -446,7 +446,7 @@ export default function BudgetingPage() {
       </div>
 
       {/* Summary Bar */}
-      <div className="grid grid-cols-2 gap-3 sm:max-w-lg">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:max-w-lg">
         <div className="rounded-lg p-4 border" style={{ background: 'var(--surface)', borderColor: 'var(--border-soft)' }}>
           <span className="caps">Dialokasikan</span>
           <p className="num text-xl tabular font-semibold mt-1.5" style={{ color: 'var(--ink)' }}>
