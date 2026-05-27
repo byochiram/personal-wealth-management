@@ -74,7 +74,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Form */}
+        {/* Form / Success */}
         <div
           className="mt-8 rounded-2xl border p-6"
           style={{
@@ -83,98 +83,127 @@ export default function RegisterPage() {
             boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
           }}
         >
-          <form onSubmit={handleRegister} className="flex flex-col gap-3.5">
-            {error && (
+          {success ? (
+            <div className="text-center py-2">
               <div
-                className="rounded-lg border p-3 text-sm"
+                className="mx-auto flex h-12 w-12 items-center justify-center rounded-full"
                 style={{
-                  background: 'rgba(239, 68, 68, 0.06)',
-                  borderColor: 'rgba(239, 68, 68, 0.30)',
-                  color: '#991B1B',
+                  background: 'var(--success-bg)',
+                  color: 'var(--success)',
                 }}
               >
-                {error}
+                <svg className="size-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
               </div>
-            )}
-            {success && (
-              <div
-                className="rounded-lg border p-3 text-sm"
+              <h2 className="mt-4 text-lg font-bold" style={{ color: 'var(--ink)' }}>
+                Cek inbox kamu
+              </h2>
+              <p className="mt-2 text-sm" style={{ color: 'var(--ink-muted)' }}>
+                Link konfirmasi udah dikirim ke <strong style={{ color: 'var(--ink)' }}>{email}</strong>.
+                Klik link itu buat aktifkan akun & masuk ke dashboard.
+              </p>
+              <p className="mt-4 text-xs" style={{ color: 'var(--ink-soft)' }}>
+                Belum dapet dalam 5 menit? Cek folder spam.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSuccess(false)
+                  setEmail('')
+                  setPassword('')
+                  setFullName('')
+                }}
+                className="mt-4 text-sm font-semibold hover:underline"
+                style={{ color: 'var(--emerald-700)' }}
+              >
+                Daftar email lain
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleRegister} className="flex flex-col gap-3.5">
+              {error && (
+                <div
+                  className="rounded-lg border p-3 text-sm"
+                  style={{
+                    background: 'var(--danger-bg)',
+                    borderColor: 'color-mix(in srgb, var(--danger) 30%, transparent)',
+                    color: 'var(--danger)',
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
+              <Input
+                type="text"
+                placeholder="Nama lengkap"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                className="h-11"
+                autoComplete="name"
+              />
+
+              <Input
+                type="email"
+                placeholder="Alamat email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-11"
+                autoComplete="email"
+              />
+
+              <Input
+                type="password"
+                placeholder="Password (minimal 6 karakter)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="h-11"
+                autoComplete="new-password"
+              />
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="mt-2 h-11 w-full text-sm font-semibold"
                 style={{
-                  background: 'rgba(16, 185, 129, 0.08)',
-                  borderColor: 'rgba(16, 185, 129, 0.30)',
-                  color: 'var(--emerald-800)',
+                  background: 'linear-gradient(135deg, var(--emerald-500), var(--emerald-700))',
+                  color: '#FFFFFF',
                 }}
               >
-                Cek email kamu, udah aku kirim link konfirmasi.
-              </div>
-            )}
+                {loading ? 'Memproses…' : 'Daftar'}
+              </Button>
 
-            <Input
-              type="text"
-              placeholder="Nama lengkap"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-              className="h-11"
-              autoComplete="name"
-            />
-
-            <Input
-              type="email"
-              placeholder="Alamat email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="h-11"
-              autoComplete="email"
-            />
-
-            <Input
-              type="password"
-              placeholder="Password (minimal 6 karakter)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="h-11"
-              autoComplete="new-password"
-            />
-
-            <Button
-              type="submit"
-              disabled={loading || success}
-              className="mt-2 h-11 w-full text-sm font-semibold"
-              style={{
-                background: 'linear-gradient(135deg, var(--emerald-500), var(--emerald-700))',
-                color: '#FFFFFF',
-              }}
-            >
-              {loading ? 'Memproses…' : 'Daftar'}
-            </Button>
-
-            <p
-              className="text-center text-[11px] leading-relaxed mt-1"
-              style={{ color: 'var(--ink-soft)' }}
-            >
-              Dengan daftar, kamu setuju dengan{' '}
-              <Link href="/terms" className="underline">Syarat & Ketentuan</Link>
-              {' '}dan{' '}
-              <Link href="/privacy" className="underline">Kebijakan Privasi</Link>.
-            </p>
-          </form>
+              <p
+                className="text-center text-[11px] leading-relaxed mt-1"
+                style={{ color: 'var(--ink-soft)' }}
+              >
+                Dengan daftar, kamu setuju dengan{' '}
+                <Link href="/terms" className="underline">Syarat & Ketentuan</Link>
+                {' '}dan{' '}
+                <Link href="/privacy" className="underline">Kebijakan Privasi</Link>.
+              </p>
+            </form>
+          )}
         </div>
 
-        {/* Login link */}
-        <p className="mt-6 text-center text-sm" style={{ color: 'var(--ink-muted)' }}>
-          Udah punya akun?{' '}
-          <Link
-            href="/login"
-            className="font-semibold hover:underline"
-            style={{ color: 'var(--ink)' }}
-          >
-            Masuk
-          </Link>
-        </p>
+        {/* Login link — only show when not in success state */}
+        {!success && (
+          <p className="mt-6 text-center text-sm" style={{ color: 'var(--ink-muted)' }}>
+            Udah punya akun?{' '}
+            <Link
+              href="/login"
+              className="font-semibold hover:underline"
+              style={{ color: 'var(--ink)' }}
+            >
+              Masuk
+            </Link>
+          </p>
+        )}
       </div>
     </div>
   )

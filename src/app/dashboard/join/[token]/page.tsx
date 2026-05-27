@@ -169,7 +169,7 @@ export default function JoinHouseholdPage() {
             </div>
 
             <div className="mt-5 rounded-lg bg-blue-50 border border-blue-200 p-3 text-left text-xs text-blue-900">
-              💡 Setelah gabung, kamu akan punya akses bersama ke <strong>akun, transaksi, dan budget</strong> keluarga.
+              Setelah gabung, kamu akan punya akses bersama ke <strong>akun, transaksi, dan budget</strong> keluarga.
               Data personalmu yang sudah ada tetap aman dan tidak ter-share.
             </div>
 

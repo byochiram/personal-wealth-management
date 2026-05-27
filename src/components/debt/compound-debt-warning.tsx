@@ -149,7 +149,7 @@ export function CompoundDebtWarning({ balance, annualRate, label }: Props) {
 
       {after5y && after5y.totalInterest > 0 && (
         <p className="text-[11px] leading-relaxed mt-3 pt-3 border-t" style={{ color: 'var(--ink-soft)', borderColor: 'var(--border-soft)' }}>
-          💡 Total bunga yang kamu bayar dalam 5 tahun:{' '}
+          Total bunga yang kamu bayar dalam 5 tahun:{' '}
           <span className="num font-semibold" style={{ color: isHighRate ? '#DC2626' : 'var(--ink)' }}>
             {formatCurrency(after5y.totalInterest)}
           </span>

@@ -85,9 +85,9 @@ export default function LoginPage() {
               <div
                 className="rounded-lg border p-3 text-sm"
                 style={{
-                  background: 'rgba(239, 68, 68, 0.06)',
-                  borderColor: 'rgba(239, 68, 68, 0.30)',
-                  color: '#991B1B',
+                  background: 'var(--danger-bg)',
+                  borderColor: 'color-mix(in srgb, var(--danger) 30%, transparent)',
+                  color: 'var(--danger)',
                 }}
               >
                 {error}
@@ -114,14 +114,7 @@ export default function LoginPage() {
               autoComplete="current-password"
             />
 
-            <div className="flex items-center justify-between text-sm pt-1">
-              <label
-                className="flex items-center gap-2 cursor-pointer select-none"
-                style={{ color: 'var(--ink-muted)' }}
-              >
-                <input type="checkbox" className="size-3.5 rounded border-gray-300" defaultChecked />
-                Ingat saya
-              </label>
+            <div className="flex items-center justify-end text-sm pt-1">
               <Link
                 href="/forgot-password"
                 className="font-medium hover:underline"

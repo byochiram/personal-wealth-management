@@ -54,6 +54,8 @@ export async function updateSession(request: NextRequest) {
   //   - /                 → landing/marketing page
   //   - /login            → login form
   //   - /register         → register form
+  //   - /forgot-password  → password reset request
+  //   - /terms, /privacy  → legal pages
   //   - /auth/*           → OAuth callback handler
   //   - /api/*            → public API routes (have their own auth gates)
   // Any other path under an unauthenticated session → redirect to /login.
@@ -62,6 +64,9 @@ export async function updateSession(request: NextRequest) {
     path === '/' ||
     path.startsWith('/login') ||
     path.startsWith('/register') ||
+    path.startsWith('/forgot-password') ||
+    path.startsWith('/terms') ||
+    path.startsWith('/privacy') ||
     path.startsWith('/auth') ||
     path.startsWith('/api')
 

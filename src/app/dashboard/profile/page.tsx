@@ -23,9 +23,11 @@ import {
 import {
   User, Bell, Database, Shield, Sparkles,
   Loader2, Crown, AlertTriangle, ExternalLink, LogOut,
-  Lock, Mail, Trash2, Download, Palette, Moon,
+  Lock, Mail, Trash2, Download, Palette, Moon, LockKeyhole,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
+import { useLock } from '@/components/security/lock-provider'
 
 interface Profile {
   id: string
@@ -36,7 +38,6 @@ interface Profile {
   show_decimals: boolean
   daily_reminder_enabled: boolean
   daily_reminder_time: string
-  pin_hash: string | null
   ai_credits: number
   avatar_url: string | null
 }
@@ -76,6 +77,7 @@ const PLAN_BADGES: Record<string, { label: string; bg: string; fg: string }> = {
 export default function ProfilePage() {
   const supabase = createClient()
   const router = useRouter()
+  const lock = useLock()
 
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<{ id: string; email: string } | null>(null)
@@ -95,11 +97,79 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
 
-  // PIN
+  // PIN (handled by LockProvider; this dialog drives setPin/removePin)
   const [pinDialogOpen, setPinDialogOpen] = useState(false)
   const [pinInput, setPinInput] = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
+  const [pinRemoveInput, setPinRemoveInput] = useState('')
+  const [pinRemoveDialogOpen, setPinRemoveDialogOpen] = useState(false)
   const [savingPin, setSavingPin] = useState(false)
+
+  async function savePin() {
+    if (!/^\d{4,6}$/.test(pinInput)) {
+      toast.error('PIN harus 4-6 digit angka.')
+      return
+    }
+    if (pinInput !== pinConfirm) {
+      toast.error('Konfirmasi PIN tidak cocok.')
+      return
+    }
+    setSavingPin(true)
+    const ok = await lock.setPin(pinInput)
+    setSavingPin(false)
+    if (!ok) {
+      toast.error('Gagal simpan PIN.')
+      return
+    }
+    setPinInput('')
+    setPinConfirm('')
+    setPinDialogOpen(false)
+    toast.success('PIN aktif.', {
+      description: `App akan kunci otomatis setelah ${lock.lockAfterMin} menit idle.`,
+    })
+  }
+
+  async function confirmRemovePin() {
+    setSavingPin(true)
+    const ok = await lock.removePin(pinRemoveInput)
+    setSavingPin(false)
+    if (!ok) {
+      toast.error('PIN salah.')
+      return
+    }
+    setPinRemoveInput('')
+    setPinRemoveDialogOpen(false)
+    toast.success('PIN dimatikan.')
+  }
+
+  // Biometric enrollment uses a separate dialog to capture the current PIN
+  // (required by LockProvider for security — biometric is convenience over PIN,
+  // not a way to set up auth without one).
+  const [bioDialogOpen, setBioDialogOpen] = useState(false)
+  const [bioPin, setBioPin] = useState('')
+  const [bioBusy, setBioBusy] = useState(false)
+
+  async function enrollBiometric() {
+    setBioBusy(true)
+    const ok = await lock.enrollBiometric(bioPin)
+    setBioBusy(false)
+    if (!ok) {
+      toast.error('Gagal enroll biometric', {
+        description: 'Cek PIN atau pastikan device support Face/Touch ID.',
+      })
+      return
+    }
+    setBioPin('')
+    setBioDialogOpen(false)
+    toast.success('Biometric aktif.', {
+      description: 'Sekarang bisa unlock pakai Face/Touch ID di lock screen.',
+    })
+  }
+
+  function disableBiometric() {
+    lock.removeBiometric()
+    toast.success('Biometric dimatikan.')
+  }
 
   // Reset confirmation
   const [resetDialogOpen, setResetDialogOpen] = useState(false)
@@ -132,7 +202,6 @@ export default function ProfilePage() {
       show_decimals: raw.show_decimals ?? false,
       daily_reminder_enabled: raw.daily_reminder_enabled ?? false,
       daily_reminder_time: raw.daily_reminder_time ?? '20:00',
-      pin_hash: raw.pin_hash ?? null,
       ai_credits: raw.ai_credits ?? 0,
       avatar_url: raw.avatar_url ?? null,
     })
@@ -188,19 +257,19 @@ export default function ProfilePage() {
       })
       .eq('id', user.id)
     setSavingPrefs(false)
-    if (error) { alert(`Gagal simpan: ${error.message}`); return }
-    alert('Preferensi tersimpan.')
+    if (error) { toast.error('Gagal simpan', { description: error.message }); return }
+    toast.success('Preferensi tersimpan.')
   }
 
   async function updatePassword() {
-    if (newPassword.length < 8) { alert('Password minimal 8 karakter.'); return }
-    if (newPassword !== confirmPassword) { alert('Konfirmasi password tidak cocok.'); return }
+    if (newPassword.length < 8) { toast.error('Password minimal 8 karakter.'); return }
+    if (newPassword !== confirmPassword) { toast.error('Konfirmasi password tidak cocok.'); return }
     setSavingPassword(true)
     const { error } = await supabase.auth.updateUser({ password: newPassword })
     setSavingPassword(false)
-    if (error) { alert(`Gagal: ${error.message}`); return }
+    if (error) { toast.error('Gagal update password', { description: error.message }); return }
     setNewPassword(''); setConfirmPassword('')
-    alert('Password berhasil diperbarui.')
+    toast.success('Password berhasil diperbarui.')
   }
 
   async function toggleDailyReminder(enabled: boolean) {
@@ -212,7 +281,7 @@ export default function ProfilePage() {
       .eq('id', user.id)
     if (error) {
       setProfile({ ...profile, daily_reminder_enabled: !enabled })
-      alert(`Gagal update: ${error.message}`)
+      toast.error('Gagal update', { description: error.message })
     }
   }
 
@@ -225,36 +294,13 @@ export default function ProfilePage() {
       .eq('id', user.id)
   }
 
-  async function savePin() {
-    if (!user) return
-    if (pinInput.length < 4 || pinInput.length > 6) { alert('PIN harus 4-6 digit.'); return }
-    if (!/^\d+$/.test(pinInput)) { alert('PIN harus angka.'); return }
-    if (pinInput !== pinConfirm) { alert('Konfirmasi PIN tidak cocok.'); return }
-    setSavingPin(true)
-    // Hash via SubtleCrypto (client-side) — sufficient for local-app PIN, not super-sensitive
-    const enc = new TextEncoder().encode(pinInput + user.id)
-    const hashBuf = await crypto.subtle.digest('SHA-256', enc)
-    const hashHex = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, '0')).join('')
-    const { error } = await supabase.from('profiles').update({ pin_hash: hashHex }).eq('id', user.id)
-    setSavingPin(false)
-    if (error) { alert(`Gagal: ${error.message}`); return }
-    setProfile(profile ? { ...profile, pin_hash: hashHex } : null)
-    setPinInput(''); setPinConfirm(''); setPinDialogOpen(false)
-    alert('PIN aktif. Akan diminta saat re-entry app.')
-  }
-
-  async function removePin() {
-    if (!user) return
-    if (!confirm('Hapus PIN Lock?')) return
-    const { error } = await supabase.from('profiles').update({ pin_hash: null }).eq('id', user.id)
-    if (error) { alert(`Gagal: ${error.message}`); return }
-    setProfile(profile ? { ...profile, pin_hash: null } : null)
-    alert('PIN Lock dimatikan.')
-  }
+  // PIN is now managed device-side via LockProvider (see hook below).
+  // Server-side `profiles.pin_hash` is left untouched but no longer the
+  // source of truth — locking is enforced by LockProvider + LockScreen.
 
   async function resetAllData() {
     if (!user) return
-    if (resetTyped !== 'HAPUS SEMUA') { alert('Ketik "HAPUS SEMUA" persis untuk konfirmasi.'); return }
+    if (resetTyped !== 'HAPUS SEMUA') { toast.error('Ketik "HAPUS SEMUA" persis untuk konfirmasi.'); return }
     setResetting(true)
     // Delete all user-scoped data (RLS filters per user, so this is safe)
     await Promise.all([
@@ -280,7 +326,7 @@ export default function ProfilePage() {
     ])
     setResetting(false)
     setResetDialogOpen(false)
-    alert('Semua data berhasil dihapus. Akan reload halaman.')
+    toast.success('Semua data dihapus.', { description: 'Akan reload halaman.' })
     window.location.href = '/dashboard'
   }
 
@@ -532,20 +578,88 @@ export default function ProfilePage() {
                 <div>
                   <h3 className="font-semibold">PIN Lock</h3>
                   <p className="text-sm text-muted-foreground mt-0.5">
-                    PIN 4-6 digit setiap kali kamu re-buka app — proteksi tambahan kalau HP dipinjem.
+                    PIN 4-6 digit dibutuhin setelah app idle — proteksi tambahan kalau HP dipinjem.
+                    Disimpan per device, gak sinkron antar HP.
                   </p>
                 </div>
               </div>
-              {profile.pin_hash ? (
+              {lock.hasPin ? (
                 <div className="flex gap-2">
                   <Badge className="bg-emerald-100 text-emerald-700">Aktif</Badge>
-                  <Button variant="outline" size="sm" onClick={removePin}>Matikan PIN</Button>
+                  <Button variant="outline" size="sm" onClick={() => setPinRemoveDialogOpen(true)}>
+                    Matikan PIN
+                  </Button>
                 </div>
               ) : (
                 <Button size="sm" onClick={() => setPinDialogOpen(true)}>Atur PIN</Button>
               )}
             </div>
+
+            {lock.hasPin && (
+              <div className="pt-3 border-t flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                <Label htmlFor="lock-after" className="text-sm sm:min-w-[140px]">
+                  Auto-lock setelah
+                </Label>
+                <Select
+                  value={String(lock.lockAfterMin)}
+                  onValueChange={(v) => v && lock.setLockAfter(parseInt(v, 10))}
+                >
+                  <SelectTrigger id="lock-after" className="sm:max-w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 menit</SelectItem>
+                    <SelectItem value="5">5 menit</SelectItem>
+                    <SelectItem value="15">15 menit</SelectItem>
+                    <SelectItem value="30">30 menit</SelectItem>
+                    <SelectItem value="60">60 menit</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    lock.lockNow()
+                    toast.success('App dikunci.')
+                  }}
+                  className="sm:ml-auto"
+                >
+                  <LockKeyhole className="size-3.5" />
+                  Kunci sekarang
+                </Button>
+              </div>
+            )}
           </section>
+
+          {/* Biometric — only shown when PIN aktif & device support */}
+          {lock.hasPin && lock.biometricSupported && (
+            <section className="rounded-xl border bg-white p-5 space-y-4">
+              <div className="flex items-start justify-between flex-wrap gap-3">
+                <div className="flex items-start gap-2">
+                  <Shield className="size-4 mt-0.5 text-muted-foreground" />
+                  <div>
+                    <h3 className="font-semibold">Unlock dengan biometric</h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Pakai Face/Touch ID buat unlock cepat. PIN tetap dibutuhin
+                      sebagai fallback. Disimpan di device ini.
+                    </p>
+                  </div>
+                </div>
+                {lock.hasBiometric ? (
+                  <div className="flex gap-2">
+                    <Badge className="bg-emerald-100 text-emerald-700">Aktif</Badge>
+                    <Button variant="outline" size="sm" onClick={disableBiometric}>
+                      Matikan
+                    </Button>
+                  </div>
+                ) : (
+                  <Button size="sm" onClick={() => setBioDialogOpen(true)}>
+                    Aktifkan biometric
+                  </Button>
+                )}
+              </div>
+            </section>
+          )}
         </TabsContent>
 
         {/* NOTIFIKASI */}
@@ -584,7 +698,7 @@ export default function ProfilePage() {
 
           <section className="rounded-xl border bg-amber-50 border-amber-200 p-5">
             <p className="text-sm text-amber-900">
-              💡 Notifikasi push browser butuh setup PWA. Lebih reliable: aktifin <strong>WhatsApp reminder</strong> di paket Pro/Family (segera hadir).
+              Notifikasi push browser butuh setup PWA. Lebih reliable: aktifin <strong>WhatsApp reminder</strong> di paket Pro/Family (segera hadir).
             </p>
           </section>
         </TabsContent>
@@ -646,19 +760,20 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* PIN Dialog */}
+      {/* PIN Set Dialog */}
       <Dialog open={pinDialogOpen} onOpenChange={setPinDialogOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Atur PIN Lock</DialogTitle>
             <DialogDescription>
-              PIN 4-6 digit angka. Akan diminta tiap kali kamu re-buka app dari background.
+              PIN 4-6 digit. App akan minta PIN setelah idle beberapa menit.
+              PIN disimpan di device ini saja.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-2">
             <div className="grid gap-1.5">
               <Label htmlFor="pin">PIN baru</Label>
-              <Input id="pin" type="password" inputMode="numeric" maxLength={6} value={pinInput} onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))} placeholder="••••" />
+              <Input id="pin" type="password" inputMode="numeric" maxLength={6} value={pinInput} onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))} placeholder="••••" autoFocus />
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="pin-confirm">Konfirmasi PIN</Label>
@@ -667,9 +782,73 @@ export default function ProfilePage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPinDialogOpen(false)}>Batal</Button>
-            <Button onClick={savePin} disabled={savingPin}>
+            <Button onClick={savePin} disabled={savingPin || pinInput.length < 4 || pinConfirm.length < 4}>
               {savingPin && <Loader2 className="size-4 animate-spin" data-icon="inline-start" />}
               Simpan PIN
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Biometric enrollment — verify PIN then create WebAuthn credential */}
+      <Dialog open={bioDialogOpen} onOpenChange={setBioDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Aktifkan biometric</DialogTitle>
+            <DialogDescription>
+              Masukin PIN saat ini buat konfirmasi. Setelah itu device akan minta
+              Face/Touch ID buat enroll.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <div className="grid gap-1.5">
+              <Label htmlFor="bio-pin">PIN saat ini</Label>
+              <Input
+                id="bio-pin"
+                type="password"
+                inputMode="numeric"
+                maxLength={8}
+                value={bioPin}
+                onChange={(e) => setBioPin(e.target.value.replace(/\D/g, ''))}
+                placeholder="••••"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setBioDialogOpen(false); setBioPin('') }}>
+              Batal
+            </Button>
+            <Button onClick={enrollBiometric} disabled={bioBusy || bioPin.length < 4}>
+              {bioBusy && <Loader2 className="size-4 animate-spin" />}
+              Lanjut
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* PIN Remove Dialog — require current PIN before removal */}
+      <Dialog open={pinRemoveDialogOpen} onOpenChange={setPinRemoveDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Matikan PIN Lock</DialogTitle>
+            <DialogDescription>
+              Masukin PIN saat ini buat konfirmasi. Setelah dimatikan, app gak akan minta PIN lagi.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <div className="grid gap-1.5">
+              <Label htmlFor="pin-current">PIN saat ini</Label>
+              <Input id="pin-current" type="password" inputMode="numeric" maxLength={8} value={pinRemoveInput} onChange={(e) => setPinRemoveInput(e.target.value.replace(/\D/g, ''))} placeholder="••••" autoFocus />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPinRemoveDialogOpen(false); setPinRemoveInput('') }}>
+              Batal
+            </Button>
+            <Button onClick={confirmRemovePin} disabled={savingPin || pinRemoveInput.length < 4} variant="destructive">
+              {savingPin && <Loader2 className="size-4 animate-spin" />}
+              Matikan
             </Button>
           </DialogFooter>
         </DialogContent>

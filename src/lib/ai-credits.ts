@@ -20,6 +20,10 @@ export const AI_COSTS = {
   nl_parse: 1,
   insights: 2,
   voice_parse: 1,  // voice → AI parse uses same cost as text parse
+  // Bulk import = one heavy call yang produce banyak transaksi sekaligus.
+  // Marked-up biar coherent dengan per-line economics (mutasi 50 baris bisa
+  // jadi cost ~Rp 5 kalau dipecah jadi 50× nl_parse; 25 credits = setara).
+  mutasi_import: 25,
 } as const
 
 export type AICostKey = keyof typeof AI_COSTS
@@ -68,7 +72,12 @@ export async function consumeAICredits(
     return {
       ok: false,
       status: 402, // Payment Required
-      error: `Kredit AI habis. Butuh ${cost} kredit untuk ${costKey === 'receipt_scan' ? 'scan struk' : costKey === 'insights' ? 'AI insight' : 'AI parse'}. Upgrade ke paket lebih tinggi atau tunggu reset bulanan.`,
+      error: `Kredit AI habis. Butuh ${cost} kredit untuk ${
+        costKey === 'receipt_scan' ? 'scan struk'
+        : costKey === 'insights' ? 'AI insight'
+        : costKey === 'mutasi_import' ? 'import mutasi'
+        : 'AI parse'
+      }. Upgrade ke paket lebih tinggi atau tunggu reset bulanan.`,
     }
   }
 

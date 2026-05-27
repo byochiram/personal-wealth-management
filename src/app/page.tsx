@@ -78,7 +78,7 @@ export default async function LandingPage() {
         />
         <div
           className="absolute top-[200px] -left-20 size-[360px] rounded-full opacity-40 pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.10), transparent 60%)' }}
+          style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.08), transparent 60%)' }}
         />
 
         <div className="relative grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
@@ -146,13 +146,13 @@ export default async function LandingPage() {
                     className="num tabular font-bold mt-2 leading-none"
                     style={{ color: 'var(--on-black)', fontSize: 44, letterSpacing: '-0.03em' }}
                   >
-                    Rp 487,3<span style={{ color: 'rgba(255,255,255,0.55)' }}>jt</span>
+                    Rp 486.247.130
                   </p>
                   <span
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold mt-3"
                     style={{ background: 'rgba(16,185,129,0.18)', color: '#6EE7B7' }}
                   >
-                    ↑ 12,4% bulan ini
+                    ↑ Rp 8.247.130 bulan ini
                   </span>
                 </div>
                 <div className="flex gap-1.5">
@@ -178,9 +178,9 @@ export default async function LandingPage() {
                 style={{ borderColor: 'rgba(255,255,255,0.08)' }}
               >
                 {[
-                  { label: 'Aset Cair', value: 'Rp 84jt', color: '#34D399' },
-                  { label: 'Investasi', value: 'Rp 312jt', color: '#7DD3FC' },
-                  { label: 'Utang', value: 'Rp 45jt', color: '#FB7185' },
+                  { label: 'Aset Cair', value: 'Rp 84.310.500', color: '#34D399' },
+                  { label: 'Investasi', value: 'Rp 312.080.890', color: '#7DD3FC' },
+                  { label: 'Utang', value: 'Rp 45.144.260', color: '#FB7185' },
                 ].map((s) => (
                   <div key={s.label}>
                     <p
@@ -195,44 +195,27 @@ export default async function LandingPage() {
               </div>
             </div>
 
-            {/* Floating WA bubble */}
+            {/* Floating receipt — single chip, adapts to dark mode via var(--surface) */}
             <div
-              className="hidden sm:flex absolute -bottom-6 -left-6 bg-white rounded-2xl px-4 py-3 gap-3 items-center max-w-[280px]"
-              style={{ boxShadow: '0 12px 32px -8px rgba(0,0,0,0.22)' }}
+              className="hidden sm:flex absolute -bottom-6 -left-6 rounded-2xl px-4 py-3 gap-3 items-center border max-w-[280px]"
+              style={{
+                background: 'var(--surface)',
+                borderColor: 'var(--border-soft)',
+                boxShadow: '0 12px 32px -8px rgba(0,0,0,0.22)',
+              }}
             >
               <div
-                className="size-9 rounded-xl flex items-center justify-center text-lg shrink-0"
-                style={{ background: '#DCFCE7' }}
+                className="size-9 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: 'var(--emerald-100)', color: 'var(--emerald-700)' }}
               >
-                💬
+                <Camera className="size-4" />
               </div>
               <div>
                 <p className="text-[13px] font-semibold leading-tight" style={{ color: 'var(--ink)' }}>
-                  &ldquo;kopi 35rb&rdquo;
+                  Indomaret · Rp 47.500
                 </p>
                 <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink-muted)' }}>
-                  Tercatat lewat WhatsApp
-                </p>
-              </div>
-            </div>
-
-            {/* Floating receipt */}
-            <div
-              className="hidden sm:flex absolute -top-4 -right-4 bg-white rounded-xl px-3 py-2.5 gap-2.5 items-center border"
-              style={{ borderColor: 'var(--border-soft)', boxShadow: '0 8px 24px -8px rgba(0,0,0,0.15)' }}
-            >
-              <div
-                className="size-7 rounded-lg flex items-center justify-center text-sm"
-                style={{ background: 'var(--amber-100)' }}
-              >
-                📸
-              </div>
-              <div>
-                <p className="text-[10px] font-medium" style={{ color: 'var(--ink-muted)' }}>
-                  Indomaret · 3 detik
-                </p>
-                <p className="num text-[12px] font-semibold mt-0.5" style={{ color: 'var(--ink)' }}>
-                  Rp 47.500
+                  Tercatat dari foto, 3 detik.
                 </p>
               </div>
             </div>
@@ -272,7 +255,7 @@ export default async function LandingPage() {
               color: '#8B5CF6',
               bg: '#EDE9FE',
               title: 'AI Insight personal',
-              body: 'Tiap awal bulan: "Kopi naik 60%." "Forecast saldo tipis Rp 200k." Bukan tips generic.',
+              body: 'Tiap awal bulan dapet 2-3 insight: "Kopi naik 60% dari biasanya." "Forecast saldo tipis tanggal 24 — Rp 200k."',
             },
             {
               icon: Camera,
@@ -370,7 +353,7 @@ export default async function LandingPage() {
                 <h3 className="text-lg font-bold" style={{ color: 'var(--ink)' }}>Basic</h3>
               </div>
               <p className="text-sm" style={{ color: 'var(--ink-muted)' }}>
-                Atur keuangan harian dengan fitur dasar.
+                Pas buat kamu yang baru mulai catat-catat & atur budget.
               </p>
               <div className="mt-5 mb-5">
                 <span
@@ -395,11 +378,12 @@ export default async function LandingPage() {
                   { text: 'Catat transaksi unlimited', locked: false },
                   { text: 'Anggaran bulanan', locked: false },
                   { text: 'Dashboard net worth', locked: false },
-                  { text: 'Foto struk basic (OCR)', locked: false },
-                  { text: 'Track 1 jenis aset', locked: false },
-                  { text: '50 kredit AI/bulan', locked: false },
+                  { text: 'Foto struk AI', locked: false },
+                  { text: '3 jenis aset (saham, RD, kas)', locked: false },
+                  { text: '100 kredit AI/bulan', locked: false },
+                  { text: 'AI Advisor (15 query/bulan)', locked: false },
                   { text: 'AI Advisor unlimited', locked: true },
-                  { text: 'Multi-aset lengkap', locked: true },
+                  { text: 'Multi-aset lengkap (crypto, emas, SBN, P2P)', locked: true },
                   { text: 'Family sharing', locked: true },
                   { text: 'WhatsApp catat & struk', locked: true },
                 ].map((f) => (
@@ -453,7 +437,7 @@ export default async function LandingPage() {
                   /bulan
                 </span>
                 <p className="text-xs mt-1" style={{ color: 'var(--emerald-700)' }}>
-                  Hemat 33% dari Rp 299rb (promo launch)
+                  Harga early access. Akan naik ke Rp 299rb setelah Q3 2026.
                 </p>
               </div>
               <Link
@@ -469,7 +453,7 @@ export default async function LandingPage() {
                   'Multi-aset (saham, RD, crypto, emas, SBN, P2P)',
                   'AI Advisor unlimited',
                   'AI Receipt Scanner advanced',
-                  'WhatsApp catat & forward struk (segera)',
+                  'WhatsApp catat & forward struk',
                   'Family sharing sampai 4 anggota',
                   'Atur utang & cicilan',
                   'Goal setting & laporan detail',

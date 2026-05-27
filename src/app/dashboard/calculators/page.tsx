@@ -219,7 +219,7 @@ function PensionGapCalculator() {
             }}
           >
             <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#059669' }}>
-              💡 Rekomendasi
+              Rekomendasi
             </p>
             <p className="text-sm mt-2" style={{ color: 'var(--ink)' }}>
               Top-up DPLK{' '}

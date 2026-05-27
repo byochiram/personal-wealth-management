@@ -417,17 +417,33 @@ export function CommandPalette() {
         {aiState.kind === 'idle' && (
         <div className="max-h-[60vh] overflow-y-auto py-2 sidebar-nav-scroll">
           {flatItems.length === 0 ? (
-            <div className="py-12 text-center">
+            <div className="py-10 px-6 text-center">
               <Search
                 className="size-8 mx-auto mb-3 opacity-30"
                 style={{ color: 'var(--ink-soft)' }}
               />
               <p className="text-sm" style={{ color: 'var(--ink-muted)' }}>
-                Tidak ada hasil untuk &ldquo;{query}&rdquo;
+                Gak ketemu &ldquo;{query}&rdquo;.
               </p>
-              <p className="text-xs mt-1" style={{ color: 'var(--ink-soft)' }}>
-                Coba kata kunci lain atau Enter untuk buka link
+              <p className="text-xs mt-3" style={{ color: 'var(--ink-soft)' }}>
+                Coba salah satu:
               </p>
+              <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+                {['indomaret 47rb cash', 'gaji 8jt', 'transaksi', 'budget bulan ini', 'net worth'].map((ex) => (
+                  <button
+                    key={ex}
+                    type="button"
+                    onClick={() => setQuery(ex)}
+                    className="text-[11px] px-2 py-1 rounded-md font-medium transition"
+                    style={{
+                      background: 'var(--surface-2)',
+                      color: 'var(--ink-muted)',
+                    }}
+                  >
+                    {ex}
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
             (() => {
@@ -666,7 +682,7 @@ function AIPanel({ state, text, onConfirm, onCancel }: AIPanelProps) {
           <Check className="size-6" style={{ color: 'var(--emerald-600)' }} />
         </div>
         <p className="text-sm mt-3 font-semibold" style={{ color: 'var(--ink)' }}>
-          🎉 Transaksi tersimpan!
+          Tercatat.
         </p>
       </div>
     )

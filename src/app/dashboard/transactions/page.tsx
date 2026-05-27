@@ -48,6 +48,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Pencil, Trash2, Plus, Loader2, ArrowLeftRight, Download, Upload, Sparkles, Camera, X, ScanLine, Star, Wallet } from 'lucide-react'
+import { toast } from 'sonner'
 
 type TransactionType = 'income' | 'expense' | 'saving' | 'investment'
 
@@ -254,7 +255,7 @@ export default function TransactionsPage() {
       .eq('id', user.id)
     setSettingDefault(false)
     if (error) {
-      alert(`Gagal set default: ${error.message}`)
+      toast.error('Gagal set default', { description: error.message })
       return
     }
     setDefaultAccountId(form.account_id)
@@ -343,7 +344,7 @@ export default function TransactionsPage() {
 
   async function saveTransfer() {
     if (!transferForm.from_account_id || !transferForm.to_account_id || transferForm.amount <= 0) return
-    if (transferForm.from_account_id === transferForm.to_account_id) { alert('Akun asal & tujuan tidak boleh sama'); return }
+    if (transferForm.from_account_id === transferForm.to_account_id) { toast.error('Akun asal & tujuan tidak boleh sama'); return }
     setTransferSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setTransferSaving(false); return }
@@ -457,7 +458,9 @@ export default function TransactionsPage() {
 
   function openAddDialog() {
     if (accounts.length === 0 && creditCards.length === 0) {
-      alert('Belum ada akun. Bikin akun dulu di menu "Akun" sebelum mencatat transaksi.')
+      toast.error('Belum ada akun', {
+        description: 'Bikin akun dulu di menu "Akun" sebelum mencatat transaksi.',
+      })
       return
     }
     setEditingId(null)
@@ -489,15 +492,15 @@ export default function TransactionsPage() {
   async function handleSave() {
     // Client-side validation with clear messages
     if (!form.account_id) {
-      alert('Pilih akun dulu sebelum simpan transaksi.')
+      toast.error('Pilih akun dulu sebelum simpan transaksi.')
       return
     }
     if (!form.category) {
-      alert('Pilih kategori dulu sebelum simpan transaksi.')
+      toast.error('Pilih kategori dulu sebelum simpan transaksi.')
       return
     }
     if (!form.amount || form.amount <= 0) {
-      alert('Jumlah harus lebih dari 0.')
+      toast.error('Jumlah harus lebih dari 0.')
       return
     }
 
@@ -535,7 +538,9 @@ export default function TransactionsPage() {
         .from('receipts')
         .upload(path, receiptFile, { contentType: receiptFile.type, upsert: false })
       if (upErr) {
-        alert(`Gagal upload struk ke Storage: ${upErr.message}\nTransaksi tetap disimpan tanpa foto.`)
+        toast.warning('Foto struk gagal diupload', {
+          description: `Transaksi tetap disimpan tanpa foto. ${upErr.message}`,
+        })
       } else {
         receiptPath = path
       }
@@ -559,7 +564,7 @@ export default function TransactionsPage() {
 
     if (saveErr) {
       setSaving(false)
-      alert(`Gagal simpan transaksi: ${saveErr.message}`)
+      toast.error('Gagal simpan transaksi', { description: saveErr.message })
       return
     }
 
@@ -605,9 +610,9 @@ export default function TransactionsPage() {
   }, [accounts.length, creditCards.length])
 
   async function quickSubmit() {
-    if (!quickForm.account_id) { alert('Pilih akun dulu.'); return }
-    if (!quickForm.category) { alert('Pilih kategori dulu.'); return }
-    if (!quickForm.amount || quickForm.amount <= 0) { alert('Jumlah harus > 0.'); return }
+    if (!quickForm.account_id) { toast.error('Pilih akun dulu.'); return }
+    if (!quickForm.category) { toast.error('Pilih kategori dulu.'); return }
+    if (!quickForm.amount || quickForm.amount <= 0) { toast.error('Jumlah harus lebih dari 0.'); return }
     setQuickSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setQuickSaving(false); return }
@@ -628,7 +633,8 @@ export default function TransactionsPage() {
 
     const { error } = await supabase.from('transactions').insert(payload)
     setQuickSaving(false)
-    if (error) { alert(`Gagal: ${error.message}`); return }
+    if (error) { toast.error('Gagal simpan', { description: error.message }); return }
+    toast.success('Tercatat.')
 
     // Reset only amount + description; keep date/account/type/category
     // (most users add multiple similar transactions in a row)
@@ -711,6 +717,11 @@ export default function TransactionsPage() {
       )}
 
       <div className="flex flex-wrap justify-end gap-2">
+        <Link href="/dashboard/transactions/import">
+          <Button variant="outline">
+            <Sparkles className="size-4" /> Import mutasi AI
+          </Button>
+        </Link>
         <Button variant="outline" onClick={() => setImportOpen(true)}>
           <Upload className="size-4" /> Import CSV
         </Button>
@@ -929,7 +940,7 @@ export default function TransactionsPage() {
             </Button>
           </form>
           <p className="text-[10px] mt-1.5 px-1" style={{ color: 'var(--ink-soft)' }}>
-            💡 Pakai <kbd className="font-mono px-1 rounded" style={{ background: 'var(--surface-2)' }}>⌘K</kbd> buat AI quick-add (&ldquo;indomaret 47rb&rdquo;), atau <strong>&quot;Tambah Transaksi&quot;</strong> di atas buat scan struk.
+            Tip: <kbd className="font-mono px-1 rounded" style={{ background: 'var(--surface-2)' }}>⌘K</kbd> buat AI quick-add (&ldquo;indomaret 47rb&rdquo;), atau <strong>&quot;Tambah Transaksi&quot;</strong> di atas buat scan struk.
           </p>
         </div>
       )}

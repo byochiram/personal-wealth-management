@@ -308,13 +308,13 @@ export default function AccountsPage() {
             const free = (a.current_balance ?? 0) - totalAllocated
             const pillBg: Record<string, string> = {
               emergency_fund: 'rgba(16,185,129,0.10)',
-              goal: 'rgba(99,102,241,0.10)',
+              goal: 'rgba(14,165,233,0.12)',
               sinking_fund: 'rgba(245,158,11,0.12)',
               other: 'rgba(107,114,128,0.10)',
             }
             const pillFg: Record<string, string> = {
               emergency_fund: '#065F46',
-              goal: '#3730A3',
+              goal: '#0369A1',
               sinking_fund: '#92400E',
               other: '#374151',
             }
@@ -435,7 +435,7 @@ export default function AccountsPage() {
 
       {!loading && accounts.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          💡 Saldo Saat Ini auto-update tiap kali kamu input transaksi yang pakai akun ini.
+          Saldo Saat Ini auto-update tiap kali kamu input transaksi yang pakai akun ini.
           Lihat juga{' '}
           <Link href="/dashboard/transactions" className="underline hover:text-foreground">
             Transaksi

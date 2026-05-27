@@ -11,7 +11,7 @@
  */
 
 import { useEffect, useState, useMemo } from 'react'
-import { Sparkles, RefreshCw, Loader2, AlertCircle } from 'lucide-react'
+import { Sparkles, RefreshCw, Loader2, AlertCircle, PenLine, Camera, Command as CommandIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { notifyAICreditsChanged } from '@/components/layout/ai-credits-badge'
 import type { Transaction } from '@/types'
@@ -64,10 +64,10 @@ function setCache(cached: CachedInsights) {
   }
 }
 
-const TONE_STYLES: Record<Insight['tone'], { bg: string; border: string; emoji_bg: string }> = {
-  positive:    { bg: 'rgba(16, 185, 129, 0.06)', border: 'rgba(16, 185, 129, 0.25)', emoji_bg: 'rgba(16, 185, 129, 0.15)' },
-  observation: { bg: 'rgba(14, 165, 233, 0.06)', border: 'rgba(14, 165, 233, 0.25)', emoji_bg: 'rgba(14, 165, 233, 0.15)' },
-  warning:     { bg: 'rgba(245, 158, 11, 0.06)', border: 'rgba(245, 158, 11, 0.30)', emoji_bg: 'rgba(245, 158, 11, 0.18)' },
+const TONE_STYLES: Record<Insight['tone'], { bg: string; border: string; emoji_bg: string; tint: string }> = {
+  positive:    { bg: 'rgba(16, 185, 129, 0.06)', border: 'rgba(16, 185, 129, 0.25)', emoji_bg: 'rgba(16, 185, 129, 0.15)', tint: 'var(--emerald-700)' },
+  observation: { bg: 'rgba(14, 165, 233, 0.06)', border: 'rgba(14, 165, 233, 0.25)', emoji_bg: 'rgba(14, 165, 233, 0.15)', tint: 'var(--sky-600)' },
+  warning:     { bg: 'rgba(245, 158, 11, 0.06)', border: 'rgba(245, 158, 11, 0.30)', emoji_bg: 'rgba(245, 158, 11, 0.18)', tint: 'var(--amber-700)' },
 }
 
 export function AIInsightsCard({
@@ -381,23 +381,29 @@ function formatRelative(iso: string): string {
 // ─── Welcome card for users with zero data ───────────────────────
 // Static helpful tips. No API call. Disappears once user logs first transaction.
 
-const WELCOME_TIPS: Array<{ emoji: string; title: string; body: string; href: string; tone: Insight['tone'] }> = [
+const WELCOME_TIPS: Array<{
+  Icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+  title: string
+  body: string
+  href: string
+  tone: Insight['tone']
+}> = [
   {
-    emoji: '⚡',
+    Icon: PenLine,
     title: 'Mulai dari Tambah Cepat',
     body: 'Buka /Transaksi → bar inline di atas tabel. Tab antar field, Enter simpan. 5 detik per transaksi.',
     href: '/dashboard/transactions',
     tone: 'observation',
   },
   {
-    emoji: '✨',
+    Icon: Camera,
     title: 'Foto struk → otomatis tercatat',
-    body: 'Klik "Tambah Transaksi" → upload foto struk. Claude AI ekstrak merchant, tanggal, total, kategori dalam 3 detik.',
+    body: 'Klik "Tambah Transaksi" → upload foto struk. AI ekstrak merchant, tanggal, total, kategori dalam 3 detik.',
     href: '/dashboard/transactions',
     tone: 'positive',
   },
   {
-    emoji: '⌘',
+    Icon: CommandIcon,
     title: 'Tekan ⌘K dari mana aja',
     body: 'Quick add via natural language — ketik "indomaret 47rb cash", AI parse + langsung simpan ke akun default.',
     href: '/dashboard',
@@ -423,10 +429,10 @@ function WelcomeInsights() {
         </div>
         <div>
           <p className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>
-            Insight AI Personal — Siap Buat Kamu 🎉
+            Insight AI personal — siap kapan kamu mau.
           </p>
           <p className="text-[11px]" style={{ color: 'var(--ink-soft)' }}>
-            Mulai catat transaksi pertamamu, AI bakal kasih analisis pola pengeluaran dan saran konkret.
+            Catat transaksi pertama, AI bakal kasih analisis pola pengeluaran dan saran konkret.
           </p>
         </div>
       </div>
@@ -434,6 +440,7 @@ function WelcomeInsights() {
       <div className="grid gap-2.5 sm:grid-cols-3">
         {WELCOME_TIPS.map((tip, i) => {
           const t = TONE_STYLES[tip.tone]
+          const Icon = tip.Icon
           return (
             <a
               key={i}
@@ -443,10 +450,10 @@ function WelcomeInsights() {
             >
               <div className="flex items-start gap-2.5">
                 <div
-                  className="size-8 rounded-lg flex items-center justify-center text-base shrink-0"
-                  style={{ background: t.emoji_bg }}
+                  className="size-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: t.emoji_bg, color: t.tint }}
                 >
-                  {tip.emoji}
+                  <Icon className="size-4" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold leading-snug" style={{ color: 'var(--ink)' }}>

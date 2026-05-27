@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Menu, LogOut, ChevronDown, Search, Crown, Sun, Moon, Monitor, Eye, EyeOff, Plus } from 'lucide-react'
+import { Menu, LogOut, ChevronDown, Search, Crown, Sun, Moon, Monitor, Eye, EyeOff, Plus, Heart, HeartPulse, Lock } from 'lucide-react'
 import { useTheme } from '@/components/theme/theme-provider'
 import { usePrivacy } from '@/components/privacy/privacy-provider'
+import { useCalmMode } from '@/components/privacy/calm-mode-provider'
+import { useLock } from '@/components/security/lock-provider'
 import { AICreditsBadge } from '@/components/layout/ai-credits-badge'
 import { NAV_ITEMS, type NavItem } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/client'
@@ -70,6 +72,8 @@ export function Header({ user }: HeaderProps) {
   const t = useT()
   const { mode, setMode, resolved } = useTheme()
   const { hidden: privacyHidden, toggle: togglePrivacy } = usePrivacy()
+  const { calm, toggle: toggleCalm } = useCalmMode()
+  const { hasPin, lockNow } = useLock()
 
   // Cycle: light → dark → auto → light. Same pattern as the desktop avatar dropdown.
   function cycleTheme() {
@@ -185,13 +189,12 @@ export function Header({ user }: HeaderProps) {
         {/* AI Credits badge — current balance + cap, drops down for detail */}
         <AICreditsBadge />
 
-        {/* "+ Catat transaksi" black CTA per mockup line 84 — primary action
-            in the header, dispatches Cmd+K to open command palette quick-add. */}
+        {/* "+ Catat transaksi" CTA — opens QuickAddLauncher (foto struk / AI / manual).
+            Konsisten dengan FAB & mobile bottom-tab center button. */}
         <button
           type="button"
           onClick={() => {
-            const event = new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true })
-            window.dispatchEvent(event)
+            window.dispatchEvent(new CustomEvent('klunting:quick-add'))
           }}
           className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-[13px] font-semibold transition hover:opacity-90"
           style={{ background: 'var(--ink)', color: 'var(--surface)' }}
@@ -212,6 +215,36 @@ export function Header({ user }: HeaderProps) {
           {privacyHidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>
 
+        {/* Calm Mode toggle — kaburin angka loss biar gak ke-trigger panic-sell */}
+        <button
+          type="button"
+          onClick={toggleCalm}
+          className="size-8 rounded-md flex items-center justify-center transition hover:bg-[var(--surface-2)]"
+          style={{ color: calm ? '#EC4899' : 'var(--ink-muted)' }}
+          aria-label={calm ? 'Calm Mode aktif — klik untuk matikan' : 'Aktifkan Calm Mode (kaburin angka loss)'}
+          title={
+            calm
+              ? 'Calm Mode aktif — angka loss/merah dikaburkan. Klik untuk matikan.'
+              : 'Calm Mode — kaburin angka loss biar gak panic-sell saat market merah.'
+          }
+        >
+          {calm ? <HeartPulse className="size-4" /> : <Heart className="size-4" />}
+        </button>
+
+        {/* Lock now — only show kalau PIN aktif */}
+        {hasPin && (
+          <button
+            type="button"
+            onClick={lockNow}
+            className="size-8 rounded-md flex items-center justify-center transition hover:bg-[var(--surface-2)]"
+            style={{ color: 'var(--ink-muted)' }}
+            aria-label="Kunci app"
+            title="Kunci app sekarang (perlu PIN buat buka)"
+          >
+            <Lock className="size-4" />
+          </button>
+        )}
+
         <LanguageToggle />
         <AvatarMenu user={user} />
       </div>
@@ -220,7 +253,7 @@ export function Header({ user }: HeaderProps) {
         <SheetContent
           side="left"
           className="w-72 p-0 border-none"
-          style={{ backgroundColor: '#09090B' }}
+          style={{ backgroundColor: 'var(--black)' }}
         >
           <SheetHeader className="p-0">
             <div
@@ -304,6 +337,20 @@ export function Header({ user }: HeaderProps) {
               <span className="text-[10px] text-white/40">tap</span>
             </button>
 
+            {/* Calm Mode toggle — kaburin angka loss */}
+            <button
+              type="button"
+              onClick={toggleCalm}
+              className="flex w-full items-center gap-2 rounded-lg p-2 text-sm transition hover:bg-white/5"
+              style={{ color: '#E2E8F0' }}
+            >
+              {calm ? <HeartPulse className="size-4" style={{ color: '#EC4899' }} /> : <Heart className="size-4" />}
+              <span className="flex-1 text-left font-medium">
+                {calm ? 'Calm Mode aktif' : 'Calm Mode'}
+              </span>
+              <span className="text-[10px] text-white/40">tap</span>
+            </button>
+
             {/* Theme cycle — keep the sheet open after click so the user
                 can see the theme switch and tap again if they want. */}
             <button
@@ -316,6 +363,19 @@ export function Header({ user }: HeaderProps) {
               <span className="flex-1 text-left font-medium">{themeLabel}</span>
               <span className="text-[10px] text-white/40">tap utk ganti</span>
             </button>
+
+            {/* Lock now — only kalau PIN aktif */}
+            {hasPin && (
+              <button
+                type="button"
+                onClick={() => { lockNow(); setOpen(false) }}
+                className="flex w-full items-center gap-2 rounded-lg p-2 text-sm transition hover:bg-white/5"
+                style={{ color: '#E2E8F0' }}
+              >
+                <Lock className="size-4" />
+                <span className="flex-1 text-left font-medium">Kunci app sekarang</span>
+              </button>
+            )}
 
             {/* Logout */}
             <button
@@ -388,7 +448,7 @@ function MobileNav({
                 active
                   ? {
                       background:
-                        'linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.18))',
+                        'linear-gradient(135deg, rgba(16,185,129,0.28), rgba(5,150,105,0.18))',
                     }
                   : undefined
               }

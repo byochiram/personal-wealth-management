@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
-import { QuickAddFab } from '@/components/layout/quick-add-fab'
+import { QuickAddLauncher } from '@/components/layout/quick-add-launcher'
 import { CommandPalette } from '@/components/layout/command-palette'
 import { BottomTabBar } from '@/components/layout/bottom-tab-bar'
 import { InstallPrompt } from '@/components/layout/install-prompt'
@@ -34,9 +34,13 @@ export default async function DashboardLayout({
           <div className="mx-auto max-w-[1400px]">{children}</div>
         </main>
       </div>
-      {/* Floating + button — desktop only (mobile uses bottom tab bar's center FAB) */}
+      {/* QuickAddLauncher — renders FAB on desktop, listens to klunting:quick-add
+          event on mobile (fired from BottomTabBar center button). */}
       <div className="hidden md:block">
-        <QuickAddFab />
+        <QuickAddLauncher variant="desktop" />
+      </div>
+      <div className="md:hidden">
+        <QuickAddLauncher variant="mobile" />
       </div>
       <CommandPalette />
       <BottomTabBar />

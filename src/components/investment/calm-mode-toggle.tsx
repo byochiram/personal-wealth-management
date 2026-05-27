@@ -1,50 +1,15 @@
 'use client'
 
 /**
- * Calm Mode Toggle — anti-panic UX for investment views.
- *
- * Loss aversion (Kahneman-Tversky 1979): kerugian terasa ~2× lebih sakit
- * daripada keuntungan setara. Ini bikin investor panik saat market turun
- * dan jual di waktu salah. Solusinya: kurangi salience P/L harian saat
- * pasar bergejolak.
- *
- * Saat Calm Mode ON:
- *   - Body attribute `data-calm="true"` di-set
- *   - CSS rule blur warna merah (loss colors)
- *   - User bisa toggle off kapan saja
- *
- * Persisted di localStorage. Cuma global state, ngga sync server.
+ * Calm Mode Toggle — anti-panic UX. Now reads/writes via CalmModeProvider
+ * so multiple instances (header + profile + investment page) stay in sync.
  */
 
-import { useEffect, useState } from 'react'
 import { Heart, HeartPulse } from 'lucide-react'
-
-const STORAGE_KEY = 'pwm.calm-mode'
+import { useCalmMode } from '@/components/privacy/calm-mode-provider'
 
 export function CalmModeToggle({ compact = false }: { compact?: boolean }) {
-  const [calm, setCalm] = useState(false)
-
-  // Read initial state
-  useEffect(() => {
-    try {
-      setCalm(localStorage.getItem(STORAGE_KEY) === 'true')
-    } catch { /* ignore */ }
-  }, [])
-
-  // Mirror to body attribute so CSS can target globally
-  useEffect(() => {
-    if (typeof document === 'undefined') return
-    if (calm) document.body.setAttribute('data-calm', 'true')
-    else document.body.removeAttribute('data-calm')
-  }, [calm])
-
-  function toggle() {
-    const next = !calm
-    setCalm(next)
-    try {
-      localStorage.setItem(STORAGE_KEY, String(next))
-    } catch { /* ignore */ }
-  }
+  const { calm, toggle } = useCalmMode()
 
   if (compact) {
     return (

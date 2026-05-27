@@ -37,7 +37,7 @@
       "name": "Tambah Transaksi",
       "short_name": "+ Transaksi",
       "description": "Catat transaksi baru cepat dengan AI",
-      "url": "/dashboard/transactions?quickadd=1",
+      "url": "/dashboard?quickadd=1",
       "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {

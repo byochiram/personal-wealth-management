@@ -153,9 +153,9 @@ export function CashFlowForecast({
         <div className="flex items-start gap-3 mb-2">
           <div
             className="size-9 rounded-lg flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(99,102,241,0.10)' }}
+            style={{ background: 'rgba(14,165,233,0.12)' }}
           >
-            <Calendar className="size-4" style={{ color: '#6366F1' }} />
+            <Calendar className="size-4" style={{ color: 'var(--sky-600)' }} />
           </div>
           <div>
             <p className="caps">Forecast Saldo</p>

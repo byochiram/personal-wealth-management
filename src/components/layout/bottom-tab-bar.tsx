@@ -4,13 +4,8 @@
  * Bottom tab bar — mobile primary navigation.
  *
  * Visible on mobile only (hidden md+). 5-item iOS-style layout with
- * an elevated center "+" button that opens the Cmd+K palette for
- * AI-powered quick-add (natural language: "indomaret 47rb cash").
- *
- * Why Cmd+K vs the inline form bar?
- * - Inline form needs Tab navigation between fields = bad on mobile
- * - Natural language input is one tap + voice/text = much faster on phone
- * - Reuses existing AI parsing flow, no duplicate code
+ * an elevated center "+" button that opens the QuickAddLauncher sheet
+ * (foto struk / AI / form manual).
  */
 
 import Link from 'next/link'
@@ -37,15 +32,9 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + '/')
 }
 
-function openCommandPalette() {
-  // Dispatch the same keyboard event the palette listens for
-  const event = new KeyboardEvent('keydown', {
-    key: 'k',
-    metaKey: true,
-    ctrlKey: true,
-    bubbles: true,
-  })
-  window.dispatchEvent(event)
+function openQuickAdd() {
+  // QuickAddLauncher listens for this event globally
+  window.dispatchEvent(new CustomEvent('klunting:quick-add'))
 }
 
 export function BottomTabBar() {
@@ -68,18 +57,18 @@ export function BottomTabBar() {
           <TabLink key={tab.href} tab={tab} active={isActive(pathname, tab.href)} />
         ))}
 
-        {/* Center FAB — elevated, emerald, opens Cmd+K palette */}
+        {/* Center FAB — buka quick-add sheet (foto struk / AI / form manual) */}
         <div className="flex justify-center">
           <button
             type="button"
-            onClick={openCommandPalette}
+            onClick={openQuickAdd}
             className="relative -translate-y-3 size-14 rounded-full flex items-center justify-center shadow-lg transition active:scale-95"
             style={{
               background: 'linear-gradient(135deg, var(--emerald-500), var(--emerald-600))',
               color: '#FFFFFF',
               boxShadow: '0 8px 20px -4px rgba(16, 185, 129, 0.40)',
             }}
-            aria-label="Tambah transaksi cepat dengan AI"
+            aria-label="Tambah transaksi"
           >
             <Plus className="size-6 stroke-[2.5]" />
           </button>

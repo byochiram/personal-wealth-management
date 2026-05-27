@@ -203,18 +203,18 @@ export default function DebtStrategyPage() {
                     key={d.id}
                     className={`relative overflow-hidden rounded-xl p-4 border flex items-center justify-between transition-all ${focus ? 'ring-2' : ''}`}
                     style={{
-                      background: focus ? 'var(--indigo-50)' : 'var(--surface)',
-                      borderColor: focus ? 'var(--indigo-500)' : 'var(--border-soft)',
+                      background: focus ? 'var(--emerald-50)' : 'var(--surface)',
+                      borderColor: focus ? 'var(--emerald-500)' : 'var(--border-soft)',
                     }}
                   >
                     {focus && (
-                      <div className="pointer-events-none absolute inset-0 opacity-50" style={{ background: 'radial-gradient(circle at top right, rgba(99,102,241,0.15), transparent 60%)' }} />
+                      <div className="pointer-events-none absolute inset-0 opacity-50" style={{ background: 'radial-gradient(circle at top right, rgba(16,185,129,0.18), transparent 60%)' }} />
                     )}
                     <div className="relative flex items-center gap-3">
                       <span
                         className="flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold"
                         style={{
-                          background: focus ? 'linear-gradient(135deg, #6366F1, #EC4899)' : 'var(--surface-alt)',
+                          background: focus ? 'linear-gradient(135deg, var(--emerald-500), var(--emerald-700))' : 'var(--surface-alt)',
                           color: focus ? '#FFF' : 'var(--ink-muted)',
                         }}
                       >

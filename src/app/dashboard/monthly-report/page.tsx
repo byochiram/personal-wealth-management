@@ -376,7 +376,7 @@ export default function MonthlyReportPage() {
             {/* Footer note (screen only) */}
             <div className="rounded-lg border bg-muted/30 p-4 text-center no-print">
               <p className="text-sm text-muted-foreground">
-                💡 Klik <strong>Cetak / Simpan PDF</strong> untuk export laporan ini.
+                Klik <strong>Cetak / Simpan PDF</strong> di atas buat export laporan ini.
                 Di dialog browser, pilih <strong>&quot;Save as PDF&quot;</strong> sebagai destination — quality vector, file ringan, text searchable.
               </p>
             </div>
